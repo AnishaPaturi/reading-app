@@ -1,0 +1,38 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+Thumbs.db
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Flutter / Dart
+frontend/reading_sanctuary_app/.dart_tool/
+frontend/reading_sanctuary_app/.flutter-plugins
+frontend/reading_sanctuary_app/.flutter-plugins-dependencies
+frontend/reading_sanctuary_app/.packages
+frontend/reading_sanctuary_app/.pub-cache/
+frontend/reading_sanctuary_app/.pub/
+frontend/reading_sanctuary_app/build/
+
+# Node / Backend
+node_modules/
+dist/
+coverage/
+*.lcov
+
+# Docker
+docker-compose.override.yml

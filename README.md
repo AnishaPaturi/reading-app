@@ -1127,3 +1127,71 @@ GitHub: https://github.com/AnishaPaturi/reading-app
 **Project Name:** Reading Sanctuary
 
 **Tagline:** Your books. Your thoughts. Your sanctuary.
+
+---
+
+# 20. Running the Frontend
+
+To run the Flutter frontend, follow the steps below:
+
+### Step 1: Open the Frontend Directory
+
+Open your terminal and navigate to the Flutter project folder:
+
+```powershell
+cd frontend\reading_sanctuary_app
+```
+
+### Step 2: Choose Your Target Device
+
+#### Option A: Run in the Web Browser (Fastest / Recommended for Development)
+
+Your system already has Google Chrome and Microsoft Edge detected.
+
+Run on Google Chrome:
+
+```powershell
+flutter run -d chrome
+```
+
+Run on Microsoft Edge:
+
+```powershell
+flutter run -d edge
+```
+
+#### Option B: Run on an Android Emulator
+
+You have two configured Android Virtual Devices (`Medium_Phone_API_36.1` and `Pixel_5`):
+
+1. Launch the emulator:
+   ```powershell
+   flutter emulators --launch Pixel_5
+   ```
+   *(or launch `Medium_Phone_API_36.1`)*
+
+2. Run the app:
+   ```powershell
+   flutter run
+   ```
+
+#### Option C: Run on Windows Desktop
+
+To run natively as a Windows desktop application:
+
+1. Ensure Developer Mode is turned on in Windows Settings (run `start ms-settings:developers`).
+2. Run:
+   ```powershell
+   flutter run -d windows
+   ```
+
+### Useful Commands
+
+| Task | Command |
+|---|---|
+| Run unit & widget tests | `flutter test` |
+| Check for lint or code issues | `flutter analyze` |
+| Check connected devices | `flutter devices` |
+| Hot reload during active run | Press `r` in the terminal |
+| Hot restart during active run | Press `R` in the terminal |
+| Stop running app | Press `q` in the terminal |

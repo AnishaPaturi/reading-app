@@ -32,7 +32,7 @@ The goal is to recreate the comfort and organization of a personal library while
 | Version Control | Git & GitHub |
 | Containerization | Docker |
 | Development IDE | VS Code |
-| Target Platforms | Android, iOS and Web |
+| Target Platforms | Android, iOS, Web and Windows Desktop |
 
 ## 2. The Problem Statement
 
@@ -588,64 +588,67 @@ reading-app/
 ├── frontend/
 │   └── reading_sanctuary_app/
 │       │
-│       ├── android/
-│       ├── ios/
-│       ├── web/
-│       ├── test/
-│       │
-│       ├── assets/
-│       │   ├── images/
-│       │   ├── icons/
-│       │   ├── fonts/
-│       │   └── animations/
+│       ├── android/                       # Android native project and Gradle setup
+│       ├── ios/                           # iOS native project and Xcode runner
+│       ├── web/                           # Flutter Web entry point, manifest, and icons
+│       ├── windows/                       # Windows native C++ desktop runner and CMake
 │       │
 │       ├── lib/
-│       │   │
-│       │   ├── main.dart
+│       │   ├── main.dart                  # Application entry point with ProviderScope
 │       │   │
 │       │   ├── app/
-│       │   │   ├── app.dart
-│       │   │   ├── router.dart
+│       │   │   ├── app.dart               # Root widget & MaterialApp.router configuration
+│       │   │   ├── router.dart            # GoRouter configuration & ShellRoute navigation
 │       │   │   └── theme/
-│       │   │       ├── app_theme.dart
-│       │   │       ├── colors.dart
-│       │   │       └── typography.dart
+│       │   │       ├── app_colors.dart    # Cozy Library / Dark Academia color palette
+│       │   │       └── app_theme.dart     # Dark Academia & Warm Parchment ThemeData
 │       │   │
 │       │   ├── core/
-│       │   │   ├── constants/
-│       │   │   ├── errors/
-│       │   │   ├── network/
-│       │   │   ├── storage/
 │       │   │   ├── utils/
+│       │   │   │   ├── breakpoints.dart   # Responsive screen breakpoints (mobile/tablet/desktop)
+│       │   │   │   └── time_ago.dart      # Relative timestamp formatter helper
 │       │   │   └── widgets/
+│       │   │       ├── book_cover.dart    # Adaptive & procedural book cover widget
+│       │   │       └── common_widgets.dart# Reusable UI components (SanctuaryCard, StatPill, StatusBadge)
 │       │   │
 │       │   ├── features/
-│       │   │   │
-│       │   │   ├── authentication/
-│       │   │   │   ├── data/
-│       │   │   │   ├── domain/
-│       │   │   │   └── presentation/
-│       │   │   │
+│       │   │   ├── shell/
+│       │   │   │   ├── app_shell.dart     # Responsive layout shell (BottomNav vs Sidebar)
+│       │   │   │   ├── destinations.dart  # Navigation destination routes and icons
+│       │   │   │   └── sidebar.dart       # Collapsible sidebar for desktop and web
+│       │   │   ├── splash/
+│       │   │   │   └── splash_screen.dart # Splash screen with animated branding
 │       │   │   ├── home/
+│       │   │   │   └── home_screen.dart   # Home dashboard (resume reading, statistics, recommendations)
 │       │   │   ├── library/
-│       │   │   ├── bookshelf/
+│       │   │   │   ├── library_screen.dart# Library grid with search and status tabs
+│       │   │   │   └── library_logic.dart # Search query & status filtering business logic
 │       │   │   ├── book_details/
-│       │   │   ├── ebook_reader/
-│       │   │   ├── audiobook_player/
-│       │   │   ├── annotations/
-│       │   │   ├── journal/
-│       │   │   ├── reading_tracker/
-│       │   │   ├── collections/
-│       │   │   ├── search/
-│       │   │   ├── statistics/
-│       │   │   └── settings/
+│       │   │   │   └── book_details_screen.dart # Book details view with status changer
+│       │   │   ├── placeholder/
+│       │   │   │   └── placeholder_screen.dart  # Milestone placeholder screen
+│       │   │   ├── annotations/           # Milestone placeholder (planned)
+│       │   │   ├── audiobook/             # Milestone placeholder (planned)
+│       │   │   ├── authentication/        # Milestone placeholder (planned)
+│       │   │   ├── bookshelf/             # Milestone placeholder (planned)
+│       │   │   ├── journal/               # Milestone placeholder (planned)
+│       │   │   ├── profile/               # Milestone placeholder (planned)
+│       │   │   └── reader/                # Milestone placeholder (planned)
 │       │   │
 │       │   └── shared/
 │       │       ├── models/
-│       │       ├── services/
-│       │       └── components/
+│       │       │   └── book.dart          # Book data model & ReadingStatus enum
+│       │       └── services/
+│       │           ├── book_repository.dart # Book repository & MockBookRepository sample data
+│       │           └── providers.dart       # Riverpod state providers
 │       │
-│       └── pubspec.yaml
+│       ├── test/
+│       │   └── library_logic_test.dart    # Unit & logic tests (search, filter, DNF, repo)
+│       │
+│       ├── analysis_options.yaml          # Dart analysis and linter rules
+│       ├── pubspec.yaml                   # Flutter dependencies and project metadata
+│       ├── pubspec.lock                   # Lockfile for reproducible dependencies
+│       └── README.md                      # Frontend-specific documentation
 │
 ├── backend/
 │   └── reading-sanctuary-api/
@@ -1084,7 +1087,7 @@ The following principles will guide implementation:
 | PostgreSQL 18 | Installed and running |
 | pgAdmin 4 | Installed and connected |
 | GitHub repository | Created |
-| Flutter frontend | To be initialized |
+| Flutter frontend | Milestone 1 (Foundation) Implemented & Tested |
 | Spring Boot backend | To be initialized |
 | Database schema | Pending |
 | API implementation | Pending |
@@ -1195,3 +1198,105 @@ To run natively as a Windows desktop application:
 | Hot reload during active run | Press `r` in the terminal |
 | Hot restart during active run | Press `R` in the terminal |
 | Stop running app | Press `q` in the terminal |
+
+---
+
+# 21. Frontend Architecture & File Directory
+
+The frontend is built using **Flutter & Dart** following a modular, feature-first architecture with **Riverpod** for reactive state management, **GoRouter** for declarative navigation with an adaptive shell, and a custom **Dark Academia** and **Warm Parchment** design system.
+
+### 21.1 Core Frontend Technologies & Libraries
+
+| Package / Tool | Version | Purpose |
+|---|---|---|
+| `flutter` | `>=3.3.0 <4.0.0` | Cross-platform UI framework targeting Web, Android, iOS, and Windows |
+| `flutter_riverpod` | `^2.5.1` | Reactive, compile-safe state management across the application |
+| `go_router` | `^14.2.0` | Declarative routing, deep linking, and ShellRoute adaptive navigation |
+| `google_fonts` | `^6.2.1` | Typography pairing for the Dark Academia aesthetic (Cinzel, Lora, Faustina) |
+| `intl` | `^0.19.0` | Number, currency, and date/time formatting |
+| `flutter_test` | SDK | Unit, widget, and logic testing framework |
+| `flutter_lints` | `^4.0.0` | Official recommended Dart code style and analysis rules |
+
+---
+
+### 21.2 Complete Frontend File Guide
+
+All frontend source code is located within `frontend/reading_sanctuary_app/`. Below is a breakdown of all files and their roles:
+
+#### A. Entry Point & Application Setup (`lib/`)
+
+| File Path | Description & Responsibility |
+|---|---|
+| `lib/main.dart` | Application entry point. Wraps the app in a `ProviderScope` to enable Riverpod state management and runs `ReadingSanctuaryApp`. |
+| `lib/app/app.dart` | Root application widget (`ReadingSanctuaryApp`). Configures `MaterialApp.router` with the central GoRouter instance, application titles, and light/dark theme data. |
+| `lib/app/router.dart` | Central routing configuration using GoRouter. Implements `ShellRoute` to wrap primary screens with the adaptive `AppShell`, defines top-level routes (`/splash`, `/`, `/library`, `/book/:id`), and registers placeholder routes for upcoming milestone features. |
+
+#### B. Theme System (`lib/app/theme/`)
+
+| File Path | Description & Responsibility |
+|---|---|
+| `lib/app/theme/app_colors.dart` | Color palette defining the Cozy Library / Dark Academia and Warm Parchment aesthetic. Defines ebony/obsidian backgrounds, antique gold accents, burgundy, sage green, card surfaces, and reading status indicator colors. |
+| `lib/app/theme/app_theme.dart` | Produces `ThemeData` for dark mode ("Dark Academia") and light mode ("Warm Parchment"). Sets up typography using Google Fonts (Cinzel for headers, Faustina and Lora for body and quotes), card styling, navigation bar/rail themes, and button styles. |
+
+#### C. Core Utilities & Reusable Widgets (`lib/core/`)
+
+| File Path | Description & Responsibility |
+|---|---|
+| `lib/core/utils/breakpoints.dart` | Responsive design utilities defining `AppBreakpoints` (`mobile: <600`, `tablet: 600-1024`, `desktop: >1024`) and helper methods to query active screen form factors (`isCompact`, `isMedium`, `isExpanded`). |
+| `lib/core/utils/time_ago.dart` | Timestamp formatting utility converting `DateTime` instances into clean, relative time strings (e.g., "Just now", "5m ago", "2 hours ago", "Yesterday"). |
+| `lib/core/widgets/book_cover.dart` | Flexible book cover component (`BookCover`). Renders custom cover images, with a procedural fallback displaying an ornate Dark Academia frame, title typography, author name, and aspect ratio handling. |
+| `lib/core/widgets/common_widgets.dart` | Foundational UI building blocks: `SanctuaryCard` (styled container with parchment border and elevation), `SectionHeader` (ornate heading with optional action link), `StatPill` (compact stat display), and `StatusBadge` (reading status tag with matching color token). |
+
+#### D. Shell & Navigation (`lib/features/shell/`)
+
+| File Path | Description & Responsibility |
+|---|---|
+| `lib/features/shell/app_shell.dart` | Master responsive scaffold wrapping active routes. Automatically swaps between a bottom navigation bar on mobile/compact screens and a collapsible sidebar navigation on tablet, desktop, and web. |
+| `lib/features/shell/destinations.dart` | Defines the `NavDestination` model and the full destination list (Home, Library, Bookshelves, Reader, Audiobooks, Journal, Stats, Settings) with route paths, icons, and badge support. |
+| `lib/features/shell/sidebar.dart` | Collapsible sidebar component for wide screens. Includes header branding, navigation item tiles with active indicator styling, collapse/expand toggle, and profile/settings shortcut. |
+
+#### E. Feature Screens & Logic (`lib/features/`)
+
+| File Path | Description & Responsibility |
+|---|---|
+| `lib/features/splash/splash_screen.dart` | Launch screen displaying app branding, animated logo icon, and sanctuary tagline, automatically navigating to the Home dashboard. |
+| `lib/features/home/home_screen.dart` | Home dashboard. Features a "Currently Reading" hero card with progress bar and quick resume action, quick stats pills (Books Read, Current Streak, Hours Spent), and an "Up Next / Recommendations" book carousel. |
+| `lib/features/library/library_screen.dart` | Main library catalog screen. Provides live instant search, reading status filter chips (All, Reading, Want to Read, Completed, DNF), layout toggle, and an adaptive responsive grid of book cards. |
+| `lib/features/library/library_logic.dart` | Pure functional business logic for searching and filtering books (`filterBooks`), supporting multi-attribute search (title, author, genre) combined with reading status sets. |
+| `lib/features/book_details/book_details_screen.dart` | Comprehensive book view. Displays full-size book cover, title, author, rating stars, genre tags, synopses, reading progress, and an interactive status selector dropdown allowing users to change reading states. |
+| `lib/features/placeholder/placeholder_screen.dart` | Standardized placeholder screen for upcoming milestones (Bookshelves, Ebook Reader, Audiobook Player, Annotations, Journal, Statistics, and Settings). |
+
+#### F. Shared Data Layer & State Management (`lib/shared/`)
+
+| File Path | Description & Responsibility |
+|---|---|
+| `lib/shared/models/book.dart` | Domain model `Book` and `ReadingStatus` enum (`wantToRead`, `currentlyReading`, `completed`, `dnf`). Contains fields for ID, title, author, cover URL, total pages, current page, rating, genre, tags, and timestamps. |
+| `lib/shared/services/book_repository.dart` | `BookRepository` interface and `MockBookRepository` implementation. Provides an initial curated collection of sample classics and contemporary titles with asynchronous CRUD operations and state updating. |
+| `lib/shared/services/providers.dart` | Riverpod providers: `bookRepositoryProvider` (repository instance), `booksProvider` (reactive state notifier managing book lists and updates), and `isSidebarCollapsedProvider` (sidebar collapse state). |
+
+#### G. Platform Runners & Configuration
+
+| File Path | Description & Responsibility |
+|---|---|
+| `android/` | Android project files, manifest (`AndroidManifest.xml`), Gradle build scripts (`build.gradle.kts`), and launcher icons. |
+| `ios/` | iOS runner project (`Runner.xcodeproj`, `AppDelegate.swift`, `Info.plist`, asset catalogs). |
+| `web/` | Web entry point (`index.html`), web app manifest (`manifest.json`), and favicon/touch icons. |
+| `windows/` | Native C++ Windows desktop runner (`main.cpp`, `Runner.rc`, `CMakeLists.txt`, `flutter_window.cpp`). |
+| `pubspec.yaml` | Flutter package manifest declaring dependencies, fonts, assets, and project version. |
+| `analysis_options.yaml` | Dart static analysis configuration specifying linting rules for clean, idiomatic code. |
+
+#### H. Automated Tests (`test/`)
+
+| File Path | Description & Responsibility |
+|---|---|
+| `test/library_logic_test.dart` | Unit and logic tests validating sample data integrity (12+ books), multi-attribute search filtering, combined status filtering, preservation of progress on DNF transition, and screen breakpoint classification. |
+
+---
+
+### 21.3 Key Architectural Patterns
+
+1. **Feature-Driven Structure**: Each domain is organized inside `lib/features/` with isolated screens and logic, making it simple to scale as new milestones are completed.
+2. **Unidirectional Data Flow**: State is managed via Riverpod `StateNotifierProvider`. UI widgets dispatch actions to `booksProvider.notifier`, which updates state immutably and notifies listening widgets.
+3. **Adaptive UI**: Responsive layouts adapt between mobile (bottom navigation) and desktop/web (collapsible navigation rail/sidebar) using `AppBreakpoints` without duplicating screen logic.
+4. **Resilient Data Contracts**: Domain models like `Book` and `ReadingStatus` are designed to support offline local SQLite caching and future synchronization with the Spring Boot REST backend.
+

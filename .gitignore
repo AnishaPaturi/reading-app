@@ -33,6 +33,8 @@ node_modules/
 dist/
 coverage/
 *.lcov
+backend/reading-sanctuary-api/target/
+backend/reading-sanctuary-api/src/test/resources/application.properties
 
 # Docker
 docker-compose.override.yml

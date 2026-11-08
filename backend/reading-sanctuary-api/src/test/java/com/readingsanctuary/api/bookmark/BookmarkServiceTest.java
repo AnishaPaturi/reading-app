@@ -62,7 +62,7 @@ class BookmarkServiceTest {
         fileId = UUID.randomUUID();
 
         book = new Book();
-        book.setId(bookId);
+        ReflectionTestUtils.setField(book, "id", bookId);
 
         pdfFile = new BookFile();
         ReflectionTestUtils.setField(pdfFile, "id", fileId);

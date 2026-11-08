@@ -52,7 +52,7 @@ class BookNoteServiceTest {
         bookId = UUID.randomUUID();
 
         book = new Book();
-        book.setId(bookId);
+        ReflectionTestUtils.setField(book, "id", bookId);
     }
 
     @Test

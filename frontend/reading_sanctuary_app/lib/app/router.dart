@@ -19,6 +19,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
+      ...readerRoutes,
       // Reader / audiobook player will live OUTSIDE the shell (immersive) in Milestone 4/6.
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.uri.path, child: child),

@@ -50,7 +50,8 @@ class ReadingScreen extends ConsumerWidget {
                               const SizedBox(height: 8),
                               Wrap(spacing: 8, children: [
                                 FilledButton(
-                                    onPressed: () => context.go('/read'),
+                                    onPressed: () => context.push(
+                                        '/reader/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&format=PDF'),
                                     child: Text(s == ReadingStatus.onHold ? 'Resume' : 'Continue Reading')),
                                 TextButton(
                                     onPressed: () => context.push('/book/${b.id}'), child: const Text('Details')),

@@ -113,7 +113,16 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                     const SizedBox(height: 20),
                     Wrap(spacing: 10, runSpacing: 10, children: [
                       FilledButton.icon(
-                        onPressed: () => context.go('/read'),
+                        onPressed: () {
+                          if (_format == 2) {
+                            context.push('/read');
+                          } else {
+                            final formatName = _format == 1 ? 'EPUB' : 'PDF';
+                            context.push(
+                              '/reader/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&format=$formatName',
+                            );
+                          }
+                        },
                         icon: Icon(_format == 2 ? Icons.headphones : Icons.menu_book),
                         label: Text(_format == 2
                             ? 'Listen Now'

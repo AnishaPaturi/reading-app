@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/reader_annotations.dart';
 import '../../data/models/reader_document.dart';
 import '../../data/models/reader_position.dart';
+import '../../data/models/reader_settings.dart';
 import '../../domain/enums/reader_file_type.dart';
 import '../providers/reader_provider.dart';
 import '../providers/reader_settings_provider.dart';

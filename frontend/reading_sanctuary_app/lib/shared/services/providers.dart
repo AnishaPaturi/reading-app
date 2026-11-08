@@ -13,6 +13,18 @@ class BooksNotifier extends AsyncNotifier<List<Book>> {
     await repo.updateStatus(id, status);
     state = AsyncData(await repo.getBooks());
   }
+
+  Future<void> addBook(Book book) async {
+    final repo = ref.read(bookRepositoryProvider);
+    await repo.addBook(book);
+    state = AsyncData(await repo.getBooks());
+  }
+
+  Future<void> setProgress(String id, double progress) async {
+    final repo = ref.read(bookRepositoryProvider);
+    await repo.updateProgress(id, progress);
+    state = AsyncData(await repo.getBooks());
+  }
 }
 
 final booksProvider = AsyncNotifierProvider<BooksNotifier, List<Book>>(BooksNotifier.new);

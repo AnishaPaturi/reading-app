@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/utils/time_ago.dart';
 import '../../core/widgets/book_cover.dart';
+import '../../core/widgets/bookshelf.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
@@ -50,6 +51,7 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(_greeting(), style: Theme.of(context).textTheme.headlineMedium),
                   Text(DateFormat('EEEE, d MMMM').format(DateTime.now())),
+                  _ReadingGoalHero(books: books),
                   wide
                       ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Expanded(child: main),
@@ -253,5 +255,43 @@ class _QuickActions extends StatelessWidget {
         a('Statistics', Icons.insights_outlined, '/statistics'),
       ]),
     ]);
+  }
+}
+
+class _ReadingGoalHero extends StatelessWidget {
+  const _ReadingGoalHero({required this.books});
+  final List<Book> books;
+
+  static const _yearlyGoal = 50; // sample until the Goals screen (Milestone 5)
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final read = books.where((b) => b.status == ReadingStatus.completed).length;
+    final tbr = books.where((b) => b.status == ReadingStatus.wantToRead).length;
+    final left = (_yearlyGoal - read).clamp(0, _yearlyGoal);
+    Widget box(String n, String label) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(border: Border.all(color: AppColors.gold.withAlpha(120))),
+            child: Column(children: [
+              Text(n, style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+              Text(label, style: t.bodySmall),
+            ]),
+          ),
+        );
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(children: [
+        Text('${DateTime.now().year} Reading Goal', style: t.headlineMedium),
+        const SizedBox(height: 12),
+        Row(children: [box('$tbr', 'in TBR'), box('$_yearlyGoal', 'in Goal'), box('$read', 'Read')]),
+        const SizedBox(height: 8),
+        Text('You have $left books left to complete your yearly reading goal',
+            textAlign: TextAlign.center, style: t.bodySmall),
+        const SizedBox(height: 20),
+        BookshelfView(books: books),
+      ]),
+    );
   }
 }

@@ -115,7 +115,6 @@ class _BottomNav extends StatelessWidget {
               Expanded(
                 child: _BottomItem(
                   dest: primaryDestinations[i],
-                  emphasized: i == 2,
                   selected: location == primaryDestinations[i].path ||
                       location.startsWith('${primaryDestinations[i].path}/'),
                 ),
@@ -128,9 +127,8 @@ class _BottomNav extends StatelessWidget {
 }
 
 class _BottomItem extends StatelessWidget {
-  const _BottomItem({required this.dest, required this.emphasized, required this.selected});
+  const _BottomItem({required this.dest, required this.selected});
   final NavDest dest;
-  final bool emphasized;
   final bool selected;
 
   @override
@@ -143,18 +141,17 @@ class _BottomItem extends StatelessWidget {
       child: InkWell(
         onTap: () => context.go(dest.path),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          if (emphasized)
-            Container(
-              width: 44,
-              height: 44,
-              decoration: const BoxDecoration(color: AppColors.gold, shape: BoxShape.circle),
-              child: const Icon(Icons.auto_stories, color: AppColors.espresso),
-            )
-          else ...[
-            Icon(dest.icon, color: color),
-            const SizedBox(height: 2),
-            Text(dest.label, style: TextStyle(fontSize: 11, color: color)),
-          ],
+          Container(
+            width: 52,
+            height: 30,
+            decoration: BoxDecoration(
+              color: selected ? AppColors.gold.withAlpha(40) : null,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(dest.icon, color: color, size: 22),
+          ),
+          const SizedBox(height: 2),
+          Text(dest.label, style: TextStyle(fontSize: 11, color: color)),
         ]),
       ),
     );

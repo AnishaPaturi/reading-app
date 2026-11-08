@@ -29,6 +29,9 @@ class Book {
     required this.coverColors,
     this.rating,
     this.lastOpenedAt,
+    this.tropes = const [],
+    this.series,
+    this.avgRating,
   });
 
   final String id;
@@ -44,10 +47,13 @@ class Book {
   final DateTime? lastOpenedAt;
   final double? rating;
   final List<Color> coverColors;
+  final List<String> tropes;
+  final String? series;
+  final double? avgRating; // community rating (sample data for now)
 
   int get currentPage => (pages * progress).round();
 
-  Book copyWith({ReadingStatus? status, double? progress, DateTime? lastOpenedAt}) => Book(
+  Book copyWith({ReadingStatus? status, double? progress, DateTime? lastOpenedAt, DateTime? addedAt}) => Book(
         id: id,
         title: title,
         author: author,
@@ -57,9 +63,12 @@ class Book {
         progress: progress ?? this.progress,
         pages: pages,
         formats: formats,
-        addedAt: addedAt,
+        addedAt: addedAt ?? this.addedAt,
         coverColors: coverColors,
         rating: rating,
         lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
+        tropes: tropes,
+        series: series,
+        avgRating: avgRating,
       );
 }

@@ -38,7 +38,7 @@ class BookCover extends StatelessWidget {
                       textAlign: TextAlign.center,
                       maxLines: 5,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.cormorantGaramond(
+                      style: GoogleFonts.playfairDisplay(
                           fontSize: w * 0.13, fontWeight: FontWeight.w700,
                           color: AppColors.ivory, height: 1.05)),
                   SizedBox(height: w * 0.06),

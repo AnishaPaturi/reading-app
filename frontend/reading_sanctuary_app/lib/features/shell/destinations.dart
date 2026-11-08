@@ -10,8 +10,8 @@ class NavDest {
 const primaryDestinations = [
   NavDest('Home', '/home', Icons.home_outlined),
   NavDest('Library', '/library', Icons.local_library_outlined),
-  NavDest('Read', '/read', Icons.auto_stories),
-  NavDest('Journal', '/journal', Icons.edit_note),
+  NavDest('Discover', '/discover', Icons.explore_outlined),
+  NavDest('Reading', '/reading', Icons.auto_stories_outlined),
   NavDest('Profile', '/profile', Icons.person_outline),
 ];
 
@@ -19,6 +19,7 @@ const primaryDestinations = [
 const sidebarDestinations = [
   NavDest('Home', '/home', Icons.home_outlined),
   NavDest('My Library', '/library', Icons.local_library_outlined),
+  NavDest('Discover', '/discover', Icons.explore_outlined),
   NavDest('Bookshelves', '/bookshelves', Icons.view_week_outlined),
   NavDest('Currently Reading', '/tracker/reading', Icons.auto_stories_outlined),
   NavDest('Want to Read', '/tracker/tbr', Icons.bookmark_add_outlined),
@@ -39,7 +40,7 @@ class PlaceholderInfo {
 }
 
 const placeholders = <String, PlaceholderInfo>{
-  '/read': PlaceholderInfo('Read', 4, 'The PDF / EPUB / DOCX reader with highlights and bookmarks.'),
+  '/read': PlaceholderInfo('Reader', 4, 'The PDF / EPUB / DOCX reader with highlights and bookmarks.'),
   '/journal': PlaceholderInfo('Journal', 5, 'Your reading journal and book notes.'),
   '/profile': PlaceholderInfo('Profile', 7, 'Profile, preferences and sign out.'),
   '/bookshelves': PlaceholderInfo('Bookshelves', 3, 'Collections and the bookshelf view.'),

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/book_details/book_details_screen.dart';
+import '../features/discover/presentation/discover_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/reading/reading_screen.dart';
 import '../features/library/library_screen.dart';
 import '../features/placeholder/placeholder_screen.dart';
 import '../features/shell/app_shell.dart';
@@ -22,6 +24,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/home', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/library', pageBuilder: (c, s) => _page(s, const LibraryScreen())),
+          GoRoute(path: '/discover', pageBuilder: (c, s) => _page(s, const DiscoverScreen())),
+          GoRoute(path: '/reading', pageBuilder: (c, s) => _page(s, const ReadingScreen())),
           GoRoute(
             path: '/book/:id',
             pageBuilder: (c, s) =>

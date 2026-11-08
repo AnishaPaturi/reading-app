@@ -21,7 +21,7 @@ abstract final class AppTheme {
   static ThemeData parchment() => _build(Brightness.light);
 
   static TextStyle serif(TextStyle? base, {FontWeight weight = FontWeight.w600}) =>
-      GoogleFonts.cormorantGaramond(textStyle: base, fontWeight: weight);
+      GoogleFonts.playfairDisplay(textStyle: base, fontWeight: weight);
 
   static ThemeData _build(Brightness b) {
     final dark = b == Brightness.dark;

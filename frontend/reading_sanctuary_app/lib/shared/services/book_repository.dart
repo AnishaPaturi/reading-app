@@ -6,6 +6,8 @@ import '../models/book.dart';
 abstract class BookRepository {
   Future<List<Book>> getBooks();
   Future<void> updateStatus(String id, ReadingStatus status);
+  Future<void> updateProgress(String id, double progress);
+  Future<void> addBook(Book book);
 }
 
 class MockBookRepository implements BookRepository {
@@ -26,6 +28,30 @@ class MockBookRepository implements BookRepository {
           b.copyWith(
             status: status,
             progress: status == ReadingStatus.completed ? 1.0 : b.progress,
+          )
+        else
+          b
+    ];
+  }
+
+  @override
+  Future<void> addBook(Book book) async {
+    if (_books.any((b) => b.id == book.id)) return; // never duplicate a record
+    _books = [..._books, book.copyWith(status: ReadingStatus.wantToRead, addedAt: DateTime.now())];
+  }
+
+  @override
+  Future<void> updateProgress(String id, double progress) async {
+    final p = progress.clamp(0.0, 1.0).toDouble();
+    _books = [
+      for (final b in _books)
+        if (b.id == id)
+          b.copyWith(
+            progress: p,
+            lastOpenedAt: DateTime.now(),
+            status: b.status == ReadingStatus.wantToRead && p > 0
+                ? ReadingStatus.currentlyReading
+                : b.status,
           )
         else
           b

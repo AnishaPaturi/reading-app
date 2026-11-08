@@ -45,7 +45,7 @@ public class Book {
     private OffsetDateTime updatedAt;
 
     // Required by JPA
-    protected Book() {
+    public Book() {
     }
 
     @PrePersist

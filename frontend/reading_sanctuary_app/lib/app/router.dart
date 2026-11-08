@@ -7,6 +7,7 @@ import '../features/home/home_screen.dart';
 import '../features/reading/reading_screen.dart';
 import '../features/library/library_screen.dart';
 import '../features/placeholder/placeholder_screen.dart';
+import '../features/reader/presentation/routes/reader_routes.dart';
 import '../features/shell/app_shell.dart';
 import '../features/shell/destinations.dart';
 import '../features/splash/splash_screen.dart';

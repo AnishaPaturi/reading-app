@@ -70,11 +70,25 @@ class PdfReaderViewState extends State<PdfReaderView> {
         controller: _controller,
         initialPageNumber: widget.initialPosition?.pageNumber ?? 1,
         params: PdfViewerParams(
-          layoutPages: (pages, params) {
-            return widget.settings.pageLayout == Axis.horizontal
-                ? defaultHorizontalPageLayout(pages, params)
-                : defaultVerticalPageLayout(pages, params);
-          },
+          layoutPages: widget.settings.pageLayout == Axis.horizontal
+              ? (pages, params) {
+                  final height = pages.fold(0.0, (prev, page) => math.max(prev, page.height)) + params.margin * 2;
+                  final pageLayouts = <Rect>[];
+                  double x = params.margin;
+                  for (final page in pages) {
+                    pageLayouts.add(
+                      Rect.fromLTWH(
+                        x,
+                        (height - page.height) / 2,
+                        page.width,
+                        page.height,
+                      ),
+                    );
+                    x += page.width + params.margin;
+                  }
+                  return PdfPageLayout(pageLayouts: pageLayouts, documentSize: Size(x, height));
+                }
+              : null,
           onPageChanged: _handlePageChanged,
           onViewerReady: (document, controller) {
             setState(() {

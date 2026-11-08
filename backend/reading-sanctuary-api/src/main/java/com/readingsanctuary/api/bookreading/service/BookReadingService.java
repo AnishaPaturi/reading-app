@@ -180,6 +180,13 @@ public class BookReadingService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ReadingHistoryResponse> getHistory(
+            UUID userId,
+            UUID bookId) {
+        return getReadingHistory(userId, bookId);
+    }
+
     private Book getOwnedBook(UUID bookId, UUID userId) {
         return bookRepository.findByIdAndCreatedBy_Id(bookId, userId)
                 .orElseThrow(() -> new ResponseStatusException(

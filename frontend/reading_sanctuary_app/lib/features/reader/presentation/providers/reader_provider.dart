@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/reader_annotations.dart';
 import '../../data/models/reader_document.dart';

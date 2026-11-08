@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.readingsanctuary.api.book.entity.Book;
+import com.readingsanctuary.api.book.enums.ReadingStatus;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,5 +17,10 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
     Optional<Book> findByIdAndCreatedBy_Id(
         UUID bookId,
         UUID userId
+    );
+
+    List<Book> findAllByCreatedBy_IdAndReadingStatus(
+        UUID userId,
+        ReadingStatus readingStatus
     );
 }

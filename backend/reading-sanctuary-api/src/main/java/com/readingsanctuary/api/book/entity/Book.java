@@ -6,9 +6,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.readingsanctuary.api.book.enums.ReadingStatus;
 import com.readingsanctuary.api.bookmetadata.author.entity.Author;
 import com.readingsanctuary.api.bookmetadata.genre.entity.Genre;
 import com.readingsanctuary.api.user.entity.User;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.*;
 
@@ -75,6 +79,26 @@ public class Book {
 
     @Column(name = "cover_updated_at")
     private OffsetDateTime coverUpdatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "reading_status", nullable = false, columnDefinition = "reading_status")
+    private ReadingStatus readingStatus = ReadingStatus.TO_READ;
+
+    @Column(name = "current_page", nullable = false)
+    private Integer currentPage = 0;
+
+    @Column(name = "total_pages")
+    private Integer totalPages;
+
+    @Column(name = "started_at")
+    private LocalDate startedAt;
+
+    @Column(name = "completed_at")
+    private LocalDate completedAt;
+
+    @Column(name = "last_read_at")
+    private OffsetDateTime lastReadAt;
 
     // Required by JPA
     public Book() {
@@ -208,5 +232,53 @@ public class Book {
 
     public void setCoverUpdatedAt(OffsetDateTime coverUpdatedAt) {
         this.coverUpdatedAt = coverUpdatedAt;
+    }
+
+    public ReadingStatus getReadingStatus() {
+        return readingStatus;
+    }
+
+    public Integer getCurrentPage() {
+        return currentPage;
+    }
+
+    public Integer getTotalPages() {
+        return totalPages;
+    }
+
+    public LocalDate getStartedAt() {
+        return startedAt;
+    }
+
+    public LocalDate getCompletedAt() {
+        return completedAt;
+    }
+
+    public OffsetDateTime getLastReadAt() {
+        return lastReadAt;
+    }
+
+    public void setReadingStatus(ReadingStatus readingStatus) {
+        this.readingStatus = readingStatus;
+    }
+
+    public void setCurrentPage(Integer currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public void setTotalPages(Integer totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public void setStartedAt(LocalDate startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    public void setCompletedAt(LocalDate completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public void setLastReadAt(OffsetDateTime lastReadAt) {
+        this.lastReadAt = lastReadAt;
     }
 }

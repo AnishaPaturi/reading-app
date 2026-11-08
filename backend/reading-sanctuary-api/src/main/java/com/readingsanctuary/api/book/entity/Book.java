@@ -6,17 +6,7 @@ import java.util.UUID;
 
 import com.readingsanctuary.api.user.entity.User;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "books")
@@ -24,29 +14,28 @@ public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
-    @Column(name = "title", nullable = false, length = 500)
+    @Column(nullable = false, length = 500)
     private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "language", length = 50)
+    @Column(length = 50)
     private String language;
 
-    @Column(name = "publisher", length = 255)
+    @Column(length = 255)
     private String publisher;
 
     @Column(name = "publication_date")
     private LocalDate publicationDate;
 
-    @Column(name = "isbn", length = 20)
+    @Column(length = 20)
     private String isbn;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,36 +44,23 @@ public class Book {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    // Required by JPA
     protected Book() {
-    }
-
-    public Book(User createdBy, String title, String description, String language,
-                String publisher, LocalDate publicationDate, String isbn) {
-        this.createdBy = createdBy;
-        this.title = title;
-        this.description = description;
-        this.language = language;
-        this.publisher = publisher;
-        this.publicationDate = publicationDate;
-        this.isbn = isbn;
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
     }
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = OffsetDateTime.now();
-        }
-        if (updatedAt == null) {
-            updatedAt = OffsetDateTime.now();
-        }
+        OffsetDateTime now = OffsetDateTime.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
     }
+
+    // Getters and setters
 
     public UUID getId() {
         return id;

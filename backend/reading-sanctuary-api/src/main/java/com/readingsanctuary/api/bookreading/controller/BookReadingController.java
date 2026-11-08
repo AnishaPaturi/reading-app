@@ -59,13 +59,13 @@ public class BookReadingController {
     }
 
     @GetMapping("/books/{bookId}/history")
-    public ResponseEntity<List<ReadingHistoryResponse>> getReadingHistory(
+    public ResponseEntity<List<ReadingHistoryResponse>> getHistory(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID bookId) {
 
         UUID userId = UUID.fromString(jwt.getSubject());
 
         return ResponseEntity.ok(
-                readingService.getReadingHistory(userId, bookId));
+                readingService.getHistory(userId, bookId));
     }
 }

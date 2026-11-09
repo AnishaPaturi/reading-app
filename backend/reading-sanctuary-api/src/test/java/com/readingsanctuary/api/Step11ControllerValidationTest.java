@@ -22,6 +22,8 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import com.readingsanctuary.api.storage.controller.CloudStorageController;
 import com.readingsanctuary.api.storage.dto.*;
+import com.readingsanctuary.api.storage.enums.StorageProvider;
+import com.readingsanctuary.api.storage.enums.UploadStatus;
 import com.readingsanctuary.api.storage.service.CloudStorageService;
 import com.readingsanctuary.api.storage.service.LocalStorageService;
 import com.readingsanctuary.api.sync.controller.DeviceController;
@@ -31,7 +33,6 @@ import com.readingsanctuary.api.sync.service.DeviceService;
 import com.readingsanctuary.api.sync.service.SyncService;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -131,12 +132,14 @@ class Step11ControllerValidationTest {
         UUID fileId = UUID.randomUUID();
         StorageFileResponse response = new StorageFileResponse(
                 fileId,
+                UUID.randomUUID(),
                 "clean_code.pdf",
                 "PDF",
                 1048576L,
+                StorageProvider.LOCAL,
+                UploadStatus.VERIFIED,
                 "sha256",
-                "LOCAL",
-                "VERIFIED",
+                OffsetDateTime.now(),
                 OffsetDateTime.now()
         );
 
@@ -183,8 +186,9 @@ class Step11ControllerValidationTest {
                 deviceId,
                 "Pixel 7",
                 "ANDROID",
-                true,
+                0L,
                 OffsetDateTime.now(),
+                true,
                 OffsetDateTime.now()
         );
 
@@ -223,7 +227,7 @@ class Step11ControllerValidationTest {
     @Test
     void push_valid_returns200() throws Exception {
         UUID deviceId = UUID.randomUUID();
-        SyncPushResponse response = new SyncPushResponse(List.of("c-1"), List.of(), List.of());
+        SyncPushResponse response = new SyncPushResponse(List.of("c-1"), List.of(), List.of(), 10L);
 
         when(syncService.push(eq(testUserId), any(SyncPushRequest.class))).thenReturn(response);
 
@@ -237,7 +241,7 @@ class Step11ControllerValidationTest {
                             "entityId": "bm-1",
                             "operation": "CREATE",
                             "payload": "{}",
-                            "createdAt": "%s"
+                            "changedAt": "%s"
                         }
                     ]
                 }
@@ -247,7 +251,7 @@ class Step11ControllerValidationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.acceptedChangeIds[0]").value("c-1"));
+                .andExpect(jsonPath("$.accepted[0]").value("c-1"));
     }
 
     @Test

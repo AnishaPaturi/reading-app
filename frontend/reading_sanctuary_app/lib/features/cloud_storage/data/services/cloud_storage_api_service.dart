@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../../../../core/network/api_config.dart';
 
 class UploadUrlResult {
   final String uploadToken;
@@ -66,11 +67,7 @@ class CloudStorageApiService {
   })  : baseUrl = baseUrl ?? _resolveBaseUrl(),
         _client = client ?? http.Client();
 
-  static String _resolveBaseUrl() {
-    if (kIsWeb) return 'http://localhost:8080/api/v1';
-    if (defaultTargetPlatform == TargetPlatform.android) return 'http://10.0.2.2:8080/api/v1';
-    return 'http://localhost:8080/api/v1';
-  }
+  static String _resolveBaseUrl() => ApiConfig.baseUrl;
 
   Map<String, String> _headers() {
     final token = tokenProvider();

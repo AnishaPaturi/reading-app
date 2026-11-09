@@ -1,0 +1,35 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, step12-production-readiness]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Backend Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Make Maven Wrapper Executable
+        working-directory: backend/reading-sanctuary-api
+        run: chmod +x mvnw
+
+      - name: Run Backend Tests
+        working-directory: backend/reading-sanctuary-api
+        run: ./mvnw -B test
+
+      - name: Build Package
+        working-directory: backend/reading-sanctuary-api
+        run: ./mvnw -B package -DskipTests

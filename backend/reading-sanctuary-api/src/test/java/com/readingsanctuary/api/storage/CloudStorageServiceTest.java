@@ -146,7 +146,7 @@ class CloudStorageServiceTest {
         when(storageService.getObjectSize(file.getStorageKey())).thenReturn(2048L);
         when(bookFileRepository.save(any(BookFile.class))).thenAnswer(i -> i.getArgument(0));
 
-        CompleteUploadRequest request = new CompleteUploadRequest(fileId, "sha256hash", 2048L);
+        CompleteUploadRequest request = new CompleteUploadRequest(fileId, "sha256hash");
         StorageFileResponse response = cloudStorageService.completeUpload(userId, request);
 
         assertThat(response).isNotNull();
@@ -167,7 +167,7 @@ class CloudStorageServiceTest {
         when(storageFactory.getStorageService(StorageProvider.LOCAL)).thenReturn(storageService);
         when(storageService.exists(file.getStorageKey())).thenReturn(false);
 
-        CompleteUploadRequest request = new CompleteUploadRequest(fileId, null, 100L);
+        CompleteUploadRequest request = new CompleteUploadRequest(fileId, null);
 
         assertThatThrownBy(() -> cloudStorageService.completeUpload(userId, request))
                 .isInstanceOf(IllegalStateException.class);

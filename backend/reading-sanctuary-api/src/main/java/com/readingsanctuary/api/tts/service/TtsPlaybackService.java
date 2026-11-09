@@ -17,6 +17,8 @@ import com.readingsanctuary.api.tts.dto.SaveTtsPositionRequest;
 import com.readingsanctuary.api.tts.dto.TtsPositionResponse;
 import com.readingsanctuary.api.tts.entity.TtsPlaybackPosition;
 import com.readingsanctuary.api.tts.repository.TtsPlaybackPositionRepository;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -25,14 +27,25 @@ public class TtsPlaybackService {
     private final TtsPlaybackPositionRepository positionRepository;
     private final BookRepository bookRepository;
     private final BookFileRepository bookFileRepository;
+    private final SyncChangePublisher changePublisher;
 
     public TtsPlaybackService(
             TtsPlaybackPositionRepository positionRepository,
             BookRepository bookRepository,
             BookFileRepository bookFileRepository) {
+        this(positionRepository, bookRepository, bookFileRepository, null);
+    }
+
+    @Autowired
+    public TtsPlaybackService(
+            TtsPlaybackPositionRepository positionRepository,
+            BookRepository bookRepository,
+            BookFileRepository bookFileRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.positionRepository = positionRepository;
         this.bookRepository = bookRepository;
         this.bookFileRepository = bookFileRepository;
+        this.changePublisher = changePublisher;
     }
 
     public TtsPositionResponse saveOrUpdate(

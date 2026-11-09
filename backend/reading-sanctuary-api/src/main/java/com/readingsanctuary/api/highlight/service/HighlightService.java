@@ -74,7 +74,11 @@ public class HighlightService {
                 : request.color());
         highlight.setAnnotationNote(request.annotationNote());
 
-        return toResponse(highlightRepository.save(highlight));
+        BookHighlight saved = highlightRepository.save(highlight);
+        if (changePublisher != null) {
+            changePublisher.publishCreate(userId, "HIGHLIGHT", saved.getId().toString(), 1L, toResponse(saved));
+        }
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +113,11 @@ public class HighlightService {
             highlight.setAnnotationNote(request.annotationNote());
         }
 
-        return toResponse(highlightRepository.save(highlight));
+        BookHighlight saved = highlightRepository.save(highlight);
+        if (changePublisher != null) {
+            changePublisher.publishCreate(userId, "HIGHLIGHT", saved.getId().toString(), 1L, toResponse(saved));
+        }
+        return toResponse(saved);
     }
 
     public void delete(

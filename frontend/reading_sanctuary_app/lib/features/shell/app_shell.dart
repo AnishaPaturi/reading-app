@@ -96,6 +96,7 @@ class _HeaderActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
+        const SyncStatusIndicator(),
         IconButton(
             tooltip: 'Search', icon: const Icon(Icons.search), onPressed: () => context.push('/search')),
         IconButton(

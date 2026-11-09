@@ -133,6 +133,10 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
       state = state.copyWith(position: pos);
       _checkSleepTimerEndOfChapter(pos);
       _maybeAutoSavePosition(pos);
+      _ref.read(activityTrackingServiceProvider).updateProgress(
+            currentLocation: 'ms=${pos.inMilliseconds}',
+            playbackSpeed: state.playbackSpeed,
+          );
     });
 
     _durSub = _playerService.durationStream.listen((dur) {
@@ -143,12 +147,17 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
 
     _speedSub = _playerService.speedStream.listen((spd) {
       state = state.copyWith(playbackSpeed: spd);
+      _ref.read(activityTrackingServiceProvider).updateProgress(
+            playbackSpeed: spd,
+          );
     });
 
     _statusSub = _playerService.playbackStatusStream.listen((status) {
       final isPlaying = status == AudioPlaybackStatus.playing;
       final isLoading = status == AudioPlaybackStatus.loading;
       final isCompleted = status == AudioPlaybackStatus.completed;
+
+      final wasPlaying = state.isPlaying;
 
       state = state.copyWith(
         status: status,
@@ -157,8 +166,17 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
         isCompleted: isCompleted,
       );
 
-      if (!isPlaying) {
+      if (isPlaying && !wasPlaying) {
+        _ref.read(activityTrackingServiceProvider).startSession(
+              activityType: ActivityType.AUDIOBOOK,
+              bookId: state.currentTrack?.bookId,
+              bookFileId: state.currentTrack?.fileId,
+              startingLocation: 'ms=${state.position.inMilliseconds}',
+              playbackSpeed: state.playbackSpeed,
+            );
+      } else if (!isPlaying && wasPlaying) {
         savePosition();
+        _ref.read(activityTrackingServiceProvider).closeSession();
       }
     });
   }

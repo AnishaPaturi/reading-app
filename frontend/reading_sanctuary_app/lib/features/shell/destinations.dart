@@ -61,6 +61,8 @@ const placeholders = <String, PlaceholderInfo>{
 
 String titleFor(String location) {
   if (location.startsWith('/book/')) return 'Book Details';
+  if (location == '/sync/settings') return 'Sync & Devices';
+  if (location == '/storage/manage') return 'Storage & Offline';
   final p = placeholders[location];
   if (p != null) return p.title;
   for (final d in [...sidebarDestinations, ...primaryDestinations]) {
@@ -70,6 +72,14 @@ String titleFor(String location) {
 }
 
 /// Top-level screens show the menu; everything else shows a back button.
-const _detailPaths = {'/library/add', '/library/add-manual', '/journal/new', '/search', '/notifications'};
+const _detailPaths = {
+  '/library/add',
+  '/library/add-manual',
+  '/journal/new',
+  '/search',
+  '/notifications',
+  '/sync/settings',
+  '/storage/manage',
+};
 
 bool isDetailRoute(String location) => location.startsWith('/book/') || _detailPaths.contains(location);

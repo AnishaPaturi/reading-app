@@ -36,4 +36,5 @@ flutter:
   assets:
     - assets/images/auth/
     - assets/images/landing/
+    - assets/images/dashboard/
 

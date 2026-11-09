@@ -20,6 +20,7 @@ import com.readingsanctuary.api.bookmark.dto.CreateBookmarkRequest;
 import com.readingsanctuary.api.bookmark.entity.Bookmark;
 import com.readingsanctuary.api.bookmark.repository.BookmarkRepository;
 import com.readingsanctuary.api.bookmark.service.BookmarkService;
+import com.readingsanctuary.api.common.enums.HighlightColor;
 import com.readingsanctuary.api.common.enums.ReadingLocationType;
 import com.readingsanctuary.api.highlight.dto.CreateHighlightRequest;
 import com.readingsanctuary.api.highlight.dto.HighlightResponse;

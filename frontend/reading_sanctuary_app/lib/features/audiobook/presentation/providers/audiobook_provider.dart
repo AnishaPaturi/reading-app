@@ -9,6 +9,8 @@ import '../../data/services/audio_player_service.dart';
 import '../../domain/enums/audio_playback_state.dart';
 import '../../domain/services/audio_position_service.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
+import '../../../analytics/application/analytics_providers.dart';
+import '../../../analytics/data/models/activity_session.dart';
 
 final audiobookRepositoryProvider = Provider<AudiobookRepository>((ref) {
   return HttpAudiobookRepository(

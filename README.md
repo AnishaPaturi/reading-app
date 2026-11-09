@@ -1163,6 +1163,14 @@ Run on Microsoft Edge:
 flutter run -d edge
 ```
 
+**Alternative (Fastest & Most Reliable for Web Development):**
+To run without remote debugging port attachments or browser locks, start the local web server:
+
+```powershell
+flutter run -d web-server --web-port 3000
+```
+Then navigate to **http://localhost:3000** in your browser.
+
 #### Option B: Run on an Android Emulator
 
 You have two configured Android Virtual Devices (`Medium_Phone_API_36.1` and `Pixel_5`):
@@ -1182,11 +1190,70 @@ You have two configured Android Virtual Devices (`Medium_Phone_API_36.1` and `Pi
 
 To run natively as a Windows desktop application:
 
-1. Ensure Developer Mode is turned on in Windows Settings (run `start ms-settings:developers`).
+1. Enable **Developer Mode** in Windows Settings (required for plugin symlinks):
+   ```powershell
+   start ms-settings:developers
+   ```
+   Toggle **Developer Mode** to **On** and accept the confirmation prompt.
 2. Run:
    ```powershell
    flutter run -d windows
    ```
+
+---
+
+### Step 3: Connecting to the Backend API (Optional)
+
+The frontend connects by default to `http://localhost:8080/api/v1` via `ApiConfig`.
+
+To run the full stack with live backend services:
+1. In a separate terminal, launch the Spring Boot backend:
+   ```powershell
+   cd backend\reading-sanctuary-api
+   .\mvnw spring-boot:run
+   ```
+2. You can pass a custom API endpoint to Flutter using `--dart-define`:
+   ```powershell
+   flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080/api/v1
+   ```
+
+---
+
+### Troubleshooting Common Issues (Windows & Web)
+
+#### Issue 1: `build\flutter_assets` Directory Lock / Access Denied
+- **Error message**:
+  ```
+  Flutter failed to delete a directory at "...build\flutter_assets". The flutter tool cannot access the file or directory.
+  ```
+- **Cause**: On Windows systems, cloud synchronization (such as Microsoft OneDrive) or an existing background Dart process temporarily locks files inside the `build/` directory during rebuilds.
+- **Solution**: Delete the locked build folder directly from the command prompt:
+  ```powershell
+  cmd /c "rd /s /q build"
+  flutter pub get
+  flutter run -d chrome
+  ```
+  Or run with the web server target:
+  ```powershell
+  flutter run -d web-server --web-port 3000
+  ```
+
+#### Issue 2: `Building with plugins requires symlink support`
+- **Error message**:
+  ```
+  Error: Building with plugins requires symlink support.
+  Please enable Developer Mode in your system settings. Run start ms-settings:developers to open settings.
+  ```
+- **Cause**: Flutter Windows desktop plugins use symbolic links. Windows requires Developer Mode or Administrator privileges to create symlinks.
+- **Solution**:
+  1. Open Developer Settings:
+     ```powershell
+     start ms-settings:developers
+     ```
+  2. Toggle **Developer Mode** to **On** (click **Yes** in the confirmation dialog).
+  3. Re-run `flutter run -d windows`.
+
+---
 
 ### Useful Commands
 
@@ -1195,6 +1262,7 @@ To run natively as a Windows desktop application:
 | Run unit & widget tests | `flutter test` |
 | Check for lint or code issues | `flutter analyze` |
 | Check connected devices | `flutter devices` |
+| Clean locked build artifacts | `cmd /c "rd /s /q build"; flutter clean` |
 | Hot reload during active run | Press `r` in the terminal |
 | Hot restart during active run | Press `R` in the terminal |
 | Stop running app | Press `q` in the terminal |

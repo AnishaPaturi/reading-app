@@ -13,6 +13,8 @@ import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.note.dto.*;
 import com.readingsanctuary.api.note.entity.BookNote;
 import com.readingsanctuary.api.note.repository.BookNoteRepository;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -20,12 +22,22 @@ public class BookNoteService {
 
     private final BookNoteRepository noteRepository;
     private final BookRepository bookRepository;
+    private final SyncChangePublisher changePublisher;
 
     public BookNoteService(
             BookNoteRepository noteRepository,
             BookRepository bookRepository) {
+        this(noteRepository, bookRepository, null);
+    }
+
+    @Autowired
+    public BookNoteService(
+            BookNoteRepository noteRepository,
+            BookRepository bookRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.noteRepository = noteRepository;
         this.bookRepository = bookRepository;
+        this.changePublisher = changePublisher;
     }
 
     public BookNoteResponse create(
@@ -39,7 +51,11 @@ public class BookNoteService {
         note.setTitle(request.title().trim());
         note.setContent(request.content());
 
-        return toResponse(noteRepository.save(note));
+        BookNote saved = noteRepository.save(note);
+        if (changePublisher != null) {
+            changePublisher.publishCreate(userId, "BOOK_NOTE", saved.getId().toString(), 1L, toResponse(saved));
+        }
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -74,14 +90,22 @@ public class BookNoteService {
         note.setTitle(request.title().trim());
         note.setContent(request.content());
 
-        return toResponse(noteRepository.save(note));
+        BookNote saved = noteRepository.save(note);
+        if (changePublisher != null) {
+            changePublisher.publishUpdate(userId, "BOOK_NOTE", saved.getId().toString(), 2L, toResponse(saved));
+        }
+        return toResponse(saved);
     }
 
     public void delete(
             UUID userId, UUID bookId, UUID noteId) {
 
         getOwnedBook(bookId, userId);
-        noteRepository.delete(getNote(bookId, noteId));
+        BookNote note = getNote(bookId, noteId);
+        noteRepository.delete(note);
+        if (changePublisher != null) {
+            changePublisher.publishDelete(userId, "BOOK_NOTE", noteId.toString(), 3L);
+        }
     }
 
     private Book getOwnedBook(UUID bookId, UUID userId) {

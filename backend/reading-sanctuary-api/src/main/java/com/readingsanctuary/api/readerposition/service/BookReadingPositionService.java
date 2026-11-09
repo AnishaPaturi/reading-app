@@ -20,6 +20,8 @@ import com.readingsanctuary.api.readerposition.dto.ReadingPositionResponse;
 import com.readingsanctuary.api.readerposition.dto.SaveReadingPositionRequest;
 import com.readingsanctuary.api.readerposition.entity.BookReadingPosition;
 import com.readingsanctuary.api.readerposition.repository.BookReadingPositionRepository;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -28,14 +30,25 @@ public class BookReadingPositionService {
     private final BookReadingPositionRepository positionRepository;
     private final BookRepository bookRepository;
     private final BookFileRepository bookFileRepository;
+    private final SyncChangePublisher changePublisher;
 
     public BookReadingPositionService(
             BookReadingPositionRepository positionRepository,
             BookRepository bookRepository,
             BookFileRepository bookFileRepository) {
+        this(positionRepository, bookRepository, bookFileRepository, null);
+    }
+
+    @Autowired
+    public BookReadingPositionService(
+            BookReadingPositionRepository positionRepository,
+            BookRepository bookRepository,
+            BookFileRepository bookFileRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.positionRepository = positionRepository;
         this.bookRepository = bookRepository;
         this.bookFileRepository = bookFileRepository;
+        this.changePublisher = changePublisher;
     }
 
     public ReadingPositionResponse saveOrUpdate(

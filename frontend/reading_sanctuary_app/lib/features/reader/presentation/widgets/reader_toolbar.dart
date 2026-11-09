@@ -9,6 +9,7 @@ class ReaderToolbar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenAnnotations;
   final VoidCallback? onSearch;
+  final VoidCallback? onListenTts;
 
   const ReaderToolbar({
     super.key,
@@ -20,6 +21,7 @@ class ReaderToolbar extends StatelessWidget implements PreferredSizeWidget {
     required this.onOpenSettings,
     required this.onOpenAnnotations,
     this.onSearch,
+    this.onListenTts,
   });
 
   @override
@@ -62,6 +64,12 @@ class ReaderToolbar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
+        if (onListenTts != null)
+          IconButton(
+            icon: const Icon(Icons.record_voice_over_outlined),
+            tooltip: 'Listen with Text-to-Speech',
+            onPressed: onListenTts,
+          ),
         IconButton(
           icon: Icon(
             isBookmarked ? Icons.bookmark : Icons.bookmark_border,

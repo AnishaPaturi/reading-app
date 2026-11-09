@@ -66,7 +66,7 @@ public class AnalyticsController {
         return ResponseEntity.ok(streakService.calculateStreaks(userId, zone));
     }
 
-    @GetMapping("/reading-pace")
+    @GetMapping({"/reading-pace", "/pace"})
     public ResponseEntity<ReadingPaceResponse> getReadingPace(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) Integer year,

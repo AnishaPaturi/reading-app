@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -17,7 +18,7 @@ import com.readingsanctuary.api.analytics.dto.CloseSessionRequest;
 import com.readingsanctuary.api.analytics.service.ActivitySessionService;
 
 @RestController
-@RequestMapping("/api/v1/activity-sessions")
+@RequestMapping({"/api/v1/activity-sessions", "/api/v1/analytics/sessions"})
 public class ActivitySessionController {
 
     private final ActivitySessionService sessionService;
@@ -26,16 +27,16 @@ public class ActivitySessionController {
         this.sessionService = sessionService;
     }
 
-    @PostMapping
+    @PostMapping({"", "/start"})
     public ResponseEntity<ActivitySessionResponse> startSession(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody ActivitySessionRequest request) {
 
         UUID userId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.ok(sessionService.startSession(userId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(sessionService.startSession(userId, request));
     }
 
-    @PatchMapping("/{sessionId}/heartbeat")
+    @RequestMapping(value = "/{sessionId}/heartbeat", method = {RequestMethod.POST, RequestMethod.PATCH})
     public ResponseEntity<ActivitySessionResponse> heartbeat(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID sessionId,

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -16,7 +17,7 @@ import com.readingsanctuary.api.analytics.dto.ReadingGoalResponse;
 import com.readingsanctuary.api.analytics.service.ReadingGoalService;
 
 @RestController
-@RequestMapping("/api/v1/goals")
+@RequestMapping({"/api/v1/goals", "/api/v1/analytics/goals"})
 public class ReadingGoalController {
 
     private final ReadingGoalService goalService;
@@ -31,7 +32,7 @@ public class ReadingGoalController {
             @Valid @RequestBody ReadingGoalRequest request) {
 
         UUID userId = UUID.fromString(jwt.getSubject());
-        return ResponseEntity.ok(goalService.createGoal(userId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(goalService.createGoal(userId, request));
     }
 
     @GetMapping

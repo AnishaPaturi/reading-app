@@ -197,7 +197,7 @@ class Step10ControllerValidationTest {
     @Test
     void getOverview_returns200() throws Exception {
         AnalyticsOverviewResponse overview = new AnalyticsOverviewResponse(
-                10, 4, 2, 3, 1, 300L, 120L, 60L, 15, 5, 4
+                10L, 4L, 2L, 3L, 1L, 300L, 120L, 60L, 15L, 5, 4
         );
 
         when(analyticsService.getOverview(eq(testUserId), any(), any(), any())).thenReturn(overview);
@@ -205,8 +205,8 @@ class Step10ControllerValidationTest {
         analyticsMockMvc.perform(get("/api/v1/analytics/overview"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalBooks").value(10))
-                .andExpect(jsonPath("$.totalReadingMinutes").value(300))
-                .andExpect(jsonPath("$.currentStreakDays").value(5));
+                .andExpect(jsonPath("$.readingMinutes").value(300))
+                .andExpect(jsonPath("$.currentStreak").value(5));
     }
 
     @Test
@@ -215,7 +215,7 @@ class Step10ControllerValidationTest {
                 7, 21, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 9), Collections.singletonList(LocalDate.of(2026, 11, 9))
         );
 
-        when(streakService.calculateStreak(eq(testUserId), any())).thenReturn(streak);
+        when(streakService.calculateStreaks(eq(testUserId), any())).thenReturn(streak);
 
         analyticsMockMvc.perform(get("/api/v1/analytics/streaks"))
                 .andExpect(status().isOk())

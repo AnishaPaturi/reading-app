@@ -5,6 +5,8 @@ import '../../data/models/tts_document.dart';
 import '../../data/repositories/tts_repository.dart';
 import '../../data/services/tts_service.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
+import '../../../analytics/application/analytics_providers.dart';
+import '../../../analytics/data/models/activity_session.dart';
 
 final ttsRepositoryProvider = Provider<TtsRepository>((ref) {
   return HttpTtsRepository(

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.readingsanctuary.api.sync.entity.SyncChange;
 import com.readingsanctuary.api.sync.repository.SyncChangeRepository;
 
@@ -29,9 +30,14 @@ public class SyncChangePublisher {
     private final SyncChangeRepository changeRepository;
     private final ObjectMapper objectMapper;
 
-    public SyncChangePublisher(SyncChangeRepository changeRepository, ObjectMapper objectMapper) {
+    public SyncChangePublisher(SyncChangeRepository changeRepository) {
+        this(changeRepository, null);
+    }
+
+    @Autowired
+    public SyncChangePublisher(SyncChangeRepository changeRepository, @Autowired(required = false) ObjectMapper objectMapper) {
         this.changeRepository = changeRepository;
-        this.objectMapper = objectMapper;
+        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper().findAndRegisterModules();
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

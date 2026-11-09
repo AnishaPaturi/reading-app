@@ -42,6 +42,23 @@ public class AudiobookPlaybackService {
         BookFile file = getBookFile(fileId, bookId);
         validateAudioFormat(file);
 
+        if (request.positionMs() < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Position cannot be negative");
+        }
+
+        if (request.durationMs() < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Duration cannot be negative");
+        }
+
+        if (request.playbackSpeed() != null &&
+                (request.playbackSpeed().compareTo(new java.math.BigDecimal("0.50")) < 0 ||
+                 request.playbackSpeed().compareTo(new java.math.BigDecimal("3.00")) > 0)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Playback speed must be between 0.50 and 3.00");
+        }
+
         if (request.durationMs() > 0 && request.positionMs() > request.durationMs()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Position cannot exceed duration");

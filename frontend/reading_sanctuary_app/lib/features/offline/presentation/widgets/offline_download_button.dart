@@ -107,7 +107,7 @@ class OfflineDownloadButton extends ConsumerWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF5CB89A).withOpacity(0.15),
             borderRadius: BorderRadius.circular(8),
-            border: Border.pad(BorderSide(color: const Color(0xFF5CB89A).withOpacity(0.4))),
+            border: Border.all(color: const Color(0xFF5CB89A).withOpacity(0.4)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

@@ -28,8 +28,7 @@ void main() {
 
   group('SyncChangeItem serialization', () {
     test('toJson and fromJson preserves all fields', () {
-      final now = DateTime.now();
-      const item = SyncChangeItem(
+      final item = SyncChangeItem(
         cursor: 10,
         clientChangeId: 'c-abc',
         entityType: 'BOOKMARK',
@@ -38,7 +37,7 @@ void main() {
         version: 1,
         baseVersion: 0,
         payload: '{"page":5}',
-        changedAt: null ?? DateTime(2026, 11, 9),
+        changedAt: DateTime(2026, 11, 9),
       );
 
       final json = item.toJson();

@@ -197,6 +197,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             onToggleBookmark: () => _handleToggleBookmark(bookmarks),
             onOpenSettings: _openSettingsPanel,
             onOpenAnnotations: () => _scaffoldKey.currentState?.openEndDrawer(),
+            onListenTts: () {
+              context.push(
+                '/listen/${widget.bookId}/${widget.fileId}?mode=tts&title=${Uri.encodeComponent(doc.bookTitle)}&format=${doc.fileFormat}',
+              );
+            },
           ),
           drawer: ReaderSidebar(
             bookmarks: bookmarks,

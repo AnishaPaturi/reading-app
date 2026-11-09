@@ -395,6 +395,7 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
     _sleepTimer?.cancel();
     _sleepTicker?.cancel();
     await savePosition();
+    _ref.read(activityTrackingServiceProvider).closeSession();
     await _playerService.stop();
   }
 
@@ -406,6 +407,7 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
     _speedSub?.cancel();
     _sleepTimer?.cancel();
     _sleepTicker?.cancel();
+    _ref.read(activityTrackingServiceProvider).closeSession();
     super.dispose();
   }
 }

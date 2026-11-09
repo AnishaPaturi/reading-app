@@ -34,6 +34,15 @@ public class BookFile {
     @Column(name = "checksum")
     private String checksum;
 
+    @Column(name = "storage_provider", nullable = false)
+    private String storageProvider = "LOCAL";
+
+    @Column(name = "storage_status", nullable = false)
+    private String storageStatus = "LOCAL";
+
+    @Column(name = "cloud_verified_at")
+    private OffsetDateTime cloudVerifiedAt;
+
     @Column(name = "uploaded_at", nullable = false)
     private OffsetDateTime uploadedAt;
 
@@ -60,4 +69,13 @@ public class BookFile {
     public void setStorageKey(String storageKey) { this.storageKey = storageKey; }
     public void setFileSizeBytes(long fileSizeBytes) { this.fileSizeBytes = fileSizeBytes; }
     public void setChecksum(String checksum) { this.checksum = checksum; }
+
+    public String getStorageProvider() { return storageProvider; }
+    public void setStorageProvider(String storageProvider) { this.storageProvider = storageProvider; }
+
+    public String getStorageStatus() { return storageStatus; }
+    public void setStorageStatus(String storageStatus) { this.storageStatus = storageStatus; }
+
+    public OffsetDateTime getCloudVerifiedAt() { return cloudVerifiedAt; }
+    public void setCloudVerifiedAt(OffsetDateTime cloudVerifiedAt) { this.cloudVerifiedAt = cloudVerifiedAt; }
 }

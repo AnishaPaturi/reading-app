@@ -64,8 +64,8 @@ class AuthScaffold extends StatelessWidget {
                     horizontal: isCompact ? 16 : 24,
                     vertical: isCompact ? 12 : 28,
                   ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
+                  child: const ConstrainedBox(
+                    constraints: BoxConstraints(
                       maxWidth: 420,
                     ),
                     child: Container(

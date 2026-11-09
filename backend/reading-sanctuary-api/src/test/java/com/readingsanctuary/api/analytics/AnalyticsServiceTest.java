@@ -52,7 +52,7 @@ class AnalyticsServiceTest {
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
-        user = new User();
+        user = new User("test@example.com", "hash");
         ReflectionTestUtils.setField(user, "id", userId);
     }
 

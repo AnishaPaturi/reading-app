@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/audiobook/presentation/screens/audiobook_screen.dart';
 import '../features/book_details/book_details_screen.dart';
 import '../features/discover/presentation/discover_screen.dart';
 import '../features/home/home_screen.dart';
@@ -20,6 +21,24 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
       ...readerRoutes,
+      GoRoute(
+        path: '/listen/:bookId/:fileId',
+        builder: (context, state) {
+          final bookId = state.pathParameters['bookId']!;
+          final fileId = state.pathParameters['fileId']!;
+          final mode = state.uri.queryParameters['mode'];
+          final isTts = mode == 'tts';
+
+          return AudiobookScreen(
+            bookId: bookId,
+            fileId: fileId,
+            bookTitle: state.uri.queryParameters['title'],
+            author: state.uri.queryParameters['author'],
+            format: state.uri.queryParameters['format'],
+            isTtsMode: isTts,
+          );
+        },
+      ),
       // Reader / audiobook player will live OUTSIDE the shell (immersive) in Milestone 4/6.
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.uri.path, child: child),

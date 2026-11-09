@@ -115,7 +115,7 @@ public class HighlightService {
 
         BookHighlight saved = highlightRepository.save(highlight);
         if (changePublisher != null) {
-            changePublisher.publishCreate(userId, "HIGHLIGHT", saved.getId().toString(), 1L, toResponse(saved));
+            changePublisher.publishUpdate(userId, "HIGHLIGHT", saved.getId().toString(), 2L, toResponse(saved));
         }
         return toResponse(saved);
     }
@@ -131,6 +131,9 @@ public class HighlightService {
                         HttpStatus.NOT_FOUND, "Highlight not found"));
 
         highlightRepository.delete(highlight);
+        if (changePublisher != null) {
+            changePublisher.publishDelete(userId, "HIGHLIGHT", highlightId.toString(), 3L);
+        }
     }
 
     private Book getOwnedBook(UUID bookId, UUID userId) {

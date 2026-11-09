@@ -15,18 +15,30 @@ import com.readingsanctuary.api.book.entity.Book;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.user.entity.User;
 import com.readingsanctuary.api.user.repository.UserRepository;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class BookService {
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final SyncChangePublisher changePublisher;
 
     public BookService(
             BookRepository bookRepository,
             UserRepository userRepository) {
+        this(bookRepository, userRepository, null);
+    }
+
+    @Autowired
+    public BookService(
+            BookRepository bookRepository,
+            UserRepository userRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
+        this.changePublisher = changePublisher;
     }
 
     // Create a new book
@@ -48,8 +60,11 @@ public class BookService {
         book.setIsbn(request.isbn());
 
         Book savedBook = bookRepository.save(book);
-
-        return mapToResponse(savedBook);
+        BookResponse response = mapToResponse(savedBook);
+        if (changePublisher != null) {
+            changePublisher.publishCreate(userId, "BOOK", savedBook.getId().toString(), 1L, response);
+        }
+        return response;
     }
 
     // Get all books belonging to the authenticated user

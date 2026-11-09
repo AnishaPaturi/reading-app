@@ -14,7 +14,7 @@ import com.readingsanctuary.api.book.entity.Book;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.bookfile.entity.BookFile;
 import com.readingsanctuary.api.bookfile.repository.BookFileRepository;
-import com.readingsanctuary.api.common.exception.ResourceNotFoundException;
+import org.springframework.web.server.ResponseStatusException;
 import com.readingsanctuary.api.storage.config.StorageConfig;
 import com.readingsanctuary.api.storage.dto.*;
 import com.readingsanctuary.api.storage.enums.StorageProvider;

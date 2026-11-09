@@ -103,8 +103,11 @@ public class BookService {
         book.setIsbn(request.isbn());
 
         Book updatedBook = bookRepository.save(book);
-
-        return mapToResponse(updatedBook);
+        BookResponse response = mapToResponse(updatedBook);
+        if (changePublisher != null) {
+            changePublisher.publishUpdate(userId, "BOOK", updatedBook.getId().toString(), 2L, response);
+        }
+        return response;
     }
 
     // Delete a book belonging to the authenticated user
@@ -114,6 +117,9 @@ public class BookService {
         Book book = findOwnedBook(bookId, userId);
 
         bookRepository.delete(book);
+        if (changePublisher != null) {
+            changePublisher.publishDelete(userId, "BOOK", bookId.toString(), 3L);
+        }
     }
 
     // Verify that the book belongs to the authenticated user

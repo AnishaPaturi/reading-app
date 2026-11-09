@@ -6,6 +6,7 @@ import '../../data/models/reader_position.dart';
 import '../../data/repositories/reader_repository.dart';
 import '../../data/services/reader_file_service.dart';
 import '../../domain/services/reader_position_service.dart';
+import '../../../../core/sync/providers/sync_providers.dart';
 
 final authTokenProvider = StateProvider<String?>((ref) => null);
 
@@ -18,6 +19,7 @@ final readerRepositoryProvider = Provider<ReaderRepository>((ref) {
 final readerFileServiceProvider = Provider<ReaderFileService>((ref) {
   return ReaderFileService(
     tokenProvider: () => ref.read(authTokenProvider),
+    downloadManager: ref.watch(downloadManagerProvider),
   );
 });
 

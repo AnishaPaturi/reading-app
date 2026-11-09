@@ -37,11 +37,7 @@ class HttpTtsRepository implements TtsRepository {
     required this.tokenProvider,
   }) : baseUrl = baseUrl ?? _resolveBaseUrl();
 
-  static String _resolveBaseUrl() {
-    if (kIsWeb) return 'http://localhost:8080/api/v1';
-    if (defaultTargetPlatform == TargetPlatform.android) return 'http://10.0.2.2:8080/api/v1';
-    return 'http://localhost:8080/api/v1';
-  }
+  static String _resolveBaseUrl() => ApiConfig.baseUrl;
 
   Map<String, String> _headers() {
     final token = tokenProvider();

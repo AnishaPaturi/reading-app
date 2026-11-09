@@ -17,6 +17,8 @@ import com.readingsanctuary.api.book.entity.Book;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.bookfile.entity.BookFile;
 import com.readingsanctuary.api.bookfile.repository.BookFileRepository;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -25,14 +27,25 @@ public class AudiobookPlaybackService {
     private final AudiobookPlaybackPositionRepository positionRepository;
     private final BookRepository bookRepository;
     private final BookFileRepository bookFileRepository;
+    private final SyncChangePublisher changePublisher;
 
     public AudiobookPlaybackService(
             AudiobookPlaybackPositionRepository positionRepository,
             BookRepository bookRepository,
             BookFileRepository bookFileRepository) {
+        this(positionRepository, bookRepository, bookFileRepository, null);
+    }
+
+    @Autowired
+    public AudiobookPlaybackService(
+            AudiobookPlaybackPositionRepository positionRepository,
+            BookRepository bookRepository,
+            BookFileRepository bookFileRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.positionRepository = positionRepository;
         this.bookRepository = bookRepository;
         this.bookFileRepository = bookFileRepository;
+        this.changePublisher = changePublisher;
     }
 
     public AudioPositionResponse saveOrUpdate(

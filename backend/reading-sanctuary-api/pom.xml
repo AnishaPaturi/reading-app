@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<tika.version>2.9.2</tika.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -94,6 +95,18 @@
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+
+		<!-- Apache Tika for Document Text Extraction -->
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>${tika.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parsers-standard-package</artifactId>
+			<version>${tika.version}</version>
 		</dependency>
 	</dependencies>
 

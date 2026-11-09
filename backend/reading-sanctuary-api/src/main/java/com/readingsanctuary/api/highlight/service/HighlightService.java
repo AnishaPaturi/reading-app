@@ -17,6 +17,8 @@ import com.readingsanctuary.api.common.enums.ReadingLocationType;
 import com.readingsanctuary.api.highlight.dto.*;
 import com.readingsanctuary.api.highlight.entity.BookHighlight;
 import com.readingsanctuary.api.highlight.repository.BookHighlightRepository;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -25,14 +27,25 @@ public class HighlightService {
     private final BookHighlightRepository highlightRepository;
     private final BookRepository bookRepository;
     private final BookFileRepository bookFileRepository;
+    private final SyncChangePublisher changePublisher;
 
     public HighlightService(
             BookHighlightRepository highlightRepository,
             BookRepository bookRepository,
             BookFileRepository bookFileRepository) {
+        this(highlightRepository, bookRepository, bookFileRepository, null);
+    }
+
+    @Autowired
+    public HighlightService(
+            BookHighlightRepository highlightRepository,
+            BookRepository bookRepository,
+            BookFileRepository bookFileRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.highlightRepository = highlightRepository;
         this.bookRepository = bookRepository;
         this.bookFileRepository = bookFileRepository;
+        this.changePublisher = changePublisher;
     }
 
     public HighlightResponse create(

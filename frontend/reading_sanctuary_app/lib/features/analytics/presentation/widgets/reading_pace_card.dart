@@ -59,7 +59,7 @@ class ReadingPaceCard extends StatelessWidget {
                 child: _buildMetricTile(
                   context,
                   title: 'Page Speed',
-                  value: '${pace.averagePagesPerDay.toStringAsFixed(1)}',
+                  value: pace.averagePagesPerDay.toStringAsFixed(1),
                   subtext: 'pages / day',
                   color: AppColors.hlSage,
                 ),

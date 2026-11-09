@@ -79,6 +79,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/analytics',
             pageBuilder: (c, s) => _page(s, const AnalyticsDashboardScreen()),
           ),
+          GoRoute(
+            path: '/sync/settings',
+            pageBuilder: (c, s) => _page(s, const SyncSettingsScreen()),
+          ),
+          GoRoute(
+            path: '/storage/manage',
+            pageBuilder: (c, s) => _page(s, const StorageManagementScreen()),
+          ),
           for (final e in placeholders.entries)
             GoRoute(
               path: e.key,

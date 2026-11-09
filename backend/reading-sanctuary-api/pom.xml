@@ -29,7 +29,21 @@
 	<properties>
 		<java.version>25</java.version>
 		<tika.version>2.9.2</tika.version>
+		<aws.sdk.version>2.29.50</aws.sdk.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>bom</artifactId>
+				<version>${aws.sdk.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -107,6 +121,16 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
 			<version>${tika.version}</version>
+		</dependency>
+
+		<!-- AWS SDK for Java 2.x S3 & S3 Presigner -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3-presigner</artifactId>
 		</dependency>
 	</dependencies>
 

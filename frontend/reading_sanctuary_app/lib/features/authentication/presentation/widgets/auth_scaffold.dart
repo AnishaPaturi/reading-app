@@ -64,25 +64,25 @@ class AuthScaffold extends StatelessWidget {
                     horizontal: isCompact ? 16 : 24,
                     vertical: isCompact ? 12 : 28,
                   ),
-                  child: const ConstrainedBox(
-                    constraints: BoxConstraints(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
                       maxWidth: 420,
                     ),
                     child: Container(
                       decoration: BoxDecoration(
                         color: AuthPalette.cardSurface,
                         borderRadius: BorderRadius.circular(40),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
                             color: AuthPalette.cardShadow,
                             blurRadius: 36,
-                            offset: const Offset(0, 16),
+                            offset: Offset(0, 16),
                             spreadRadius: 2,
                           ),
                           BoxShadow(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: Color(0x99FFFFFF),
                             blurRadius: 10,
-                            offset: const Offset(0, -3),
+                            offset: Offset(0, -3),
                           ),
                         ],
                       ),

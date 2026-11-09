@@ -63,11 +63,11 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
         decoration: BoxDecoration(
           color: AuthPalette.cardSurface,
           borderRadius: BorderRadius.circular(32),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: AuthPalette.cardShadow,
               blurRadius: 30,
-              offset: const Offset(0, 10),
+              offset: Offset(0, 10),
             ),
           ],
         ),

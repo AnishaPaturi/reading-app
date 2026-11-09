@@ -16,6 +16,8 @@ import com.readingsanctuary.api.bookmark.dto.*;
 import com.readingsanctuary.api.bookmark.entity.Bookmark;
 import com.readingsanctuary.api.bookmark.repository.BookmarkRepository;
 import com.readingsanctuary.api.common.enums.ReadingLocationType;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -24,14 +26,25 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final BookRepository bookRepository;
     private final BookFileRepository bookFileRepository;
+    private final SyncChangePublisher changePublisher;
 
     public BookmarkService(
             BookmarkRepository bookmarkRepository,
             BookRepository bookRepository,
             BookFileRepository bookFileRepository) {
+        this(bookmarkRepository, bookRepository, bookFileRepository, null);
+    }
+
+    @Autowired
+    public BookmarkService(
+            BookmarkRepository bookmarkRepository,
+            BookRepository bookRepository,
+            BookFileRepository bookFileRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.bookmarkRepository = bookmarkRepository;
         this.bookRepository = bookRepository;
         this.bookFileRepository = bookFileRepository;
+        this.changePublisher = changePublisher;
     }
 
     public BookmarkResponse create(

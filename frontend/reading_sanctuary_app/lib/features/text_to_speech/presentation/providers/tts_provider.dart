@@ -227,12 +227,20 @@ class TtsNotifier extends StateNotifier<TtsState> {
     if (text.trim().isEmpty) return;
 
     state = state.copyWith(isSpeaking: true, isPaused: false);
+    _ref?.read(activityTrackingServiceProvider).startSession(
+          activityType: ActivityType.TTS,
+          bookId: state.bookId,
+          bookFileId: state.fileId,
+          startingLocation: 'chapter=${state.currentChapter},chunk=${state.currentChunk}',
+          playbackSpeed: state.speechRate,
+        );
     await _ttsService.speak(text);
   }
 
   Future<void> pause() async {
     await _ttsService.pause();
     state = state.copyWith(isSpeaking: false, isPaused: true);
+    _ref?.read(activityTrackingServiceProvider).closeSession();
     await savePosition();
   }
 
@@ -248,6 +256,10 @@ class TtsNotifier extends StateNotifier<TtsState> {
       isSpeaking: false,
       isPaused: false,
       clearSpokenWord: true,
+    );
+    _ref?.read(activityTrackingServiceProvider).closeSession();
+    await savePosition();
+  }
     );
     await savePosition();
   }

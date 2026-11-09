@@ -4,14 +4,15 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.readingsanctuary.api.book.entity.Book;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.bookfile.entity.BookFile;
 import com.readingsanctuary.api.bookfile.repository.BookFileRepository;
-import com.readingsanctuary.api.common.exception.ResourceNotFoundException;
 import com.readingsanctuary.api.storage.config.StorageConfig;
 import com.readingsanctuary.api.storage.dto.*;
 import com.readingsanctuary.api.storage.enums.StorageProvider;
@@ -42,7 +43,7 @@ public class CloudStorageService {
 
     public UploadUrlResponse requestUploadUrl(UUID userId, UploadUrlRequest request) {
         Book book = bookRepository.findByIdAndCreatedBy_Id(request.bookId(), userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Book not found or access denied"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found or access denied"));
 
         UUID fileId = UUID.randomUUID();
         String extension = getExtension(request.fileName());
@@ -80,10 +81,10 @@ public class CloudStorageService {
 
     public StorageFileResponse completeUpload(UUID userId, CompleteUploadRequest request) {
         BookFile file = bookFileRepository.findById(request.fileId())
-                .orElseThrow(() -> new ResourceNotFoundException("File record not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File record not found"));
 
         if (!file.getBook().getCreatedBy().getId().equals(userId)) {
-            throw new ResourceNotFoundException("Access denied to file");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to file");
         }
 
         StorageProvider provider = StorageProvider.fromString(file.getStorageProvider());
@@ -119,10 +120,10 @@ public class CloudStorageService {
     @Transactional(readOnly = true)
     public DownloadUrlResponse generateDownloadUrl(UUID userId, UUID fileId) {
         BookFile file = bookFileRepository.findById(fileId)
-                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
         if (!file.getBook().getCreatedBy().getId().equals(userId)) {
-            throw new ResourceNotFoundException("Access denied to file");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to file");
         }
 
         StorageProvider provider = StorageProvider.fromString(file.getStorageProvider());
@@ -142,10 +143,10 @@ public class CloudStorageService {
 
     public void deleteFile(UUID userId, UUID fileId) {
         BookFile file = bookFileRepository.findById(fileId)
-                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
         if (!file.getBook().getCreatedBy().getId().equals(userId)) {
-            throw new ResourceNotFoundException("Access denied to file");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to file");
         }
 
         file.setStorageStatus(UploadStatus.PENDING_DELETE.name());
@@ -165,10 +166,10 @@ public class CloudStorageService {
     @Transactional(readOnly = true)
     public StorageFileResponse getFileStatus(UUID userId, UUID fileId) {
         BookFile file = bookFileRepository.findById(fileId)
-                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
         if (!file.getBook().getCreatedBy().getId().equals(userId)) {
-            throw new ResourceNotFoundException("Access denied to file");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied to file");
         }
 
         return toStorageFileResponse(file);

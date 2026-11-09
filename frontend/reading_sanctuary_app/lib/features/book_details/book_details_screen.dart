@@ -115,7 +115,9 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                       FilledButton.icon(
                         onPressed: () {
                           if (_format == 2) {
-                            context.push('/read');
+                            context.push(
+                              '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=MP3',
+                            );
                           } else {
                             final formatName = _format == 1 ? 'EPUB' : 'PDF';
                             context.push(
@@ -127,6 +129,27 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                         label: Text(_format == 2
                             ? 'Listen Now'
                             : (b.progress > 0 ? 'Continue Reading' : 'Read Now')),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: () {
+                          final hasAudio = b.formats.contains(BookFormat.audiobook);
+                          if (hasAudio && _format != 1 && _format != 0) {
+                            context.push(
+                              '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=MP3',
+                            );
+                          } else {
+                            final formatName = _format == 1 ? 'EPUB' : 'PDF';
+                            context.push(
+                              '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=$formatName&mode=tts',
+                            );
+                          }
+                        },
+                        icon: Icon(b.formats.contains(BookFormat.audiobook) && _format != 1 && _format != 0
+                            ? Icons.headphones
+                            : Icons.record_voice_over_outlined),
+                        label: Text(b.formats.contains(BookFormat.audiobook) && _format != 1 && _format != 0
+                            ? 'Listen to Audiobook'
+                            : 'Listen with Text-to-Speech'),
                       ),
                       OutlinedButton.icon(
                         onPressed: updatePage,

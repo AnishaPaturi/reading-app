@@ -24,7 +24,7 @@ class AuthApiService {
       if (response is Map<String, dynamic>) {
         return AuthUser.fromJson(response);
       }
-      throw ApiException(message: 'Invalid response from server');
+      throw const ApiException(message: 'Invalid response from server', statusCode: 500);
     } on NetworkException catch (e) {
       debugPrint('AuthApiService: Network error ($e). Demo fallback active if needed.');
       // If server is not running locally, provide friendly fallback for immediate dev preview
@@ -64,7 +64,7 @@ class AuthApiService {
           displayName: username ?? email.split('@').first,
         );
       }
-      throw ApiException(message: 'Failed to create user account');
+      throw const ApiException(message: 'Failed to create user account', statusCode: 500);
     } on NetworkException catch (e) {
       debugPrint('AuthApiService: Network error ($e). Demo fallback active if needed.');
       if (kDebugMode && (email.contains('@') && password.length >= 6)) {

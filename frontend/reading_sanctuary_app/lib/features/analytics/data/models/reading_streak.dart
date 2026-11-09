@@ -14,15 +14,16 @@ class StreakResponse {
   });
 
   factory StreakResponse.fromJson(Map<String, dynamic> json) {
-    final dates = (json['activeDatesThisYear'] as List<dynamic>? ?? [])
+    final rawDates = json['activeDays'] ?? json['activeDatesThisYear'];
+    final dates = (rawDates as List<dynamic>? ?? [])
         .map((e) => e.toString())
         .toList();
     return StreakResponse(
-      currentStreakDays: (json['currentStreakDays'] as num?)?.toInt() ?? 0,
-      longestStreakDays: (json['longestStreakDays'] as num?)?.toInt() ?? 0,
+      currentStreakDays: ((json['currentStreak'] ?? json['currentStreakDays']) as num?)?.toInt() ?? 0,
+      longestStreakDays: ((json['longestStreak'] ?? json['longestStreakDays']) as num?)?.toInt() ?? 0,
       lastActiveDate: json['lastActiveDate']?.toString(),
       activeDatesThisYear: dates,
-      totalActiveDaysThisYear: (json['totalActiveDaysThisYear'] as num?)?.toInt() ?? 0,
+      totalActiveDaysThisYear: (json['totalActiveDaysThisYear'] as num?)?.toInt() ?? dates.length,
     );
   }
 }

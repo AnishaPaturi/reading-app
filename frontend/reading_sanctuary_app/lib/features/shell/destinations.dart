@@ -29,6 +29,8 @@ const sidebarDestinations = [
   NavDest('Highlights', '/highlights', Icons.highlight_outlined),
   NavDest('Quotes', '/quotes', Icons.format_quote),
   NavDest('Reading Statistics', '/statistics', Icons.insights_outlined),
+  NavDest('Sync & Devices', '/sync/settings', Icons.sync),
+  NavDest('Storage & Offline', '/storage/manage', Icons.sd_storage_outlined),
   NavDest('Settings', '/settings', Icons.settings_outlined),
 ];
 

@@ -417,6 +417,7 @@ class TtsNotifier extends StateNotifier<TtsState> {
   @override
   void dispose() {
     _debounceSaveTimer?.cancel();
+    _ref?.read(activityTrackingServiceProvider).closeSession();
     super.dispose();
   }
 }
@@ -424,5 +425,5 @@ class TtsNotifier extends StateNotifier<TtsState> {
 final ttsProvider = StateNotifierProvider<TtsNotifier, TtsState>((ref) {
   final ttsService = ref.watch(ttsServiceProvider);
   final repo = ref.watch(ttsRepositoryProvider);
-  return TtsNotifier(ttsService: ttsService, repository: repo);
+  return TtsNotifier(ttsService: ttsService, repository: repo, ref: ref);
 });

@@ -5,6 +5,8 @@ import '../features/analytics/presentation/screens/analytics_dashboard_screen.da
 import '../features/analytics/presentation/screens/reading_goals_screen.dart';
 import '../features/analytics/presentation/screens/yearly_wrap_up_screen.dart';
 import '../features/audiobook/presentation/screens/audiobook_screen.dart';
+import '../features/authentication/presentation/screens/login_screen.dart';
+import '../features/authentication/presentation/screens/signup_screen.dart';
 import '../features/book_details/book_details_screen.dart';
 import '../features/cloud_storage/presentation/screens/storage_management_screen.dart';
 import '../core/sync/presentation/screens/sync_settings_screen.dart';
@@ -25,6 +27,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
+      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+      GoRoute(path: '/signup', builder: (_, __) => const SignUpScreen()),
       ...readerRoutes,
       GoRoute(
         path: '/listen/:bookId/:fileId',

@@ -98,7 +98,11 @@ public class TtsPlaybackService {
         book.setLastReadAt(OffsetDateTime.now());
         bookRepository.save(book);
 
-        return toResponse(saved);
+        TtsPositionResponse response = toResponse(saved);
+        if (changePublisher != null) {
+            changePublisher.publishUpdate(userId, "TTS_POSITION", saved.getId().toString(), 1L, response);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +120,9 @@ public class TtsPlaybackService {
         getBookFile(fileId, bookId);
 
         positionRepository.deleteByBook_IdAndBookFile_Id(bookId, fileId);
+        if (changePublisher != null) {
+            changePublisher.publishDelete(userId, "TTS_POSITION", bookId + ":" + fileId, 1L);
+        }
     }
 
     private Book getOwnedBook(UUID bookId, UUID userId) {

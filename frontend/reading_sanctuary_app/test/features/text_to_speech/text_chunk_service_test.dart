@@ -10,7 +10,7 @@ void main() {
     });
 
     test('splitText divides text by paragraphs', () {
-      final sample = 'First paragraph.\n\nSecond paragraph.\n\nThird paragraph.';
+      const sample = 'First paragraph.\n\nSecond paragraph.\n\nThird paragraph.';
       final chunks = service.splitText(sample);
 
       expect(chunks.length, 1);

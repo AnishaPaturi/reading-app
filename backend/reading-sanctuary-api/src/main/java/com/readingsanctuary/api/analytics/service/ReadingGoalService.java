@@ -83,7 +83,11 @@ public class ReadingGoalService {
         goal.setActive(true);
 
         ReadingGoal saved = goalRepository.save(goal);
-        return toResponse(saved);
+        ReadingGoalResponse response = toResponse(saved);
+        if (changePublisher != null) {
+            changePublisher.publishCreate(userId, "READING_GOAL", saved.getId().toString(), 1L, response);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -123,13 +127,20 @@ public class ReadingGoalService {
         goal.setEndDate(request.endDate());
 
         ReadingGoal saved = goalRepository.save(goal);
-        return toResponse(saved);
+        ReadingGoalResponse response = toResponse(saved);
+        if (changePublisher != null) {
+            changePublisher.publishUpdate(userId, "READING_GOAL", saved.getId().toString(), 2L, response);
+        }
+        return response;
     }
 
     public void deleteGoal(UUID userId, UUID goalId) {
         ReadingGoal goal = goalRepository.findByIdAndUser_Id(goalId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Goal not found"));
         goalRepository.delete(goal);
+        if (changePublisher != null) {
+            changePublisher.publishDelete(userId, "READING_GOAL", goalId.toString(), 3L);
+        }
     }
 
     @Transactional(readOnly = true)

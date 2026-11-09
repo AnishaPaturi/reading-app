@@ -18,6 +18,8 @@ import '../widgets/reader_loading.dart';
 import '../widgets/reader_settings_panel.dart';
 import '../widgets/reader_sidebar.dart';
 import '../widgets/reader_toolbar.dart';
+import '../../analytics/application/analytics_providers.dart';
+import '../../analytics/data/models/activity_session.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -37,7 +39,7 @@ class ReaderScreen extends ConsumerStatefulWidget {
   ConsumerState<ReaderScreen> createState() => _ReaderScreenState();
 }
 
-class _ReaderScreenState extends ConsumerState<ReaderScreen> {
+class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<PdfReaderViewState> _pdfKey = GlobalKey<PdfReaderViewState>();
   final GlobalKey<EpubReaderViewState> _epubKey = GlobalKey<EpubReaderViewState>();
@@ -49,12 +51,49 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         fileFormat: widget.fileFormat,
       );
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(activityTrackingServiceProvider).startSession(
+            activityType: ActivityType.READING,
+            bookId: widget.bookId,
+            bookFileId: widget.fileId,
+          );
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      ref.read(activityTrackingServiceProvider).closeSession();
+    } else if (state == AppLifecycleState.resumed) {
+      ref.read(activityTrackingServiceProvider).startSession(
+            activityType: ActivityType.READING,
+            bookId: widget.bookId,
+            bookFileId: widget.fileId,
+          );
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    ref.read(activityTrackingServiceProvider).closeSession();
+    super.dispose();
+  }
+
   void _onPositionChanged(ReaderPosition position) {
     ref.read(readerCurrentPositionProvider.notifier).state = position;
     ref.read(readerPositionServiceProvider).onPositionChanged(
           bookId: widget.bookId,
           fileId: widget.fileId,
           position: position,
+        );
+    ref.read(activityTrackingServiceProvider).updateProgress(
+          currentLocation: position.locationValue,
+          currentPage: position.pageNumber,
         );
   }
 

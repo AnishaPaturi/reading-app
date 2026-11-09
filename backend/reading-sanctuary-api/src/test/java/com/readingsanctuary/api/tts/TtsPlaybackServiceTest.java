@@ -173,7 +173,7 @@ class TtsPlaybackServiceTest {
         position.setCharacterOffset(40);
         position.setProgressPercentage(new BigDecimal("25.00"));
 
-        when(positionRepository.findByBookFile_Id(fileId)).thenReturn(Optional.of(position));
+        when(positionRepository.findByBook_IdAndBookFile_Id(bookId, fileId)).thenReturn(Optional.of(position));
 
         Optional<TtsPositionResponse> result = ttsPlaybackService.getPosition(userId, bookId, fileId);
 
@@ -187,11 +187,8 @@ class TtsPlaybackServiceTest {
         when(bookRepository.findByIdAndCreatedBy_Id(bookId, userId)).thenReturn(Optional.of(book));
         when(bookFileRepository.findByIdAndBook_Id(fileId, bookId)).thenReturn(Optional.of(epubFile));
 
-        TtsPlaybackPosition position = new TtsPlaybackPosition();
-        when(positionRepository.findByBookFile_Id(fileId)).thenReturn(Optional.of(position));
+        ttsPlaybackService.resetPosition(userId, bookId, fileId);
 
-        ttsPlaybackService.reset(userId, bookId, fileId);
-
-        verify(positionRepository).delete(position);
+        verify(positionRepository).deleteByBook_IdAndBookFile_Id(bookId, fileId);
     }
 }

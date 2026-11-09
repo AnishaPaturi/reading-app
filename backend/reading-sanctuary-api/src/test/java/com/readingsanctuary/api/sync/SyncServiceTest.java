@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.readingsanctuary.api.sync.dto.*;
 import com.readingsanctuary.api.sync.entity.SyncChange;
@@ -66,11 +67,11 @@ class SyncServiceTest {
         userId = UUID.randomUUID();
         deviceId = UUID.randomUUID();
 
-        User user = new User();
-        user.setId(userId);
+        User user = new User("reader@sanctuary.com", "hash");
+        ReflectionTestUtils.setField(user, "id", userId);
 
         mockDevice = new SyncDevice();
-        mockDevice.setId(deviceId);
+        ReflectionTestUtils.setField(mockDevice, "id", deviceId);
         mockDevice.setUser(user);
         mockDevice.setActive(true);
     }
@@ -85,7 +86,7 @@ class SyncServiceTest {
         change1.setEntityId("b-1");
         change1.setOperation("CREATE");
         change1.setEntityVersion(1L);
-        change1.setCreatedAt(OffsetDateTime.now());
+        change1.setChangedAt(OffsetDateTime.now());
 
         when(changeRepository.findByUserIdAndCursorGreaterThanOrderByCursorAsc(eq(userId), eq(100L), any(Pageable.class)))
                 .thenReturn(List.of(change1));
@@ -108,6 +109,7 @@ class SyncServiceTest {
         when(processedChangeRepository.existsByClientChangeIdAndUserId(clientChangeId, userId)).thenReturn(true);
 
         SyncChangeDto changeDto = new SyncChangeDto(
+                null,
                 clientChangeId,
                 "BOOKMARK",
                 "bm-1",
@@ -121,7 +123,7 @@ class SyncServiceTest {
         SyncPushRequest request = new SyncPushRequest(deviceId, List.of(changeDto));
         SyncPushResponse response = syncService.push(userId, request);
 
-        assertThat(response.acceptedChangeIds()).contains(clientChangeId);
+        assertThat(response.accepted()).contains(clientChangeId);
         assertThat(response.conflicts()).isEmpty();
         verifyNoInteractions(changePublisher);
     }
@@ -136,6 +138,7 @@ class SyncServiceTest {
                 .thenReturn(Collections.emptyList());
 
         SyncChangeDto changeDto = new SyncChangeDto(
+                null,
                 clientChangeId,
                 "READING_POSITION",
                 "pos-1",
@@ -149,7 +152,7 @@ class SyncServiceTest {
         SyncPushRequest request = new SyncPushRequest(deviceId, List.of(changeDto));
         SyncPushResponse response = syncService.push(userId, request);
 
-        assertThat(response.acceptedChangeIds()).contains(clientChangeId);
+        assertThat(response.accepted()).contains(clientChangeId);
         verify(changePublisher).publishChange(eq(userId), eq("READING_POSITION"), eq("pos-1"), eq("UPDATE"), eq(1L), any());
         verify(processedChangeRepository).save(any());
     }
@@ -171,6 +174,7 @@ class SyncServiceTest {
 
         // Client change based on outdated version 3
         SyncChangeDto changeDto = new SyncChangeDto(
+                null,
                 clientChangeId,
                 "BOOK_NOTE",
                 "note-1",
@@ -185,7 +189,7 @@ class SyncServiceTest {
         SyncPushResponse response = syncService.push(userId, request);
 
         assertThat(response.conflicts()).hasSize(1);
-        assertThat(response.conflicts().get(0).conflictType()).isEqualTo("VERSION_CONFLICT");
+        assertThat(response.conflicts().get(0).reason()).isEqualTo("VERSION_CONFLICT");
         assertThat(response.conflicts().get(0).serverVersion()).isEqualTo(5L);
         verifyNoInteractions(changePublisher);
     }

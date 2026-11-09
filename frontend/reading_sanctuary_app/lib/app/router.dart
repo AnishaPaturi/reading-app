@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/annotations/presentation/routes/annotation_routes.dart';
+import '../features/analytics/presentation/screens/analytics_dashboard_screen.dart';
+import '../features/analytics/presentation/screens/reading_goals_screen.dart';
+import '../features/analytics/presentation/screens/yearly_wrap_up_screen.dart';
 import '../features/audiobook/presentation/screens/audiobook_screen.dart';
 import '../features/book_details/book_details_screen.dart';
 import '../features/discover/presentation/discover_screen.dart';
@@ -51,6 +55,28 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/book/:id',
             pageBuilder: (c, s) =>
                 _page(s, BookDetailsScreen(bookId: s.pathParameters['id']!)),
+          ),
+          GoRoute(
+            path: '/statistics',
+            pageBuilder: (c, s) => _page(s, const AnalyticsDashboardScreen()),
+            routes: [
+              GoRoute(
+                path: 'goals',
+                pageBuilder: (c, s) => _page(s, const ReadingGoalsScreen()),
+              ),
+              GoRoute(
+                path: 'wrap-up',
+                pageBuilder: (c, s) {
+                  final yearStr = s.uri.queryParameters['year'];
+                  final year = yearStr != null ? int.tryParse(yearStr) : null;
+                  return _page(s, YearlyWrapUpScreen(year: year));
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/analytics',
+            pageBuilder: (c, s) => _page(s, const AnalyticsDashboardScreen()),
           ),
           for (final e in placeholders.entries)
             GoRoute(

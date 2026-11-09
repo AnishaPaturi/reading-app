@@ -4,9 +4,9 @@ class AnalyticsOverviewResponse {
   final int currentlyReadingBooks;
   final int tbrBooks;
   final int dnfBooks;
-  final longOrInt totalReadingMinutes;
-  final longOrInt totalAudiobookMinutes;
-  final longOrInt totalTtsMinutes;
+  final int totalReadingMinutes;
+  final int totalAudiobookMinutes;
+  final int totalTtsMinutes;
   final int activeReadingDays;
   final int currentStreakDays;
   final int booksCompletedThisYear;
@@ -44,5 +44,3 @@ class AnalyticsOverviewResponse {
     );
   }
 }
-
-typedef longOrInt = int;

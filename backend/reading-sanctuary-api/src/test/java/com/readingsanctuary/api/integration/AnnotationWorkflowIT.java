@@ -121,12 +121,12 @@ class AnnotationWorkflowIT {
                 "p85:c0",
                 "p85:c90",
                 85,
-                "#C6A15B",
+                HighlightColor.YELLOW,
                 "Foundational principle"
         );
         HighlightResponse highlight = highlightService.create(userId, bookId, hlReq);
-        assertThat(highlight.colorHex()).isEqualTo("#C6A15B");
-        assertThat(highlight.note()).isEqualTo("Foundational principle");
+        assertThat(highlight.color()).isEqualTo(HighlightColor.YELLOW);
+        assertThat(highlight.annotationNote()).isEqualTo("Foundational principle");
 
         // 3. Create Note
         when(noteRepository.save(any(BookNote.class))).thenAnswer(i -> {

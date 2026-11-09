@@ -7,6 +7,7 @@ import '../../core/widgets/book_cover.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
+import '../offline/presentation/widgets/offline_download_button.dart';
 
 class BookDetailsScreen extends ConsumerStatefulWidget {
   const BookDetailsScreen({super.key, required this.bookId});
@@ -155,6 +156,13 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                         onPressed: updatePage,
                         icon: const Icon(Icons.dialpad),
                         label: const Text('Update page'),
+                      ),
+                      OfflineDownloadButton(
+                        bookId: b.id,
+                        fileId: b.id,
+                        bookTitle: b.title,
+                        fileName: '${b.title.replaceAll(RegExp(r'[^\w\s]+'), '').trim()}.${_format == 1 ? 'epub' : (_format == 2 ? 'mp3' : 'pdf')}',
+                        format: _format == 1 ? 'EPUB' : (_format == 2 ? 'MP3' : 'PDF'),
                       ),
                     ]),
                     if (b.progress > 0 && b.progress < 1) ...[

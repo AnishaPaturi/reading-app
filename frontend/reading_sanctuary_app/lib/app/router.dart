@@ -14,6 +14,7 @@ import '../features/discover/presentation/discover_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/reading/reading_screen.dart';
 import '../features/library/library_screen.dart';
+import '../features/landing/presentation/screens/landing_screen.dart';
 import '../features/placeholder/placeholder_screen.dart';
 import '../features/reader/presentation/routes/reader_routes.dart';
 import '../features/shell/app_shell.dart';
@@ -27,6 +28,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
+      GoRoute(path: '/landing', builder: (_, __) => const LandingScreen()),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/signup', builder: (_, __) => const SignUpScreen()),
       ...readerRoutes,

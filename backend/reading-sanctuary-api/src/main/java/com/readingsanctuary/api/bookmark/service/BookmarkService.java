@@ -65,7 +65,11 @@ public class BookmarkService {
         bookmark.setLocationValue(request.locationValue());
         bookmark.setPageNumber(request.pageNumber());
 
-        return toResponse(bookmarkRepository.save(bookmark));
+        Bookmark saved = bookmarkRepository.save(bookmark);
+        if (changePublisher != null) {
+            changePublisher.publishCreate(userId, "BOOKMARK", saved.getId().toString(), 1L, toResponse(saved));
+        }
+        return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -100,7 +104,11 @@ public class BookmarkService {
             bookmark.setNote(request.note());
         }
 
-        return toResponse(bookmarkRepository.save(bookmark));
+        Bookmark saved = bookmarkRepository.save(bookmark);
+        if (changePublisher != null) {
+            changePublisher.publishCreate(userId, "BOOKMARK", saved.getId().toString(), 1L, toResponse(saved));
+        }
+        return toResponse(saved);
     }
 
     public void delete(

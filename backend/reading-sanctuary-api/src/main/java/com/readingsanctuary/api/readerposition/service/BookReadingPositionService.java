@@ -92,7 +92,11 @@ public class BookReadingPositionService {
         }
         bookRepository.save(book);
 
-        return toResponse(saved);
+        ReadingPositionResponse response = toResponse(saved);
+        if (changePublisher != null) {
+            changePublisher.publishUpdate(userId, "READING_POSITION", saved.getId().toString(), 1L, response);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -110,6 +114,9 @@ public class BookReadingPositionService {
         getBookFile(fileId, bookId);
 
         positionRepository.deleteByBook_IdAndBookFile_Id(bookId, fileId);
+        if (changePublisher != null) {
+            changePublisher.publishDelete(userId, "READING_POSITION", bookId + ":" + fileId, 1L);
+        }
     }
 
     private Book getOwnedBook(UUID bookId, UUID userId) {

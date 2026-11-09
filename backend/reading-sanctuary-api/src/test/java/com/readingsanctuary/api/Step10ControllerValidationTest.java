@@ -51,6 +51,12 @@ class Step10ControllerValidationTest {
     @Mock
     private AnalyticsService analyticsService;
 
+    @Mock
+    private ReadingStreakService streakService;
+
+    @Mock
+    private ReadingWrapUpService wrapUpService;
+
     private MockMvc sessionMockMvc;
     private MockMvc goalMockMvc;
     private MockMvc analyticsMockMvc;
@@ -85,7 +91,7 @@ class Step10ControllerValidationTest {
                 .setCustomArgumentResolvers(jwtResolver)
                 .build();
 
-        analyticsMockMvc = MockMvcBuilders.standaloneSetup(new AnalyticsController(analyticsService))
+        analyticsMockMvc = MockMvcBuilders.standaloneSetup(new AnalyticsController(analyticsService, streakService, wrapUpService))
                 .setCustomArgumentResolvers(jwtResolver)
                 .build();
     }
@@ -94,16 +100,20 @@ class Step10ControllerValidationTest {
     void startSession_validRequest_returns201() throws Exception {
         ActivitySessionResponse response = new ActivitySessionResponse(
                 UUID.randomUUID(),
-                ActivityType.READING,
+                testUserId,
                 UUID.randomUUID(),
-                "The Hobbit",
-                null,
+                UUID.randomUUID(),
+                ActivityType.READING,
                 OffsetDateTime.now(),
                 null,
+                OffsetDateTime.now(),
                 0,
+                0.0,
+                0.0,
                 0,
-                null,
-                true
+                true,
+                OffsetDateTime.now(),
+                OffsetDateTime.now()
         );
 
         when(sessionService.startSession(eq(testUserId), any())).thenReturn(response);
@@ -118,7 +128,7 @@ class Step10ControllerValidationTest {
                                 """.formatted(UUID.randomUUID())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.activityType").value("READING"))
-                .andExpect(jsonPath("$.active").value(true));
+                .andExpect(jsonPath("$.isActive").value(true));
     }
 
     @Test
@@ -137,12 +147,14 @@ class Step10ControllerValidationTest {
     void createGoal_validRequest_returns201() throws Exception {
         ReadingGoalResponse response = new ReadingGoalResponse(
                 UUID.randomUUID(),
+                testUserId,
                 GoalType.READING_MINUTES,
                 30,
                 GoalPeriod.DAILY,
                 LocalDate.now(),
                 LocalDate.now(),
                 true,
+                OffsetDateTime.now(),
                 OffsetDateTime.now()
         );
 
@@ -198,14 +210,14 @@ class Step10ControllerValidationTest {
     @Test
     void getStreaks_returns200() throws Exception {
         StreakResponse streak = new StreakResponse(
-                7, 21, LocalDate.of(2026, 11, 9), Collections.singletonList(LocalDate.of(2026, 11, 9)), 1
+                7, 21, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 9), Collections.singletonList(LocalDate.of(2026, 11, 9))
         );
 
-        when(analyticsService.calculateStreaks(eq(testUserId), any())).thenReturn(streak);
+        when(streakService.calculateStreak(eq(testUserId), any())).thenReturn(streak);
 
         analyticsMockMvc.perform(get("/api/v1/analytics/streaks"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentStreakDays").value(7))
-                .andExpect(jsonPath("$.longestStreakDays").value(21));
+                .andExpect(jsonPath("$.currentStreak").value(7))
+                .andExpect(jsonPath("$.longestStreak").value(21));
     }
 }

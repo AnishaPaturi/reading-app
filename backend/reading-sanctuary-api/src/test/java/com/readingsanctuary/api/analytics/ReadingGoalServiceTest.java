@@ -183,7 +183,7 @@ class ReadingGoalServiceTest {
 
         when(goalRepository.findByIdAndUser_Id(goalId, userId)).thenReturn(Optional.of(goal));
         // 7200 seconds = 120 minutes (exceeds target of 100)
-        List<Object[]> rows = List.of(new Object[]{ActivityType.READING, 7200L});
+        List<Object[]> rows = java.util.Collections.singletonList(new Object[]{ActivityType.READING, 7200L});
         when(sessionRepository.sumDurationByActivityType(eq(userId), any(), any()))
                 .thenReturn(rows);
 

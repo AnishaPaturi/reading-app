@@ -75,7 +75,7 @@ class AudiobookPlaybackServiceTest {
     void saveOrUpdate_Success() {
         when(bookRepository.findByIdAndCreatedBy_Id(bookId, userId)).thenReturn(Optional.of(book));
         when(bookFileRepository.findByIdAndBook_Id(fileId, bookId)).thenReturn(Optional.of(mp3File));
-        when(positionRepository.findByBookFile_Id(fileId)).thenReturn(Optional.empty());
+        when(positionRepository.findByBook_IdAndBookFile_Id(bookId, fileId)).thenReturn(Optional.empty());
 
         when(positionRepository.save(any(AudiobookPlaybackPosition.class))).thenAnswer(invocation -> {
             AudiobookPlaybackPosition pos = invocation.getArgument(0);
@@ -185,7 +185,7 @@ class AudiobookPlaybackServiceTest {
         position.setPlaybackSpeed(new BigDecimal("1.50"));
         position.setCompleted(false);
 
-        when(positionRepository.findByBookFile_Id(fileId)).thenReturn(Optional.of(position));
+        when(positionRepository.findByBook_IdAndBookFile_Id(bookId, fileId)).thenReturn(Optional.of(position));
 
         Optional<AudioPositionResponse> result = playbackService.getPosition(userId, bookId, fileId);
 
@@ -199,11 +199,8 @@ class AudiobookPlaybackServiceTest {
         when(bookRepository.findByIdAndCreatedBy_Id(bookId, userId)).thenReturn(Optional.of(book));
         when(bookFileRepository.findByIdAndBook_Id(fileId, bookId)).thenReturn(Optional.of(mp3File));
 
-        AudiobookPlaybackPosition position = new AudiobookPlaybackPosition();
-        when(positionRepository.findByBookFile_Id(fileId)).thenReturn(Optional.of(position));
+        playbackService.resetPosition(userId, bookId, fileId);
 
-        playbackService.reset(userId, bookId, fileId);
-
-        verify(positionRepository).delete(position);
+        verify(positionRepository).deleteByBook_IdAndBookFile_Id(bookId, fileId);
     }
 }

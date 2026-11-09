@@ -31,6 +31,8 @@ import com.readingsanctuary.api.analytics.enums.GoalType;
 import com.readingsanctuary.api.analytics.service.ActivitySessionService;
 import com.readingsanctuary.api.analytics.service.AnalyticsService;
 import com.readingsanctuary.api.analytics.service.ReadingGoalService;
+import com.readingsanctuary.api.analytics.service.ReadingStreakService;
+import com.readingsanctuary.api.analytics.service.ReadingWrapUpService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

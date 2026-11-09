@@ -53,6 +53,31 @@ class ReadingScreen extends ConsumerWidget {
                                     onPressed: () => context.push(
                                         '/reader/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&format=PDF'),
                                     child: Text(s == ReadingStatus.onHold ? 'Resume' : 'Continue Reading')),
+                                FilledButton.tonalIcon(
+                                  onPressed: () {
+                                    final hasAudio = b.formats.contains(BookFormat.audiobook);
+                                    if (hasAudio) {
+                                      context.push(
+                                        '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=MP3',
+                                      );
+                                    } else {
+                                      context.push(
+                                        '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=PDF&mode=tts',
+                                      );
+                                    }
+                                  },
+                                  icon: Icon(
+                                    b.formats.contains(BookFormat.audiobook)
+                                        ? Icons.headphones
+                                        : Icons.record_voice_over_outlined,
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    b.formats.contains(BookFormat.audiobook)
+                                        ? 'Listen'
+                                        : 'Listen (TTS)',
+                                  ),
+                                ),
                                 TextButton(
                                     onPressed: () => context.push('/book/${b.id}'), child: const Text('Details')),
                               ]),

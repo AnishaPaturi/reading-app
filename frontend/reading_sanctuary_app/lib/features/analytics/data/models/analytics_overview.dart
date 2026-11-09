@@ -32,15 +32,15 @@ class AnalyticsOverviewResponse {
     return AnalyticsOverviewResponse(
       totalBooks: (json['totalBooks'] as num?)?.toInt() ?? 0,
       completedBooks: (json['completedBooks'] as num?)?.toInt() ?? 0,
-      currentlyReadingBooks: (json['currentlyReadingBooks'] as num?)?.toInt() ?? 0,
-      tbrBooks: (json['tbrBooks'] as num?)?.toInt() ?? 0,
+      currentlyReadingBooks: ((json['currentlyReading'] ?? json['currentlyReadingBooks']) as num?)?.toInt() ?? 0,
+      tbrBooks: ((json['toRead'] ?? json['tbrBooks']) as num?)?.toInt() ?? 0,
       dnfBooks: (json['dnfBooks'] as num?)?.toInt() ?? 0,
-      totalReadingMinutes: (json['totalReadingMinutes'] as num?)?.toInt() ?? 0,
-      totalAudiobookMinutes: (json['totalAudiobookMinutes'] as num?)?.toInt() ?? 0,
-      totalTtsMinutes: (json['totalTtsMinutes'] as num?)?.toInt() ?? 0,
-      activeReadingDays: (json['activeReadingDays'] as num?)?.toInt() ?? 0,
-      currentStreakDays: (json['currentStreakDays'] as num?)?.toInt() ?? 0,
-      booksCompletedThisYear: (json['booksCompletedThisYear'] as num?)?.toInt() ?? 0,
+      totalReadingMinutes: ((json['readingMinutes'] ?? json['totalReadingMinutes']) as num?)?.toInt() ?? 0,
+      totalAudiobookMinutes: ((json['audiobookMinutes'] ?? json['totalAudiobookMinutes']) as num?)?.toInt() ?? 0,
+      totalTtsMinutes: ((json['ttsMinutes'] ?? json['totalTtsMinutes']) as num?)?.toInt() ?? 0,
+      activeReadingDays: ((json['activeReadingDays'] ?? json['pagesAdvanced']) as num?)?.toInt() ?? 0,
+      currentStreakDays: ((json['currentStreak'] ?? json['currentStreakDays']) as num?)?.toInt() ?? 0,
+      booksCompletedThisYear: ((json['booksCompletedThisYear'] ?? json['completedBooks']) as num?)?.toInt() ?? 0,
     );
   }
 }

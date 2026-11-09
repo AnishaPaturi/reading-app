@@ -18,8 +18,8 @@ import '../widgets/reader_loading.dart';
 import '../widgets/reader_settings_panel.dart';
 import '../widgets/reader_sidebar.dart';
 import '../widgets/reader_toolbar.dart';
-import '../../analytics/application/analytics_providers.dart';
-import '../../analytics/data/models/activity_session.dart';
+import '../../../analytics/application/analytics_providers.dart';
+import '../../../analytics/data/models/activity_session.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
   final String bookId;

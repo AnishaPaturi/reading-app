@@ -123,14 +123,10 @@
 			<version>${tika.version}</version>
 		</dependency>
 
-		<!-- AWS SDK for Java 2.x S3 & S3 Presigner -->
+		<!-- AWS SDK for Java 2.x S3 (includes S3Presigner) -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>s3-presigner</artifactId>
 		</dependency>
 	</dependencies>
 

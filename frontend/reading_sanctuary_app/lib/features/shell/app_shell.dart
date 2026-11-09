@@ -41,7 +41,13 @@ class AppShell extends ConsumerWidget {
           ),
         ),
         body: content,
-        bottomNavigationBar: _BottomNav(location: location),
+        bottomNavigationBar: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const MiniAudioPlayer(),
+            _BottomNav(location: location),
+          ],
+        ),
       );
     }
 
@@ -65,6 +71,7 @@ class AppShell extends ConsumerWidget {
             ),
             const Divider(height: 1),
             Expanded(child: content),
+            const MiniAudioPlayer(),
           ]),
         ),
       ]),

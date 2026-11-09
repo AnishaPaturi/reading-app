@@ -120,13 +120,16 @@ class TtsState {
 class TtsNotifier extends StateNotifier<TtsState> {
   final TtsService _ttsService;
   final TtsRepository _repository;
+  final Ref? _ref;
   Timer? _debounceSaveTimer;
 
   TtsNotifier({
     required TtsService ttsService,
     required TtsRepository repository,
+    Ref? ref,
   })  : _ttsService = ttsService,
         _repository = repository,
+        _ref = ref,
         super(const TtsState()) {
     _initTts();
   }

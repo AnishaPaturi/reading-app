@@ -22,6 +22,8 @@ import com.readingsanctuary.api.analytics.repository.ReadingGoalRepository;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.user.entity.User;
 import com.readingsanctuary.api.user.repository.UserRepository;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -31,16 +33,28 @@ public class ReadingGoalService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
     private final ReadingActivitySessionRepository sessionRepository;
+    private final SyncChangePublisher changePublisher;
 
     public ReadingGoalService(
             ReadingGoalRepository goalRepository,
             UserRepository userRepository,
             BookRepository bookRepository,
             ReadingActivitySessionRepository sessionRepository) {
+        this(goalRepository, userRepository, bookRepository, sessionRepository, null);
+    }
+
+    @Autowired
+    public ReadingGoalService(
+            ReadingGoalRepository goalRepository,
+            UserRepository userRepository,
+            BookRepository bookRepository,
+            ReadingActivitySessionRepository sessionRepository,
+            @Autowired(required = false) SyncChangePublisher changePublisher) {
         this.goalRepository = goalRepository;
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
         this.sessionRepository = sessionRepository;
+        this.changePublisher = changePublisher;
     }
 
     public ReadingGoalResponse createGoal(UUID userId, ReadingGoalRequest request) {

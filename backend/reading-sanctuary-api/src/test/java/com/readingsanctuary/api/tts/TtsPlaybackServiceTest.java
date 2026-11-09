@@ -75,7 +75,7 @@ class TtsPlaybackServiceTest {
     void saveOrUpdate_Success() {
         when(bookRepository.findByIdAndCreatedBy_Id(bookId, userId)).thenReturn(Optional.of(book));
         when(bookFileRepository.findByIdAndBook_Id(fileId, bookId)).thenReturn(Optional.of(epubFile));
-        when(positionRepository.findByBookFile_Id(fileId)).thenReturn(Optional.empty());
+        when(positionRepository.findByBook_IdAndBookFile_Id(bookId, fileId)).thenReturn(Optional.empty());
 
         when(positionRepository.save(any(TtsPlaybackPosition.class))).thenAnswer(invocation -> {
             TtsPlaybackPosition pos = invocation.getArgument(0);

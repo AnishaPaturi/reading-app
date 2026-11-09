@@ -9,12 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.readingsanctuary.api.book.entity.Book;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.bookfile.entity.BookFile;
 import com.readingsanctuary.api.bookfile.repository.BookFileRepository;
-import org.springframework.web.server.ResponseStatusException;
 import com.readingsanctuary.api.storage.config.StorageConfig;
 import com.readingsanctuary.api.storage.dto.*;
 import com.readingsanctuary.api.storage.enums.StorageProvider;
@@ -73,11 +74,11 @@ class CloudStorageServiceTest {
         userId = UUID.randomUUID();
         bookId = UUID.randomUUID();
 
-        mockUser = new User();
-        mockUser.setId(userId);
+        mockUser = new User("reader@sanctuary.com", "hash");
+        ReflectionTestUtils.setField(mockUser, "id", userId);
 
         mockBook = new Book();
-        mockBook.setId(bookId);
+        ReflectionTestUtils.setField(mockBook, "id", bookId);
         mockBook.setCreatedBy(mockUser);
         mockBook.setTitle("Design Patterns");
     }
@@ -90,7 +91,7 @@ class CloudStorageServiceTest {
                 .thenReturn("https://storage.example.com/upload-target");
         when(bookFileRepository.save(any(BookFile.class))).thenAnswer(invocation -> {
             BookFile file = invocation.getArgument(0);
-            file.setId(UUID.randomUUID());
+            ReflectionTestUtils.setField(file, "id", UUID.randomUUID());
             return file;
         });
 
@@ -131,7 +132,7 @@ class CloudStorageServiceTest {
     void completeUpload_success() {
         UUID fileId = UUID.randomUUID();
         BookFile file = new BookFile();
-        file.setId(fileId);
+        ReflectionTestUtils.setField(file, "id", fileId);
         file.setBook(mockBook);
         file.setFileName("test.pdf");
         file.setStorageKey("users/123/test.pdf");
@@ -149,7 +150,7 @@ class CloudStorageServiceTest {
         StorageFileResponse response = cloudStorageService.completeUpload(userId, request);
 
         assertThat(response).isNotNull();
-        assertThat(response.storageStatus()).isEqualTo(UploadStatus.VERIFIED.name());
+        assertThat(response.storageStatus()).isEqualTo(UploadStatus.VERIFIED);
         assertThat(response.fileSizeBytes()).isEqualTo(2048L);
     }
 
@@ -157,7 +158,7 @@ class CloudStorageServiceTest {
     void completeUpload_fileNotFoundInStorage_throwsException() {
         UUID fileId = UUID.randomUUID();
         BookFile file = new BookFile();
-        file.setId(fileId);
+        ReflectionTestUtils.setField(file, "id", fileId);
         file.setBook(mockBook);
         file.setStorageKey("missing/key");
         file.setStorageProvider("LOCAL");
@@ -176,7 +177,7 @@ class CloudStorageServiceTest {
     void generateDownloadUrl_success() {
         UUID fileId = UUID.randomUUID();
         BookFile file = new BookFile();
-        file.setId(fileId);
+        ReflectionTestUtils.setField(file, "id", fileId);
         file.setBook(mockBook);
         file.setFileName("book.epub");
         file.setStorageKey("users/123/book.epub");
@@ -200,7 +201,7 @@ class CloudStorageServiceTest {
     void deleteFile_success() {
         UUID fileId = UUID.randomUUID();
         BookFile file = new BookFile();
-        file.setId(fileId);
+        ReflectionTestUtils.setField(file, "id", fileId);
         file.setBook(mockBook);
         file.setStorageKey("users/123/book.epub");
         file.setStorageProvider("LOCAL");

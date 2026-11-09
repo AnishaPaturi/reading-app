@@ -67,7 +67,7 @@ class ActivitySessionServiceTest {
         bookId = UUID.randomUUID();
         fileId = UUID.randomUUID();
 
-        user = new User();
+        user = new User("test@example.com", "hash");
         ReflectionTestUtils.setField(user, "id", userId);
 
         book = new Book();

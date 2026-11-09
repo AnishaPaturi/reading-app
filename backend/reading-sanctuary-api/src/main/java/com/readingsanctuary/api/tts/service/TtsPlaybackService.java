@@ -42,6 +42,28 @@ public class TtsPlaybackService {
         BookFile file = getBookFile(fileId, bookId);
         validateTtsFormat(file);
 
+        if (request.chapterIndex() < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Chapter index cannot be negative");
+        }
+
+        if (request.chunkIndex() < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Chunk index cannot be negative");
+        }
+
+        if (request.characterOffset() < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Character offset cannot be negative");
+        }
+
+        if (request.progressPercentage() != null &&
+                (request.progressPercentage().compareTo(java.math.BigDecimal.ZERO) < 0 ||
+                 request.progressPercentage().compareTo(new java.math.BigDecimal("100.00")) > 0)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Progress percentage must be between 0 and 100");
+        }
+
         TtsPlaybackPosition position = positionRepository
                 .findByBook_IdAndBookFile_Id(bookId, fileId)
                 .orElseGet(() -> {

@@ -1,0 +1,48 @@
+class AnalyticsOverviewResponse {
+  final int totalBooks;
+  final int completedBooks;
+  final int currentlyReadingBooks;
+  final int tbrBooks;
+  final int dnfBooks;
+  final longOrInt totalReadingMinutes;
+  final longOrInt totalAudiobookMinutes;
+  final longOrInt totalTtsMinutes;
+  final int activeReadingDays;
+  final int currentStreakDays;
+  final int booksCompletedThisYear;
+
+  const AnalyticsOverviewResponse({
+    required this.totalBooks,
+    required this.completedBooks,
+    required this.currentlyReadingBooks,
+    required this.tbrBooks,
+    required this.dnfBooks,
+    required this.totalReadingMinutes,
+    required this.totalAudiobookMinutes,
+    required this.totalTtsMinutes,
+    required this.activeReadingDays,
+    required this.currentStreakDays,
+    required this.booksCompletedThisYear,
+  });
+
+  int get totalListeningMinutes => totalAudiobookMinutes + totalTtsMinutes;
+  int get totalAllMinutes => totalReadingMinutes + totalListeningMinutes;
+
+  factory AnalyticsOverviewResponse.fromJson(Map<String, dynamic> json) {
+    return AnalyticsOverviewResponse(
+      totalBooks: (json['totalBooks'] as num?)?.toInt() ?? 0,
+      completedBooks: (json['completedBooks'] as num?)?.toInt() ?? 0,
+      currentlyReadingBooks: (json['currentlyReadingBooks'] as num?)?.toInt() ?? 0,
+      tbrBooks: (json['tbrBooks'] as num?)?.toInt() ?? 0,
+      dnfBooks: (json['dnfBooks'] as num?)?.toInt() ?? 0,
+      totalReadingMinutes: (json['totalReadingMinutes'] as num?)?.toInt() ?? 0,
+      totalAudiobookMinutes: (json['totalAudiobookMinutes'] as num?)?.toInt() ?? 0,
+      totalTtsMinutes: (json['totalTtsMinutes'] as num?)?.toInt() ?? 0,
+      activeReadingDays: (json['activeReadingDays'] as num?)?.toInt() ?? 0,
+      currentStreakDays: (json['currentStreakDays'] as num?)?.toInt() ?? 0,
+      booksCompletedThisYear: (json['booksCompletedThisYear'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+typedef longOrInt = int;

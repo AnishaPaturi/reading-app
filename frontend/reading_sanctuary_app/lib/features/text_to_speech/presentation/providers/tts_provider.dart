@@ -260,9 +260,6 @@ class TtsNotifier extends StateNotifier<TtsState> {
     _ref?.read(activityTrackingServiceProvider).closeSession();
     await savePosition();
   }
-    );
-    await savePosition();
-  }
 
   Future<void> nextChunk() async {
     await _ttsService.stop();

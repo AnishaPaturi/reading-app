@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../features/annotations/presentation/routes/annotation_routes.dart';
 import '../features/analytics/presentation/screens/analytics_dashboard_screen.dart';
 import '../features/analytics/presentation/screens/reading_goals_screen.dart';
 import '../features/analytics/presentation/screens/yearly_wrap_up_screen.dart';

@@ -124,7 +124,7 @@ class CloudStorageServiceTest {
         );
 
         assertThatThrownBy(() -> cloudStorageService.requestUploadUrl(userId, request))
-                .isInstanceOf(ResourceNotFoundException.class);
+                .isInstanceOf(ResponseStatusException.class);
     }
 
     @Test

@@ -6,6 +6,8 @@ import '../features/analytics/presentation/screens/reading_goals_screen.dart';
 import '../features/analytics/presentation/screens/yearly_wrap_up_screen.dart';
 import '../features/audiobook/presentation/screens/audiobook_screen.dart';
 import '../features/book_details/book_details_screen.dart';
+import '../features/cloud_storage/presentation/screens/storage_management_screen.dart';
+import '../core/sync/presentation/screens/sync_settings_screen.dart';
 import '../features/discover/presentation/discover_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/reading/reading_screen.dart';

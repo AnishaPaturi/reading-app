@@ -106,7 +106,7 @@ public class BookmarkService {
 
         Bookmark saved = bookmarkRepository.save(bookmark);
         if (changePublisher != null) {
-            changePublisher.publishCreate(userId, "BOOKMARK", saved.getId().toString(), 1L, toResponse(saved));
+            changePublisher.publishUpdate(userId, "BOOKMARK", saved.getId().toString(), 2L, toResponse(saved));
         }
         return toResponse(saved);
     }
@@ -122,6 +122,9 @@ public class BookmarkService {
                         HttpStatus.NOT_FOUND, "Bookmark not found"));
 
         bookmarkRepository.delete(bookmark);
+        if (changePublisher != null) {
+            changePublisher.publishDelete(userId, "BOOKMARK", bookmarkId.toString(), 3L);
+        }
     }
 
     private Book getOwnedBook(UUID bookId, UUID userId) {

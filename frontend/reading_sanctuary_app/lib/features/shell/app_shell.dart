@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_colors.dart';
 import '../../core/utils/breakpoints.dart';
 import '../../shared/services/providers.dart';
+import '../audiobook/presentation/widgets/mini_audio_player.dart';
 import 'destinations.dart';
 import 'sidebar.dart';
 

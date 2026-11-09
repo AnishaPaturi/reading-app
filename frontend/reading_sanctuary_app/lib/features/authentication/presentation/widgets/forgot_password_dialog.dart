@@ -86,12 +86,14 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Reset Password',
-                style: TextStyle(
-                  color: AuthPalette.textDark,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+              const Expanded(
+                child: Text(
+                  'Reset Password',
+                  style: TextStyle(
+                    color: AuthPalette.textDark,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               IconButton(

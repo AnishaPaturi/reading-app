@@ -50,7 +50,6 @@ const placeholders = <String, PlaceholderInfo>{
   '/tracker/dnf': PlaceholderInfo('DNF', 5, 'Did-not-finish books (notes are always preserved).'),
   '/highlights': PlaceholderInfo('Highlights', 4, 'All highlights across books.'),
   '/quotes': PlaceholderInfo('Quotes', 5, 'Your quotes collection.'),
-  '/statistics': PlaceholderInfo('Reading Statistics', 5, 'Charts and streaks from real app data.'),
   '/settings': PlaceholderInfo('Settings', 7, 'Appearance, reading, audio, privacy, sync.'),
   '/help': PlaceholderInfo('Help & About', 7, 'FAQ, support, policies.'),
   '/search': PlaceholderInfo('Search', 3, 'Global search across books, notes, quotes.'),

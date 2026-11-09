@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../application/analytics_providers.dart';
-import '../../data/models/goal_progress.dart';
 import '../../data/models/reading_goal.dart';
 
 class ReadingGoalsScreen extends ConsumerStatefulWidget {

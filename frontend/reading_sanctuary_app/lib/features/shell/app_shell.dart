@@ -5,6 +5,7 @@ import '../../app/theme/app_colors.dart';
 import '../../core/utils/breakpoints.dart';
 import '../../shared/services/providers.dart';
 import '../audiobook/presentation/widgets/mini_audio_player.dart';
+import '../../core/sync/presentation/widgets/sync_status_indicator.dart';
 import 'destinations.dart';
 import 'sidebar.dart';
 

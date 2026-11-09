@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/tts_document.dart';
-import '../../data/models/tts_settings.dart';
 import '../../data/repositories/tts_repository.dart';
 import '../../data/services/tts_service.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';

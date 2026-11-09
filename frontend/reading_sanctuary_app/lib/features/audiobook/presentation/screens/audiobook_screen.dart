@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/audio_chapter.dart';
 import '../../data/models/audio_track.dart';
 import '../providers/audiobook_provider.dart';
 import '../widgets/audiobook_chapter_list.dart';

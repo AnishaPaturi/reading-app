@@ -10,44 +10,44 @@ class MetricCardsRow extends StatelessWidget {
         // If width < 480, arrange 2x2 grid, otherwise row of 4
         final isNarrow = constraints.maxWidth < 540;
 
-        final card1 = _ClayMetricCard(
-          backgroundColor: const Color(0xFFECE5FA),
-          iconColor: const Color(0xFF9E8CE6),
+        const card1 = _ClayMetricCard(
+          backgroundColor: Color(0xFFECE5FA),
+          iconColor: Color(0xFF9E8CE6),
           icon: Icons.menu_book_rounded,
           title: 'Books Read',
           value: '28',
           trend: '+18% this week',
-          trendColor: const Color(0xFF2E9E67),
+          trendColor: Color(0xFF2E9E67),
         );
 
-        final card2 = _ClayMetricCard(
-          backgroundColor: const Color(0xFFFDE5DE),
-          iconColor: const Color(0xFFF37C76),
+        const card2 = _ClayMetricCard(
+          backgroundColor: Color(0xFFFDE5DE),
+          iconColor: Color(0xFFF37C76),
           icon: Icons.favorite_rounded,
           title: 'Favorites',
           value: '12',
           trend: '+2 this week',
-          trendColor: const Color(0xFF2E9E67),
+          trendColor: Color(0xFF2E9E67),
         );
 
-        final card3 = _ClayMetricCard(
-          backgroundColor: const Color(0xFFFDF2D8),
-          iconColor: const Color(0xFFF6B952),
+        const card3 = _ClayMetricCard(
+          backgroundColor: Color(0xFFFDF2D8),
+          iconColor: Color(0xFFF6B952),
           icon: Icons.access_time_rounded,
           title: 'Hours Read',
           value: '34.6',
           trend: '+6.2 this week',
-          trendColor: const Color(0xFF2E9E67),
+          trendColor: Color(0xFF2E9E67),
         );
 
-        final card4 = _ClayMetricCard(
-          backgroundColor: const Color(0xFFDDEEFC),
-          iconColor: const Color(0xFF67B5EC),
+        const card4 = _ClayMetricCard(
+          backgroundColor: Color(0xFFDDEEFC),
+          iconColor: Color(0xFF67B5EC),
           icon: Icons.local_fire_department_rounded,
           title: 'Daily Streak',
           value: '7',
           trend: 'days streak',
-          trendColor: const Color(0xFF5E5470),
+          trendColor: Color(0xFF5E5470),
         );
 
         if (isNarrow) {

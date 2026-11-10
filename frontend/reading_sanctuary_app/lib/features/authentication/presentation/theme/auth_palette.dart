@@ -11,7 +11,7 @@ abstract final class AuthPalette {
   static const Color cardInner = Color(0xFFFFFFFF);
 
   // Input fields
-  static const Color inputBackground = Color(0xFFF4EFEA);
+  static const Color inputBackground = Color(0xFFFFFFFF);
   static const Color inputBorder = Color(0xFFEBE3D8);
   static const Color inputBorderFocused = Color(0xFFA291EA);
 

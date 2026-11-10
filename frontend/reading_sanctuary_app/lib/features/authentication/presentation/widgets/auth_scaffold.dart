@@ -16,9 +16,21 @@ class AuthScaffold extends StatelessWidget {
     final media = MediaQuery.of(context);
     final isCompact = media.size.width < 500;
 
-    return Scaffold(
-      backgroundColor: AuthPalette.backgroundDark,
-      body: Container(
+    return Theme(
+      data: ThemeData.light().copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AuthPalette.primaryPurple,
+          brightness: Brightness.light,
+        ),
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: AuthPalette.primaryPurpleDark,
+          selectionColor: Color(0x409E8DE5),
+          selectionHandleColor: AuthPalette.primaryPurpleDark,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: AuthPalette.backgroundDark,
+        body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
@@ -130,6 +142,7 @@ class AuthScaffold extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

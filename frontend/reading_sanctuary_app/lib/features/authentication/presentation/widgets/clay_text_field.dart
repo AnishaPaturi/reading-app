@@ -128,6 +128,7 @@ class _ClayTextFieldState extends State<ClayTextField> {
                       onChanged: (val) {
                         fieldState.didChange(val);
                       },
+                      cursorColor: AuthPalette.primaryPurpleDark,
                       style: const TextStyle(
                         color: AuthPalette.textDark,
                         fontSize: 15,
@@ -140,7 +141,13 @@ class _ClayTextFieldState extends State<ClayTextField> {
                           fontSize: 14.5,
                           fontWeight: FontWeight.w400,
                         ),
+                        filled: true,
+                        fillColor: AuthPalette.inputBackground,
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 14),
                       ),

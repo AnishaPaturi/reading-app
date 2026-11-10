@@ -69,6 +69,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               backgroundColor: Colors.transparent,
               elevation: 0,
               child: ReaderSidebar(
+                width: 220,
                 onItemTapped: () => Navigator.of(context).pop(),
               ),
             ),

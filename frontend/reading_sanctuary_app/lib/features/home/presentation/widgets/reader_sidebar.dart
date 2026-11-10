@@ -5,8 +5,9 @@ import '../../../authentication/presentation/providers/auth_provider.dart';
 
 class ReaderSidebar extends ConsumerWidget {
   final VoidCallback? onItemTapped;
+  final double? width;
 
-  const ReaderSidebar({super.key, this.onItemTapped});
+  const ReaderSidebar({super.key, this.onItemTapped, this.width});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -14,7 +15,7 @@ class ReaderSidebar extends ConsumerWidget {
     final userName = authState.user?.displayName ?? 'Mia';
 
     return Container(
-      width: 210,
+      width: width ?? 210,
       decoration: const BoxDecoration(
         color: Color(0xFF9482E6),
         borderRadius: BorderRadius.only(
@@ -100,7 +101,7 @@ class ReaderSidebar extends ConsumerWidget {
               label: 'Booklists',
               onTap: () {
                 onItemTapped?.call();
-                context.go('/tracker/tbr');
+                context.go('/bookshelves');
               },
             ),
             const SizedBox(height: 8),
@@ -109,12 +110,12 @@ class ReaderSidebar extends ConsumerWidget {
               label: 'Audiobooks',
               onTap: () {
                 onItemTapped?.call();
-                context.go('/discover');
+                context.go('/reading');
               },
             ),
             const SizedBox(height: 8),
             _SidebarNavItem(
-              icon: Icons.insights_rounded,
+              icon: Icons.trending_up_rounded,
               label: 'My Progress',
               onTap: () {
                 onItemTapped?.call();
@@ -148,12 +149,16 @@ class ReaderSidebar extends ConsumerWidget {
                     children: [
                       Icon(Icons.logout_rounded, color: Colors.white70, size: 18),
                       SizedBox(width: 10),
-                      Text(
-                        'Sign Out',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Text(
+                          'Sign Out',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -203,17 +208,21 @@ class _SidebarNavItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(22),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
                 children: [
                   Icon(icon, color: const Color(0xFF9482E6), size: 20),
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Color(0xFF9482E6),
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF9482E6),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -231,17 +240,21 @@ class _SidebarNavItem extends StatelessWidget {
         onTap: onTap,
         child: Container(
           height: 42,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
             children: [
               Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: 20),
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

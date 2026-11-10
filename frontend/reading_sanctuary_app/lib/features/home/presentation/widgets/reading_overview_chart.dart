@@ -36,14 +36,17 @@ class ReadingOverviewChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Reading Overview',
-                style: TextStyle(
-                  color: Color(0xFF281E44),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
+              const Expanded(
+                child: Text(
+                  'Reading Overview',
+                  style: TextStyle(
+                    color: Color(0xFF281E44),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -51,6 +54,7 @@ class ReadingOverviewChart extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       'This Week',
@@ -107,36 +111,35 @@ class ReadingOverviewChart extends StatelessWidget {
                       ),
 
                       // Bars
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: _days.map((d) {
-                          // max 6h
-                          final heightFactor = (d.hours / 6.0).clamp(0.05, 1.0);
+                      LayoutBuilder(
+                        builder: (context, box) {
+                          final maxHeight = box.maxHeight;
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: _days.map((d) {
+                              // max 6h
+                              final heightFactor = (d.hours / 6.0).clamp(0.05, 1.0);
+                              final barHeight = maxHeight * heightFactor;
 
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              FractionallySizedBox(
-                                heightFactor: heightFactor,
-                                child: Container(
-                                  width: 18,
-                                  decoration: BoxDecoration(
-                                    color: d.color,
-                                    borderRadius: BorderRadius.circular(9),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: d.color.withValues(alpha: 0.35),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
+                              return Container(
+                                width: 18,
+                                height: barHeight,
+                                decoration: BoxDecoration(
+                                  color: d.color,
+                                  borderRadius: BorderRadius.circular(9),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: d.color.withValues(alpha: 0.35),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                              );
+                            }).toList(),
                           );
-                        }).toList(),
+                        },
                       ),
                     ],
                   ),

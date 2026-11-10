@@ -161,16 +161,21 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
         if (!isWide) ...[
           IconButton(
             icon: const Icon(Icons.menu_rounded, color: ClayColors.deepPurple, size: 24),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
         ],
-        Text(
-          'Currently Reading',
-          style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: ClayColors.textDark,
+        Expanded(
+          child: Text(
+            'Currently Reading',
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: ClayColors.textDark,
+            ),
           ),
         ),
       ],

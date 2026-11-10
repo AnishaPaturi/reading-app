@@ -58,6 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(path: '/home', pageBuilder: (c, s) => _page(s, const HomeScreen())),
+          GoRoute(path: '/dashboard', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/library', pageBuilder: (c, s) => _page(s, const LibraryScreen())),
           GoRoute(path: '/favorites', pageBuilder: (c, s) => _page(s, const FavoritesScreen())),
           GoRoute(path: '/discover', pageBuilder: (c, s) => _page(s, const DiscoverScreen())),

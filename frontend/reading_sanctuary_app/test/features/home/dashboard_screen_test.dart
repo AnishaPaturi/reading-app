@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/features/home/home_screen.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/hero_reading_banner.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_panel_header.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
 
@@ -26,16 +28,19 @@ void main() {
     await tester.pumpWidget(buildTestableWidget(size: const Size(1200, 900)));
     await tester.pumpAndSettle();
 
-    // Verify Sidebar exists
+    // Verify Sidebar exists with only the 6 items
     expect(find.byType(ReaderSidebar), findsOneWidget);
     expect(find.text('Hello, Mia!'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
-    expect(find.text('My Library'), findsOneWidget);
-    expect(find.text('Favorites'), findsWidgets);
-    expect(find.text('Booklists'), findsOneWidget);
-    expect(find.text('Audiobooks'), findsOneWidget);
-    expect(find.text('My Progress'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Library'), findsWidgets);
+    expect(find.text('Favourites'), findsWidgets);
+    expect(find.text('Audiobooks'), findsWidgets);
+    expect(find.text('Profile'), findsWidgets);
+    expect(find.text('Settings'), findsWidgets);
+
+    // Verify removed items are not present
+    expect(find.text('Booklists'), findsNothing);
+    expect(find.text('My Progress'), findsNothing);
 
     // Verify Header
     expect(find.byType(ReaderPanelHeader), findsOneWidget);
@@ -106,5 +111,108 @@ void main() {
     // Verify popup menu items
     expect(find.text('Sign Out'), findsWidgets);
     expect(find.text('Settings'), findsWidgets);
+  });
+
+  testWidgets('Dashboard route (/dashboard) and Home route (/home) render the exact same screen in sync', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final router = GoRouter(
+      initialLocation: '/dashboard',
+      routes: [
+        GoRoute(
+          path: '/dashboard',
+          builder: (_, __) => const HomeScreen(),
+        ),
+        GoRoute(
+          path: '/home',
+          builder: (_, __) => const HomeScreen(),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify HomeScreen / Dashboard is rendered on /dashboard
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.text('Currently Reading'), findsOneWidget);
+
+    // Navigate to /home
+    router.go('/home');
+    await tester.pumpAndSettle();
+
+    // Verify exact same screen is rendered on /home
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.text('Currently Reading'), findsOneWidget);
+  });
+
+  testWidgets('HeroReadingBanner renders personalized greeting based on time and username, with Start reading button removed', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    // Morning test: 9:00 AM
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: HeroReadingBanner(
+              currentTime: DateTime(2026, 11, 10, 9, 0),
+              customUserName: 'Anisha',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Good morning, Anisha!'), findsOneWidget);
+    expect(find.text("Let's read some books today!"), findsOneWidget);
+    expect(find.text('Start Reading'), findsNothing);
+    expect(find.text('Start reading'), findsNothing);
+
+    // Afternoon test: 2:00 PM
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: HeroReadingBanner(
+              currentTime: DateTime(2026, 11, 10, 14, 0),
+              customUserName: 'Mia',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Good afternoon, Mia!'), findsOneWidget);
+    expect(find.text('Start Reading'), findsNothing);
+
+    // Evening test: 8:00 PM
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: HeroReadingBanner(
+              currentTime: DateTime(2026, 11, 10, 20, 0),
+              customUserName: 'Alex',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Good evening, Alex!'), findsOneWidget);
+    expect(find.text('Start Reading'), findsNothing);
   });
 }

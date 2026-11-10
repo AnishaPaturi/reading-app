@@ -18,6 +18,7 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isClayThemed = const {
       '/home',
+      '/dashboard',
       '/library',
       '/favorites',
       '/discover',
@@ -28,7 +29,7 @@ class AppShell extends ConsumerWidget {
 
     if (isClayThemed) {
       return Scaffold(
-        backgroundColor: location == '/home'
+        backgroundColor: (location == '/home' || location == '/dashboard')
             ? const Color(0xFFF4F0FB)
             : const Color(0xFFEDE5F8),
         body: Column(

@@ -144,7 +144,7 @@ class ReaderSidebar extends ConsumerWidget {
                     _SidebarNavItem(
                       icon: Icons.home_rounded,
                       label: 'Home',
-                      isActive: activeRoute == '/home',
+                      isActive: activeRoute == '/home' || activeRoute == '/dashboard',
                       onTap: () {
                         onItemTapped?.call();
                         context.go('/home');
@@ -153,7 +153,7 @@ class ReaderSidebar extends ConsumerWidget {
                     const SizedBox(height: 8),
                     _SidebarNavItem(
                       icon: Icons.auto_stories_rounded,
-                      label: 'My Library',
+                      label: 'Library',
                       isActive: activeRoute == '/library',
                       onTap: () {
                         onItemTapped?.call();
@@ -163,20 +163,11 @@ class ReaderSidebar extends ConsumerWidget {
                     const SizedBox(height: 8),
                     _SidebarNavItem(
                       icon: Icons.favorite_rounded,
-                      label: 'Favorites',
+                      label: 'Favourites',
                       isActive: activeRoute == '/favorites',
                       onTap: () {
                         onItemTapped?.call();
                         context.go('/favorites');
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    _SidebarNavItem(
-                      icon: Icons.grid_view_rounded,
-                      label: 'Booklists',
-                      onTap: () {
-                        onItemTapped?.call();
-                        context.go('/bookshelves');
                       },
                     ),
                     const SizedBox(height: 8),
@@ -187,15 +178,6 @@ class ReaderSidebar extends ConsumerWidget {
                       onTap: () {
                         onItemTapped?.call();
                         context.go('/reading');
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    _SidebarNavItem(
-                      icon: Icons.trending_up_rounded,
-                      label: 'My Progress',
-                      onTap: () {
-                        onItemTapped?.call();
-                        context.go('/statistics');
                       },
                     ),
                     const SizedBox(height: 8),

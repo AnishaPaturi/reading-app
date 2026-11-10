@@ -10,27 +10,19 @@ class NavDest {
 const primaryDestinations = [
   NavDest('Home', '/home', Icons.home_outlined),
   NavDest('Library', '/library', Icons.local_library_outlined),
-  NavDest('Discover', '/discover', Icons.explore_outlined),
-  NavDest('Reading', '/reading', Icons.auto_stories_outlined),
+  NavDest('Favourites', '/favorites', Icons.favorite_outline),
+  NavDest('Audiobooks', '/reading', Icons.headphones_outlined),
   NavDest('Profile', '/profile', Icons.person_outline),
+  NavDest('Settings', '/settings', Icons.settings_outlined),
 ];
 
 /// Desktop sidebar order (per spec).
 const sidebarDestinations = [
   NavDest('Home', '/home', Icons.home_outlined),
-  NavDest('My Library', '/library', Icons.local_library_outlined),
-  NavDest('Discover', '/discover', Icons.explore_outlined),
-  NavDest('Bookshelves', '/bookshelves', Icons.view_week_outlined),
-  NavDest('Currently Reading', '/tracker/reading', Icons.auto_stories_outlined),
-  NavDest('Want to Read', '/tracker/tbr', Icons.bookmark_add_outlined),
-  NavDest('Completed', '/tracker/completed', Icons.check_circle_outline),
-  NavDest('DNF', '/tracker/dnf', Icons.do_not_disturb_alt_outlined),
-  NavDest('Journal', '/journal', Icons.edit_note),
-  NavDest('Highlights', '/highlights', Icons.highlight_outlined),
-  NavDest('Quotes', '/quotes', Icons.format_quote),
-  NavDest('Reading Statistics', '/statistics', Icons.insights_outlined),
-  NavDest('Sync & Devices', '/sync/settings', Icons.sync),
-  NavDest('Storage & Offline', '/storage/manage', Icons.sd_storage_outlined),
+  NavDest('Library', '/library', Icons.local_library_outlined),
+  NavDest('Favourites', '/favorites', Icons.favorite_outline),
+  NavDest('Audiobooks', '/reading', Icons.headphones_outlined),
+  NavDest('Profile', '/profile', Icons.person_outline),
   NavDest('Settings', '/settings', Icons.settings_outlined),
 ];
 
@@ -62,6 +54,7 @@ const placeholders = <String, PlaceholderInfo>{
 };
 
 String titleFor(String location) {
+  if (location == '/dashboard') return 'Home';
   if (location.startsWith('/book/')) return 'Book Details';
   if (location == '/sync/settings') return 'Sync & Devices';
   if (location == '/storage/manage') return 'Storage & Offline';

@@ -7,7 +7,9 @@ import '../../shared/services/providers.dart';
 import 'destinations.dart';
 
 bool _selected(String location, String path) =>
-    location == path || location.startsWith('$path/');
+    location == path ||
+    location.startsWith('$path/') ||
+    (path == '/home' && location == '/dashboard');
 
 class Sidebar extends ConsumerWidget {
   const Sidebar({

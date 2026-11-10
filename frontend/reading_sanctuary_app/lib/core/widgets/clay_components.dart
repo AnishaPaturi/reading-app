@@ -50,7 +50,7 @@ class ClayBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 62,
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      margin: const EdgeInsets.fromLTRB(14, 0, 14, 16),
       decoration: BoxDecoration(
         color: const Color(0xFF6246AA),
         borderRadius: BorderRadius.circular(31),
@@ -77,22 +77,34 @@ class ClayBottomNav extends StatelessWidget {
             tooltip: 'Home',
           ),
           _NavItem(
-            icon: Icons.search_rounded,
-            route: '/discover',
+            icon: Icons.auto_stories_rounded,
+            route: '/library',
             activeRoute: activeRoute,
-            tooltip: 'Discover',
+            tooltip: 'Library',
           ),
           _NavItem(
             icon: Icons.favorite_rounded,
             route: '/favorites',
             activeRoute: activeRoute,
-            tooltip: 'Favorites',
+            tooltip: 'Favourites',
+          ),
+          _NavItem(
+            icon: Icons.headphones_rounded,
+            route: '/reading',
+            activeRoute: activeRoute,
+            tooltip: 'Audiobooks',
           ),
           _NavItem(
             icon: Icons.person_rounded,
             route: '/profile',
             activeRoute: activeRoute,
             tooltip: 'Profile',
+          ),
+          _NavItem(
+            icon: Icons.settings_rounded,
+            route: '/settings',
+            activeRoute: activeRoute,
+            tooltip: 'Settings',
           ),
         ],
       ),
@@ -116,9 +128,8 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = activeRoute == route ||
-        (route == '/favorites' && activeRoute == '/reading') ||
-        (route == '/profile' && activeRoute == '/settings') ||
-        (route == '/home' && activeRoute == '/library');
+        (route == '/home' && activeRoute == '/dashboard') ||
+        (route == '/settings' && activeRoute == '/sync/settings');
 
     return Tooltip(
       message: tooltip,
@@ -129,16 +140,16 @@ class _NavItem extends StatelessWidget {
           }
         },
         child: Container(
-          width: 48,
-          height: 48,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: isSelected ? Colors.white.withValues(alpha: 0.22) : Colors.transparent,
             shape: BoxShape.circle,
           ),
           child: Icon(
             icon,
-            size: 26,
-            color: isSelected ? const Color(0xFFFFB28D) : Colors.white.withValues(alpha: 0.82),
+            size: 22,
+            color: isSelected ? const Color(0xFFFFB28D) : Colors.white.withValues(alpha: 0.85),
           ),
         ),
       ),
@@ -461,7 +472,7 @@ class _ClayHeartButtonState extends State<ClayHeartButton> {
             ),
           ],
         ),
-        child: Icon(
+        child: const Icon(
           Icons.favorite_rounded,
           color: Colors.white,
           size: 20,

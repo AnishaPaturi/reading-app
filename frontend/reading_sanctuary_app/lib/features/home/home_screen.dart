@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/hero_reading_banner.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_panel_header.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
 import 'package:reading_sanctuary_app/features/library/theme/bookshelf_theme.dart';
@@ -131,27 +132,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? listeningBooks
         : books.where((b) => b.formats.contains(BookFormat.audiobook)).take(2).toList();
 
-    if (useTwoColumns) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: _buildCurrentlyReadingSection(context, effectiveReading),
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: _buildCurrentlyListeningSection(context, effectiveListening),
-          ),
-        ],
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildCurrentlyReadingSection(context, effectiveReading),
-        const SizedBox(height: 24),
-        _buildCurrentlyListeningSection(context, effectiveListening),
+        // 3D Hero Banner: Personalized time-based greeting & star mascot
+        const HeroReadingBanner(),
+        const SizedBox(height: 20),
+
+        if (useTwoColumns)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _buildCurrentlyReadingSection(context, effectiveReading),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                child: _buildCurrentlyListeningSection(context, effectiveListening),
+              ),
+            ],
+          )
+        else ...[
+          _buildCurrentlyReadingSection(context, effectiveReading),
+          const SizedBox(height: 24),
+          _buildCurrentlyListeningSection(context, effectiveListening),
+        ],
         const SizedBox(height: 16),
       ],
     );

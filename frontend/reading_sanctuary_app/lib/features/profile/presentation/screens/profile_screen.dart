@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/widgets/clay_components.dart';
-import '../../../authentication/presentation/providers/auth_provider.dart';
-import '../../../home/presentation/widgets/reader_sidebar.dart';
-import '../../../library/widgets/clay_decorations.dart';
+import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
+import 'package:reading_sanctuary_app/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
+import 'package:reading_sanctuary_app/features/library/widgets/clay_decorations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});

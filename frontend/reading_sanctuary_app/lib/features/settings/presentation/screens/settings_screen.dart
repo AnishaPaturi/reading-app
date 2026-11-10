@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../../core/widgets/clay_components.dart';
-import '../../../authentication/presentation/providers/auth_provider.dart';
-import '../../../home/presentation/widgets/reader_sidebar.dart';
-import '../../../library/widgets/clay_decorations.dart';
+import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
+import 'package:reading_sanctuary_app/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
+import 'package:reading_sanctuary_app/features/library/widgets/clay_decorations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -110,16 +110,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (!isWide) ...[
           IconButton(
             icon: const Icon(Icons.menu_rounded, color: ClayColors.deepPurple, size: 24),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
         ],
-        Text(
-          _activeTab == 0 ? 'Settings' : 'Preferences',
-          style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: ClayColors.textDark,
+        Expanded(
+          child: Text(
+            _activeTab == 0 ? 'Settings' : 'Preferences',
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: ClayColors.textDark,
+            ),
           ),
         ),
       ],

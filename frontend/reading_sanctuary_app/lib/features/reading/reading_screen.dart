@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/widgets/clay_components.dart';
-import '../../shared/models/book.dart';
-import '../../shared/services/providers.dart';
-import '../home/presentation/widgets/reader_sidebar.dart';
-import '../library/theme/bookshelf_theme.dart';
-import '../library/widgets/clay_decorations.dart';
+import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
+import 'package:reading_sanctuary_app/shared/models/book.dart';
+import 'package:reading_sanctuary_app/shared/services/providers.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
+import 'package:reading_sanctuary_app/features/library/theme/bookshelf_theme.dart';
+import 'package:reading_sanctuary_app/features/library/widgets/clay_decorations.dart';
 
 class ReadingScreen extends ConsumerStatefulWidget {
   const ReadingScreen({super.key});
@@ -275,20 +275,27 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Pages: ${book.currentPage > 0 ? book.currentPage : 210} / ${book.pages}',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: ClayColors.textMuted,
+              Flexible(
+                child: Text(
+                  'Pages: ${book.currentPage > 0 ? book.currentPage : 210} / ${book.pages}',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: ClayColors.textMuted,
+                  ),
                 ),
               ),
-              Text(
-                'Time Left: 2.5 hrs',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: ClayColors.textMuted,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Time Left: 2.5 hrs',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: ClayColors.textMuted,
+                  ),
                 ),
               ),
             ],

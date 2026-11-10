@@ -497,7 +497,7 @@ class ClayPillButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: height,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(height / 2),
@@ -524,14 +524,18 @@ class ClayPillButton extends StatelessWidget {
           children: [
             if (icon != null) ...[
               Icon(icon, color: textColor, size: 16),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
             ],
-            Text(
-              text,
-              style: GoogleFonts.inter(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w700,
-                color: textColor,
+            Flexible(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                ),
               ),
             ),
           ],

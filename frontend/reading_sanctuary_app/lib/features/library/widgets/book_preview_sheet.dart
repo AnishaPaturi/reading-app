@@ -16,141 +16,145 @@ class BookPreviewSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final palette = BookshelfTheme.paletteForId(book.id);
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFF7F3FD),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Drag handle
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: BookshelfTheme.searchHint.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
+    return SingleChildScrollView(
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFF7F3FD),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: BookshelfTheme.searchHint.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Header Row with Book Spine & Info
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Mini Clay Spine
-              ClayBookSpine(
-                book: book,
-                customHeight: 120,
-                customWidth: 38,
-                onTap: () {},
-              ),
+            // Header Row with Book Spine & Info
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Mini Clay Spine
+                ClayBookSpine(
+                  book: book,
+                  customHeight: 120,
+                  customWidth: 38,
+                  onTap: () {},
+                ),
 
-              const SizedBox(width: 18),
+                const SizedBox(width: 18),
 
-              // Book Details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Book Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        book.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF2E1A48),
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'by ${book.author}',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF7A6894),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Badges row
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          _Badge(
+                            text: book.genre,
+                            color: palette.base.withValues(alpha: 0.2),
+                            textColor: const Color(0xFF4C3364),
+                          ),
+                          _Badge(
+                            text: '${book.pages} pages',
+                            color: BookshelfTheme.searchPill,
+                            textColor: const Color(0xFF5A4474),
+                          ),
+                          if (book.rating != null)
+                            _Badge(
+                              icon: Icons.star_rounded,
+                              text: '${book.rating}',
+                              color: const Color(0xFFFDE9B8),
+                              textColor: const Color(0xFF8C6418),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Reading Progress
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      book.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      'Reading Progress',
                       style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2E1A48),
-                        height: 1.2,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF6B5885),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'by ${book.author}',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF7A6894),
+                    Flexible(
+                      child: Text(
+                        '${(book.progress * 100).round()}% (${book.currentPage}/${book.pages} p.)',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: BookshelfTheme.purpleAccent,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Badges row
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        _Badge(
-                          text: book.genre,
-                          color: palette.base.withValues(alpha: 0.2),
-                          textColor: const Color(0xFF4C3364),
-                        ),
-                        _Badge(
-                          text: '${book.pages} pages',
-                          color: BookshelfTheme.searchPill,
-                          textColor: const Color(0xFF5A4474),
-                        ),
-                        if (book.rating != null)
-                          _Badge(
-                            icon: Icons.star_rounded,
-                            text: '${book.rating}',
-                            color: const Color(0xFFFDE9B8),
-                            textColor: const Color(0xFF8C6418),
-                          ),
-                      ],
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Reading Progress
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Reading Progress',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF6B5885),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: book.progress,
+                    minHeight: 8,
+                    backgroundColor: BookshelfTheme.searchPill,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      BookshelfTheme.purpleAccent,
                     ),
-                  ),
-                  Text(
-                    '${(book.progress * 100).round()}% (${book.currentPage}/${book.pages} p.)',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: BookshelfTheme.purpleAccent,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: book.progress,
-                  minHeight: 8,
-                  backgroundColor: BookshelfTheme.searchPill,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    BookshelfTheme.purpleAccent,
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
           const SizedBox(height: 20),
 
@@ -253,7 +257,8 @@ class BookPreviewSheet extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 

@@ -343,7 +343,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   sliver: SliverGrid(
                     gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                       maxCrossAxisExtent: 180,
-                      childAspectRatio: 0.54,
+                      childAspectRatio: 0.45,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 20,
                     ),

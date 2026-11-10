@@ -16,7 +16,17 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (location == '/home' || location == '/library') {
+    final isClayThemed = const {
+      '/home',
+      '/library',
+      '/favorites',
+      '/discover',
+      '/reading',
+      '/profile',
+      '/settings',
+    }.contains(location);
+
+    if (isClayThemed) {
       return Scaffold(
         backgroundColor: location == '/home'
             ? const Color(0xFFF4F0FB)

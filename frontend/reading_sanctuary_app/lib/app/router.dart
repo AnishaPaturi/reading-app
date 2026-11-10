@@ -11,12 +11,15 @@ import '../features/book_details/book_details_screen.dart';
 import '../features/cloud_storage/presentation/screens/storage_management_screen.dart';
 import '../core/sync/presentation/screens/sync_settings_screen.dart';
 import '../features/discover/presentation/discover_screen.dart';
+import '../features/favorites/presentation/screens/favorites_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/reading/reading_screen.dart';
 import '../features/library/library_screen.dart';
 import '../features/landing/presentation/screens/landing_screen.dart';
 import '../features/placeholder/placeholder_screen.dart';
+import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/reader/presentation/routes/reader_routes.dart';
+import '../features/settings/presentation/screens/settings_screen.dart';
 import '../features/shell/app_shell.dart';
 import '../features/shell/destinations.dart';
 import '../features/splash/splash_screen.dart';
@@ -56,8 +59,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/home', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/library', pageBuilder: (c, s) => _page(s, const LibraryScreen())),
+          GoRoute(path: '/favorites', pageBuilder: (c, s) => _page(s, const FavoritesScreen())),
           GoRoute(path: '/discover', pageBuilder: (c, s) => _page(s, const DiscoverScreen())),
           GoRoute(path: '/reading', pageBuilder: (c, s) => _page(s, const ReadingScreen())),
+          GoRoute(path: '/profile', pageBuilder: (c, s) => _page(s, const ProfileScreen())),
+          GoRoute(path: '/settings', pageBuilder: (c, s) => _page(s, const SettingsScreen())),
           GoRoute(
             path: '/book/:id',
             pageBuilder: (c, s) =>

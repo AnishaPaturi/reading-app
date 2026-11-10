@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/widgets/book_cover.dart';
-import '../../../core/widgets/common_widgets.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../core/widgets/clay_components.dart';
 import '../../../shared/models/book.dart';
-import '../../../shared/services/providers.dart';
+import '../../home/presentation/widgets/reader_sidebar.dart';
+import '../../library/theme/bookshelf_theme.dart';
+import '../../library/widgets/clay_decorations.dart';
 import '../discover_logic.dart';
-import 'discover_book_card.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
+
   @override
   ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
 class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
-  final _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _query = '';
-  String? _genre;
-  final Set<String> _tropes = {};
-  double _minRating = 0;
-  final List<Book> _recentlyViewed = []; // session-only
+  String? _selectedGenre;
 
   @override
   void dispose() {
@@ -27,242 +29,516 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     super.dispose();
   }
 
-  bool get _filtering => _query.isNotEmpty || _genre != null || _tropes.isNotEmpty || _minRating > 0;
-
-  void _clearAll() => setState(() {
-        _controller.clear();
-        _query = '';
-        _genre = null;
-        _tropes.clear();
-        _minRating = 0;
-      });
-
-  void _add(Book b) {
-    ref.read(booksProvider.notifier).addBook(b);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('"${b.title}" added to Want to Read')));
-  }
-
-  void _open(Book b, bool owned) {
-    setState(() {
-      _recentlyViewed.removeWhere((x) => x.id == b.id);
-      _recentlyViewed.insert(0, b);
-      if (_recentlyViewed.length > 8) _recentlyViewed.removeLast();
-    });
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _PreviewSheet(book: b, owned: owned, onAdd: () {
-        Navigator.pop(context);
-        _add(b);
-      }),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final catalogAsync = ref.watch(catalogProvider);
-    final owned = {...?ref.watch(booksProvider).valueOrNull?.map((b) => b.id)};
-    final library = ref.watch(booksProvider).valueOrNull ?? const <Book>[];
 
-    return catalogAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => EmptyState(
-          icon: Icons.error_outline,
-          message: 'Could not load discovery.',
-          actionLabel: 'Retry',
-          onAction: () => ref.invalidate(catalogProvider)),
-      data: (catalog) {
-        final genres = ({for (final b in catalog) b.genre}.toList())..sort();
-        final tropes = ({for (final b in catalog) ...b.tropes}.toList())..sort();
-        final results = filterCatalog(catalog,
-            query: _query, genre: _genre, tropes: _tropes, minRating: _minRating);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 850;
 
-        Widget card(Book b, {double? width}) {
-          final c = DiscoverBookCard(
-              book: b, inLibrary: owned.contains(b.id), onOpen: () => _open(b, owned.contains(b.id)), onAdd: () => _add(b));
-          return width == null ? c : SizedBox(width: width, child: c);
-        }
-
-        Widget shelf(String title, List<Book> items) => items.isEmpty
-            ? const SizedBox.shrink()
-            : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SectionHeader(title),
-                SizedBox(
-                  height: 395,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 16),
-                    itemBuilder: (_, i) => card(items[i], width: 140),
+        return Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: ClayColors.background,
+          drawer: isWide
+              ? null
+              : Drawer(
+                  width: 220,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  child: ReaderSidebar(
+                    width: 220,
+                    activeRoute: '/discover',
+                    onItemTapped: () => Navigator.of(context).pop(),
                   ),
                 ),
-              ]);
+          body: SafeArea(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (isWide) const ReaderSidebar(activeRoute: '/discover'),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      // Sparkle Stars
+                      const Positioned(
+                        bottom: 80,
+                        right: 20,
+                        child: ClaySparkleStar(size: 32),
+                      ),
+                      const Positioned(
+                        top: 50,
+                        right: 24,
+                        child: ClaySparkleStar(size: 24),
+                      ),
 
-        final trending = ([...catalog]..sort((a, b) => (b.avgRating ?? 0).compareTo(a.avgRating ?? 0))).take(8).toList();
-        final popular = catalog.where((b) => (b.avgRating ?? 0) >= 4.1).toList();
-        final newReleases = ([...catalog]..sort((a, b) => b.addedAt.compareTo(a.addedAt))).take(6).toList();
-        final libGenres = {for (final b in library) b.genre};
-        final recommended = catalog
-            .where((b) => !owned.contains(b.id) && libGenres.contains(b.genre))
-            .toList();
-        final authors = ({for (final b in catalog) b.author}.toList())..sort();
-        final suggestions = _query.isEmpty
-            ? <String>[]
-            : [
-                ...catalog.map((b) => b.title),
-                ...authors,
-                ...tropes,
-              ].where((s) => s.toLowerCase().contains(_query.toLowerCase()) && s.toLowerCase() != _query.toLowerCase()).take(4).toList();
+                      Column(
+                        children: [
+                          // Search Header
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+                            child: _buildHeader(isWide),
+                          ),
 
-        return ListView(padding: const EdgeInsets.all(20), children: [
-          TextField(
-            controller: _controller,
-            onChanged: (v) => setState(() => _query = v),
-            decoration: InputDecoration(
-              hintText: 'Search titles, authors, series or tropes',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _query.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: 'Clear search',
-                      icon: const Icon(Icons.close),
-                      onPressed: () => setState(() {
-                        _controller.clear();
-                        _query = '';
-                      })),
+                          // Main Scrollable Area
+                          Expanded(
+                            child: catalogAsync.when(
+                              loading: () => const Center(
+                                child: CircularProgressIndicator(color: ClayColors.primaryPurple),
+                              ),
+                              error: (e, _) => Center(
+                                child: Text('Failed to load discovery', style: GoogleFonts.inter()),
+                              ),
+                              data: (catalog) {
+                                final results = filterCatalog(
+                                  catalog,
+                                  query: _query,
+                                  genre: _selectedGenre,
+                                );
+
+                                return SingleChildScrollView(
+                                  physics: const BouncingScrollPhysics(),
+                                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // If searching, show filtered results
+                                      if (_query.isNotEmpty || _selectedGenre != null) ...[
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              'Search Results (${results.length})',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w700,
+                                                color: ClayColors.textDark,
+                                              ),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _controller.clear();
+                                                  _query = '';
+                                                  _selectedGenre = null;
+                                                });
+                                              },
+                                              child: const Text('Clear Filters'),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        _buildSearchResultsList(results),
+                                      ] else ...[
+                                        // 1. Trending Now
+                                        Text(
+                                          'Trending Now',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: ClayColors.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 14),
+                                        _buildTrendingRow(catalog),
+
+                                        const SizedBox(height: 24),
+
+                                        // 2. Popular Genres (2x2 grid)
+                                        Text(
+                                          'Popular Genres',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: ClayColors.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        _buildGenresGrid(),
+
+                                        const SizedBox(height: 24),
+
+                                        // 3. Recommended For You (Large navy clay card)
+                                        _buildRecommendedBanner(catalog),
+
+                                        const SizedBox(height: 26),
+
+                                        // 4. Author Spotlight
+                                        Text(
+                                          'Author Spotlight',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: ClayColors.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 14),
+                                        _buildAuthorSpotlight(),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+
+                          // Mobile Bottom Nav
+                          if (!isWide)
+                            const ClayBottomNav(activeRoute: '/discover'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          for (final s in suggestions)
-            ListTile(
-              dense: true,
-              leading: const Icon(Icons.north_west, size: 16),
-              title: Text(s),
-              onTap: () => setState(() {
-                _controller.text = s;
-                _controller.selection = TextSelection.collapsed(offset: s.length);
-                _query = s;
-              }),
-            ),
-          const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            DropdownButton<String?>(
-              value: _genre,
-              hint: const Text('Genre'),
-              underline: const SizedBox.shrink(),
-              items: [
-                const DropdownMenuItem<String?>(value: null, child: Text('All genres')),
-                for (final g in genres) DropdownMenuItem<String?>(value: g, child: Text(g)),
-              ],
-              onChanged: (v) => setState(() => _genre = v),
-            ),
-            FilterChip(
-              label: const Text('4.0+ rating'),
-              selected: _minRating >= 4,
-              onSelected: (on) => setState(() => _minRating = on ? 4 : 0),
-            ),
-            if (_filtering) TextButton(onPressed: _clearAll, child: const Text('Clear all')),
-          ]),
-          const SizedBox(height: 8),
-          Text('Tropes', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 6),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final t in tropes)
-              FilterChip(
-                label: Text(t),
-                selected: _tropes.contains(t),
-                onSelected: (on) => setState(() => on ? _tropes.add(t) : _tropes.remove(t)),
-              ),
-          ]),
-          if (_filtering) ...[
-            SectionHeader('${results.length} result${results.length == 1 ? '' : 's'}'),
-            if (results.isEmpty)
-              const SizedBox(
-                  height: 240,
-                  child: EmptyState(icon: Icons.search_off, message: 'No books match these filters.'))
-            else
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 190, mainAxisExtent: 455, crossAxisSpacing: 16, mainAxisSpacing: 16),
-                itemCount: results.length,
-                itemBuilder: (_, i) => card(results[i]),
-              ),
-          ] else ...[
-            shelf('Trending', trending),
-            shelf('New Releases', newReleases),
-            shelf('Popular', popular),
-            if (recommended.isNotEmpty) shelf('Recommended for You', recommended),
-            if (_recentlyViewed.isNotEmpty) shelf('Recently Viewed', _recentlyViewed),
-            const SectionHeader('Browse by Genre'),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final g in genres)
-                ActionChip(label: Text(g), onPressed: () => setState(() => _genre = g)),
-            ]),
-            const SectionHeader('Browse by Author'),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final a in authors)
-                ActionChip(
-                    avatar: const Icon(Icons.person_outline, size: 16),
-                    label: Text(a),
-                    onPressed: () => setState(() {
-                      _controller.text = a;
-                      _query = a;
-                    })),
-            ]),
-          ],
-        ]);
+        );
       },
     );
   }
-}
 
-class _PreviewSheet extends StatelessWidget {
-  const _PreviewSheet({required this.book, required this.owned, required this.onAdd});
-  final Book book;
-  final bool owned;
-  final VoidCallback onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            SizedBox(width: 96, child: BookCover(book: book)),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(book.title, style: t.titleLarge),
-                Text('by ${book.author}'),
-                if (book.series != null) Text(book.series!, style: t.bodySmall),
-                const SizedBox(height: 6),
-                Row(children: [
-                  RatingStars(book.avgRating),
-                  const SizedBox(width: 6),
-                  Text(book.avgRating?.toStringAsFixed(1) ?? ''),
-                ]),
-                Text('${book.genre} · ${book.pages} pages', style: t.bodySmall),
-              ]),
+  Widget _buildHeader(bool isWide) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            if (!isWide) ...[
+              IconButton(
+                icon: const Icon(Icons.menu_rounded, color: ClayColors.deepPurple, size: 24),
+                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              ),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              'Discover',
+              style: GoogleFonts.inter(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: ClayColors.textDark,
+              ),
             ),
-          ]),
-          const SizedBox(height: 16),
-          Wrap(spacing: 8, runSpacing: 8, children: [for (final tr in book.tropes) Chip(label: Text(tr))]),
-          const SizedBox(height: 12),
-          Text(book.description, style: t.bodyLarge),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: owned
-                ? const OutlinedButton(onPressed: null, child: Text('Already in your library'))
-                : FilledButton(onPressed: onAdd, child: const Text('Add to Library')),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Search Pill
+        Container(
+          height: 48,
+          decoration: BoxDecoration(
+            color: const Color(0xFFDDD2F5),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ]),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  onChanged: (v) => setState(() => _query = v),
+                  style: GoogleFonts.inter(
+                    fontSize: 14.5,
+                    color: ClayColors.textDark,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Search books, authors, genres...',
+                    hintStyle: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: const Color(0xFF8873A7),
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                ),
+              ),
+              if (_query.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    _controller.clear();
+                    setState(() => _query = '');
+                  },
+                  child: const Icon(Icons.close_rounded, color: ClayColors.primaryPurple, size: 18),
+                )
+              else
+                const Icon(Icons.search_rounded, color: ClayColors.primaryPurple, size: 22),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTrendingRow(List<Book> catalog) {
+    final books = catalog.take(5).toList();
+
+    return SizedBox(
+      height: 110,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: books.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          final b = books[index];
+          final palette = BookshelfTheme.paletteForId(b.id);
+          return ClayBookMini(
+            title: b.title,
+            color: palette.base,
+            width: 68,
+            height: 94,
+            hasHeart: index % 2 == 0,
+            hasStar: index % 2 != 0,
+            motif: Icon(
+              index % 2 == 0 ? Icons.wb_sunny_rounded : Icons.nightlight_round,
+              color: Colors.white70,
+              size: 14,
+            ),
+            onTap: () => context.push('/book/${b.id}'),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildGenresGrid() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: ClayTile(
+                title: 'Fantasy',
+                color: ClayColors.lavender,
+                icon: Icons.auto_fix_high_rounded,
+                onTap: () => setState(() => _selectedGenre = 'Fantasy'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ClayTile(
+                title: 'Sci-Fi',
+                color: ClayColors.peach,
+                icon: Icons.rocket_launch_rounded,
+                onTap: () => setState(() => _selectedGenre = 'Science Fiction'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: ClayTile(
+                title: 'Mystery',
+                color: ClayColors.coral,
+                icon: Icons.search_rounded,
+                onTap: () => setState(() => _selectedGenre = 'Mystery'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ClayTile(
+                title: 'Romance',
+                color: ClayColors.mint,
+                icon: Icons.favorite_rounded,
+                onTap: () => setState(() => _selectedGenre = 'Romance'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecommendedBanner(List<Book> catalog) {
+    final sampleBooks = catalog.take(3).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: ClayColors.deepPurple,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: ClayColors.deepPurple.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recommended For You',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              const Icon(Icons.auto_awesome, color: Color(0xFFFFD460), size: 18),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Row of mini 3D books
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              for (final b in sampleBooks)
+                ClayBookMini(
+                  title: b.title,
+                  color: BookshelfTheme.paletteForId(b.id).base,
+                  width: 64,
+                  height: 88,
+                  onTap: () => context.push('/book/${b.id}'),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          Center(
+            child: ClayPillButton(
+              text: 'Explore All',
+              color: ClayColors.peach,
+              textColor: const Color(0xFF382352),
+              onTap: () => context.go('/library'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuthorSpotlight() {
+    final authors = [
+      {'name': 'Matt Haig', 'color': ClayColors.coral},
+      {'name': 'Karin Habset', 'color': ClayColors.lavender},
+      {'name': 'Hanton Blesner', 'color': ClayColors.mint},
+      {'name': 'Nann Bamers', 'color': ClayColors.peach},
+    ];
+
+    return SizedBox(
+      height: 94,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: authors.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (context, index) {
+          final a = authors[index];
+          final col = a['color'] as Color;
+
+          return Column(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: col,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: col.withValues(alpha: 0.4),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.person_rounded, color: Colors.white, size: 30),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                a['name'] as String,
+                style: GoogleFonts.inter(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: ClayColors.textDark,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchResultsList(List<Book> results) {
+    if (results.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Text(
+            'No books found matching criteria.',
+            style: GoogleFonts.inter(color: ClayColors.textMuted),
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: results.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final b = results[index];
+        final palette = BookshelfTheme.paletteForId(b.id);
+
+        return ClayCard(
+          onTap: () => context.push('/book/${b.id}'),
+          child: Row(
+            children: [
+              ClayBookMini(title: b.title, color: palette.base, width: 48, height: 68),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      b.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: ClayColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'by ${b.author} • ${b.genre}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: ClayColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ClayPillButton(
+                text: 'View',
+                height: 32,
+                fontSize: 12,
+                onTap: () => context.push('/book/${b.id}'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

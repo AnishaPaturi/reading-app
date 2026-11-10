@@ -164,9 +164,10 @@ class ReaderSidebar extends ConsumerWidget {
                     _SidebarNavItem(
                       icon: Icons.favorite_rounded,
                       label: 'Favorites',
+                      isActive: activeRoute == '/favorites',
                       onTap: () {
                         onItemTapped?.call();
-                        context.go('/library');
+                        context.go('/favorites');
                       },
                     ),
                     const SizedBox(height: 8),
@@ -182,6 +183,7 @@ class ReaderSidebar extends ConsumerWidget {
                     _SidebarNavItem(
                       icon: Icons.headphones_rounded,
                       label: 'Audiobooks',
+                      isActive: activeRoute == '/reading',
                       onTap: () {
                         onItemTapped?.call();
                         context.go('/reading');
@@ -210,9 +212,10 @@ class ReaderSidebar extends ConsumerWidget {
                     _SidebarNavItem(
                       icon: Icons.settings_rounded,
                       label: 'Settings',
+                      isActive: activeRoute == '/settings' || activeRoute == '/sync/settings',
                       onTap: () {
                         onItemTapped?.call();
-                        context.go('/sync/settings');
+                        context.go('/settings');
                       },
                     ),
                   ],

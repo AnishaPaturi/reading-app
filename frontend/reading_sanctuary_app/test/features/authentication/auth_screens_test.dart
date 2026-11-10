@@ -34,10 +34,10 @@ void main() {
       expect(find.text("Don't have an account? "), findsOneWidget);
       expect(find.text('Sign Up'), findsOneWidget);
 
-      // Verify 3 social buttons (tooltips)
+      // Verify only Google social button is present, Apple & Facebook are removed
       expect(find.byTooltip('Continue with Google'), findsOneWidget);
-      expect(find.byTooltip('Continue with Apple'), findsOneWidget);
-      expect(find.byTooltip('Continue with Facebook'), findsOneWidget);
+      expect(find.byTooltip('Continue with Apple'), findsNothing);
+      expect(find.byTooltip('Continue with Facebook'), findsNothing);
 
       // Verify input bars have white fill
       final emailField = tester.widget<TextField>(find.widgetWithText(TextField, 'Email or Username'));

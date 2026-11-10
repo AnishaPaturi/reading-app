@@ -18,18 +18,6 @@ class SocialLoginRow extends StatelessWidget {
           tooltip: 'Continue with Google',
           onTap: () => onSocialSelect('Google'),
         ),
-        const SizedBox(width: 22),
-        _SocialButton(
-          assetPath: 'assets/images/auth/social_apple.png',
-          tooltip: 'Continue with Apple',
-          onTap: () => onSocialSelect('Apple'),
-        ),
-        const SizedBox(width: 22),
-        _SocialButton(
-          assetPath: 'assets/images/auth/social_facebook.png',
-          tooltip: 'Continue with Facebook',
-          onTap: () => onSocialSelect('Facebook'),
-        ),
       ],
     );
   }

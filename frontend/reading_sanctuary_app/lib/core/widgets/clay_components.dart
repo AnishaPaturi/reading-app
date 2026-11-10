@@ -117,6 +117,7 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSelected = activeRoute == route ||
         (route == '/favorites' && activeRoute == '/reading') ||
+        (route == '/profile' && activeRoute == '/settings') ||
         (route == '/home' && activeRoute == '/library');
 
     return Tooltip(

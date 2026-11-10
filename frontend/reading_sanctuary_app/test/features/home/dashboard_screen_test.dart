@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/features/home/home_screen.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/discover_banner.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/hero_reading_banner.dart';
@@ -96,6 +97,9 @@ void main() {
     // Menu hamburger button is present on mobile
     expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
     expect(find.text('Reader Panel'), findsOneWidget);
+
+    // Verify 3D Bottom Navigation bar on mobile
+    expect(find.byType(ClayBottomNav), findsOneWidget);
 
     // Open drawer
     await tester.tap(find.byIcon(Icons.menu_rounded));

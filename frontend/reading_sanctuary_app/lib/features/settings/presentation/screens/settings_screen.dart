@@ -355,24 +355,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             Expanded(
               child: ClayCard(
                 color: ClayColors.lavender,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Night\nMode',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                    Expanded(
+                      child: Text(
+                        'Night\nMode',
+                        style: GoogleFonts.inter(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
                         ),
-                      ],
+                      ),
                     ),
-                    const Icon(Icons.nightlight_round, color: Colors.white, size: 24),
+                    const Icon(Icons.nightlight_round, color: Colors.white, size: 22),
                   ],
                 ),
                 onTap: () => setState(() => _nightMode = !_nightMode),
@@ -382,24 +379,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             Expanded(
               child: ClayCard(
                 color: ClayColors.skyBlue,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Automatic\nSync',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF244463),
-                          ),
+                    Expanded(
+                      child: Text(
+                        'Automatic\nSync',
+                        style: GoogleFonts.inter(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF244463),
                         ),
-                      ],
+                      ),
                     ),
-                    const Icon(Icons.sync_rounded, color: Color(0xFF244463), size: 24),
+                    const Icon(Icons.sync_rounded, color: Color(0xFF244463), size: 22),
                   ],
                 ),
                 onTap: () => setState(() => _autoSync = !_autoSync),

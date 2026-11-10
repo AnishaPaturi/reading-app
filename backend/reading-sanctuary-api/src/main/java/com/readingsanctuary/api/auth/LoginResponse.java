@@ -7,5 +7,7 @@ public record LoginResponse(
     String tokenType,
     long expiresIn,
     UUID userId,
-    String email
+    String email,
+    String displayName,
+    String profilePictureUrl
 ) {}

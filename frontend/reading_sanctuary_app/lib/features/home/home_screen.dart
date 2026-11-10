@@ -77,10 +77,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ),
                           data: (books) => SingleChildScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isWide ? 24 : 16,
-                              vertical: 8,
+                            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                            padding: EdgeInsets.fromLTRB(
+                              isWide ? 24 : 16,
+                              8,
+                              isWide ? 24 : 16,
+                              20,
                             ),
                             child: _buildDashboardBody(
                               context,

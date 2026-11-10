@@ -218,7 +218,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
           // Main Scrollable Area
           CustomScrollView(
-            physics: const BouncingScrollPhysics(),
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             slivers: [
               // Top Bar / Search & Filter
               SliverPadding(

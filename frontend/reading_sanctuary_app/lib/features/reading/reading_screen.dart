@@ -92,7 +92,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                                 final otherReading = readingBooks.skip(1).toList();
 
                                 return SingleChildScrollView(
-                                  physics: const BouncingScrollPhysics(),
+                                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,

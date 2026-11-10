@@ -218,7 +218,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       itemCount: favBooks.length,
       separatorBuilder: (_, __) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
@@ -336,7 +336,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       itemCount: authors.length,
       separatorBuilder: (_, __) => const SizedBox(height: 14),
       itemBuilder: (context, index) {
@@ -387,7 +387,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
   Widget _buildFoldersTab(List<Book> books) {
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

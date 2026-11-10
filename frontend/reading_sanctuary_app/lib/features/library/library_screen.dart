@@ -1,25 +1,67 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../core/widgets/book_cover.dart';
 import '../../core/widgets/common_widgets.dart';
-import '../../shared/services/providers.dart';
 import '../../shared/models/book.dart';
+import '../../shared/services/providers.dart';
+import '../home/presentation/widgets/reader_sidebar.dart';
 import 'library_logic.dart';
+import 'theme/bookshelf_theme.dart';
+import 'widgets/book_preview_sheet.dart';
+import 'widgets/bookshelf_header.dart';
+import 'widgets/clay_decorations.dart';
+import 'widgets/clay_shelf.dart';
+import 'widgets/library_filter_sheet.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
+
   @override
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
-  final _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isBookshelfView = true;
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void _showBookPreview(Book book) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BookPreviewSheet(book: book),
+    );
+  }
+
+  void _openFilterSheet(Set<ReadingStatus> currentStatuses) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LibraryFilterSheet(
+        selectedStatuses: currentStatuses,
+        onStatusChanged: (next) {
+          ref.read(libraryStatusFilterProvider.notifier).state = next;
+        },
+        isBookshelfView: _isBookshelfView,
+        onViewModeChanged: (val) {
+          setState(() => _isBookshelfView = val);
+        },
+        onAddBook: () => context.push('/library/add'),
+        onClearAll: () => ref.read(libraryStatusFilterProvider.notifier).state = {},
+      ),
+    );
   }
 
   @override
@@ -28,113 +70,469 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final query = ref.watch(libraryQueryProvider);
     final statuses = ref.watch(libraryStatusFilterProvider);
 
-    return booksAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => EmptyState(
-          icon: Icons.error_outline,
-          message: 'Could not load your library.',
-          actionLabel: 'Retry',
-          onAction: () => ref.invalidate(booksProvider)),
-      data: (books) {
-        final shown = filterBooks(books, query: query, statuses: statuses);
-        return CustomScrollView(slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            sliver: SliverToBoxAdapter(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  Expanded(
-                      child: Text('${books.length} books',
-                          style: Theme.of(context).textTheme.titleMedium)),
-                  FilledButton.icon(
-                    onPressed: () => context.push('/library/add'),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Book'),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 850;
+
+        return booksAsync.when(
+          loading: () => const Scaffold(
+            backgroundColor: BookshelfTheme.backgroundColor,
+            body: Center(
+              child: CircularProgressIndicator(
+                color: BookshelfTheme.purpleAccent,
+              ),
+            ),
+          ),
+          error: (e, _) => Scaffold(
+            backgroundColor: BookshelfTheme.backgroundColor,
+            body: Center(
+              child: EmptyState(
+                icon: Icons.error_outline,
+                message: 'Could not load your library.',
+                actionLabel: 'Retry',
+                onAction: () => ref.invalidate(booksProvider),
+              ),
+            ),
+          ),
+          data: (books) {
+            final shown = filterBooks(books, query: query, statuses: statuses);
+
+            if (isWide) {
+              // Desktop & Tablet Layout with ReaderSidebar
+              return Scaffold(
+                backgroundColor: BookshelfTheme.backgroundColor,
+                body: SafeArea(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const ReaderSidebar(activeRoute: '/library'),
+                      Expanded(
+                        child: _buildBookshelfContent(
+                          context,
+                          shown: shown,
+                          totalBooks: books.length,
+                          query: query,
+                          statuses: statuses,
+                          isWide: true,
+                          contentWidth: constraints.maxWidth - 230,
+                        ),
+                      ),
+                    ],
                   ),
-                ]),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _controller,
-                  onChanged: (v) => ref.read(libraryQueryProvider.notifier).state = v,
-                  decoration: InputDecoration(
-                    hintText: 'Search title, author or genre',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: query.isEmpty
-                        ? null
-                        : IconButton(
-                            tooltip: 'Clear search',
-                            icon: const Icon(Icons.close),
+                ),
+                floatingActionButton: FloatingActionButton(
+                  backgroundColor: BookshelfTheme.purpleAccent,
+                  tooltip: 'Add Book',
+                  onPressed: () => context.push('/library/add'),
+                  child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                ),
+              );
+            } else {
+              // Mobile Layout with drawer and exact theme matching the reference
+              return Scaffold(
+                key: _scaffoldKey,
+                backgroundColor: BookshelfTheme.backgroundColor,
+                drawer: Drawer(
+                  width: 220,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  child: ReaderSidebar(
+                    width: 220,
+                    activeRoute: '/library',
+                    onItemTapped: () => Navigator.of(context).pop(),
+                  ),
+                ),
+                body: SafeArea(
+                  child: _buildBookshelfContent(
+                    context,
+                    shown: shown,
+                    totalBooks: books.length,
+                    query: query,
+                    statuses: statuses,
+                    isWide: false,
+                    contentWidth: constraints.maxWidth,
+                  ),
+                ),
+                floatingActionButton: FloatingActionButton(
+                  backgroundColor: BookshelfTheme.purpleAccent,
+                  tooltip: 'Add Book',
+                  onPressed: () => context.push('/library/add'),
+                  child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                ),
+              );
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBookshelfContent(
+    BuildContext context, {
+    required List<Book> shown,
+    required int totalBooks,
+    required String query,
+    required Set<ReadingStatus> statuses,
+    required bool isWide,
+    required double contentWidth,
+  }) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: BookshelfTheme.backgroundGradient,
+      ),
+      child: Stack(
+        children: [
+          // Background Sparkle Stars (bottom right & top right)
+          const Positioned(
+            bottom: 40,
+            right: 24,
+            child: ClaySparkleStar(size: 34),
+          ),
+          const Positioned(
+            top: 90,
+            right: 18,
+            child: ClaySparkleStar(size: 20),
+          ),
+
+          // Main Scrollable Area
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Top Bar / Search & Filter
+              SliverPadding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isWide ? 28 : 16,
+                  vertical: 14,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      BookshelfHeader(
+                        searchController: _controller,
+                        showMenuButton: !isWide,
+                        hasActiveFilters: statuses.isNotEmpty || query.isNotEmpty,
+                        onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+                        onSearchChanged: (v) {
+                          ref.read(libraryQueryProvider.notifier).state = v;
+                        },
+                        onClearSearch: () {
+                          _controller.clear();
+                          ref.read(libraryQueryProvider.notifier).state = '';
+                        },
+                        onFilterTap: () => _openFilterSheet(statuses),
+                      ),
+
+                      // Active filters badge bar (if any)
+                      if (statuses.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              for (final s in statuses)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6.0),
+                                  child: Chip(
+                                    label: Text(
+                                      s.label,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    backgroundColor: BookshelfTheme.purpleAccent,
+                                    deleteIcon: const Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                    onDeleted: () {
+                                      ref.read(libraryStatusFilterProvider.notifier).update(
+                                            (cur) => {...cur}..remove(s),
+                                          );
+                                    },
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ),
+                              TextButton(
+                                onPressed: () {
+                                  ref.read(libraryStatusFilterProvider.notifier).state = {};
+                                },
+                                child: Text(
+                                  'Clear all',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: BookshelfTheme.purpleAccent,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              // Empty Search State
+              if (shown.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const ClayFlowerPot(scale: 1.1),
+                          const SizedBox(height: 18),
+                          Text(
+                            'No books match your search.',
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF432D56),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
                             onPressed: () {
                               _controller.clear();
                               ref.read(libraryQueryProvider.notifier).state = '';
+                              ref.read(libraryStatusFilterProvider.notifier).state = {};
                             },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: BookshelfTheme.purpleAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: const Text('Clear Filters', style: TextStyle(color: Colors.white)),
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else if (_isBookshelfView) ...[
+                // 3D Bookshelf View
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isWide ? 20 : 10,
+                    vertical: 8,
+                  ),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(
+                      _buildShelves(shown, contentWidth),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                  for (final s in ReadingStatus.values)
-                    FilterChip(
-                      label: Text(s.label),
-                      selected: statuses.contains(s),
-                      onSelected: (on) => ref.read(libraryStatusFilterProvider.notifier).update(
-                          (cur) => on ? {...cur, s} : ({...cur}..remove(s))),
+              ] else ...[
+                // Classic Cover Grid View
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    isWide ? 28 : 16,
+                    8,
+                    isWide ? 28 : 16,
+                    32,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 180,
+                      childAspectRatio: 0.54,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 20,
                     ),
-                  if (statuses.isNotEmpty)
-                    TextButton(
-                      onPressed: () =>
-                          ref.read(libraryStatusFilterProvider.notifier).state = {},
-                      child: const Text('Clear all filters'),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, i) {
+                        final b = shown[i];
+                        return InkWell(
+                          onTap: () => context.push('/book/${b.id}'),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              BookCover(book: b),
+                              const SizedBox(height: 8),
+                              Text(
+                                b.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  color: const Color(0xFF2E1A48),
+                                ),
+                              ),
+                              Text(
+                                b.author,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: const Color(0xFF7A6894),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              StatusBadge(b.status),
+                            ],
+                          ),
+                        );
+                      },
+                      childCount: shown.length,
                     ),
-                ]),
-                const SizedBox(height: 20),
-              ]),
-            ),
-          ),
-          if (shown.isEmpty)
-            const SliverFillRemaining(
-                hasScrollBody: false,
-                child: EmptyState(icon: Icons.search_off, message: 'No books match your search.'))
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 180,
-                  childAspectRatio: 0.52,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 20,
+                  ),
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    final b = shown[i];
-                    return InkWell(
-                      onTap: () => context.push('/book/${b.id}'),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        BookCover(book: b),
-                        const SizedBox(height: 8),
-                        Text(b.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w600)),
-                        Text(b.author,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall),
-                        const SizedBox(height: 4),
-                        StatusBadge(b.status),
-                      ]),
-                    );
-                  },
-                  childCount: shown.length,
-                ),
+              ],
+
+              const SliverToBoxAdapter(
+                child: SizedBox(height: 50),
               ),
-            ),
-        ]);
-      },
+            ],
+          ),
+        ],
+      ),
     );
+  }
+
+  /// Distributes books across shelves with decorative plants matching the reference design
+  List<Widget> _buildShelves(List<Book> books, double availableWidth) {
+    if (books.isEmpty) return [];
+
+    // Calculate approximate capacity per shelf based on width
+    final baseCapacity = (availableWidth / 44).floor().clamp(5, 16);
+    final shelves = <Widget>[];
+
+    var currentIndex = 0;
+    var shelfIndex = 0;
+
+    while (currentIndex < books.length) {
+      if (shelfIndex == 0) {
+        // Shelf 1 (Top): Left book + Hanging plant + Blue daisy + Right books
+        final leftCount = (books.length - currentIndex >= 1) ? 1 : 0;
+        final left = books.sublist(currentIndex, currentIndex + leftCount);
+        currentIndex += leftCount;
+
+        final rightCapacity = (baseCapacity - 3).clamp(1, 6);
+        final rightCount = math.min(rightCapacity, books.length - currentIndex);
+        final right = books.sublist(currentIndex, currentIndex + rightCount);
+        currentIndex += rightCount;
+
+        shelves.add(
+          ClayShelf(
+            leftBooks: left,
+            decorType: ShelfDecorType.topShelfDecor,
+            rightBooks: right,
+            onBookTap: _showBookPreview,
+          ),
+        );
+      } else if (shelfIndex == 1) {
+        // Shelf 2: Full books row
+        final count = math.min(baseCapacity, books.length - currentIndex);
+        final shelfBooks = books.sublist(currentIndex, currentIndex + count);
+        currentIndex += count;
+
+        shelves.add(
+          ClayShelf(
+            leftBooks: shelfBooks,
+            decorType: ShelfDecorType.none,
+            rightBooks: const [],
+            onBookTap: _showBookPreview,
+          ),
+        );
+      } else if (shelfIndex == 2) {
+        // Shelf 3: Left 2 books + Bowl succulent + Aloe pot + Right books
+        final leftCount = math.min(2, books.length - currentIndex);
+        final left = books.sublist(currentIndex, currentIndex + leftCount);
+        currentIndex += leftCount;
+
+        final rightCapacity = (baseCapacity - 3).clamp(1, 6);
+        final rightCount = math.min(rightCapacity, books.length - currentIndex);
+        final right = books.sublist(currentIndex, currentIndex + rightCount);
+        currentIndex += rightCount;
+
+        shelves.add(
+          ClayShelf(
+            leftBooks: left,
+            decorType: ShelfDecorType.middleShelfDecor,
+            rightBooks: right,
+            onBookTap: _showBookPreview,
+          ),
+        );
+      } else if (shelfIndex % 3 == 0) {
+        // Shelf 4, 7...: Alternate with single flower or aloe decor
+        final leftCount = math.min(3, books.length - currentIndex);
+        final left = books.sublist(currentIndex, currentIndex + leftCount);
+        currentIndex += leftCount;
+
+        final decor = (shelfIndex % 2 == 0) ? ShelfDecorType.singleFlower : ShelfDecorType.singleAloe;
+        final rightCapacity = (baseCapacity - 2).clamp(1, 8);
+        final rightCount = math.min(rightCapacity, books.length - currentIndex);
+        final right = books.sublist(currentIndex, currentIndex + rightCount);
+        currentIndex += rightCount;
+
+        shelves.add(
+          ClayShelf(
+            leftBooks: left,
+            decorType: decor,
+            rightBooks: right,
+            onBookTap: _showBookPreview,
+          ),
+        );
+      } else {
+        // Full books row
+        final count = math.min(baseCapacity, books.length - currentIndex);
+        final shelfBooks = books.sublist(currentIndex, currentIndex + count);
+        currentIndex += count;
+
+        shelves.add(
+          ClayShelf(
+            leftBooks: shelfBooks,
+            decorType: ShelfDecorType.none,
+            rightBooks: const [],
+            onBookTap: _showBookPreview,
+          ),
+        );
+      }
+
+      shelfIndex++;
+    }
+
+    // Ensure at least 3-4 shelves are rendered so it always has the cozy bookshelf look
+    while (shelves.length < 4) {
+      if (shelves.length == 1) {
+        shelves.add(
+          ClayShelf(
+            leftBooks: const [],
+            decorType: ShelfDecorType.none,
+            rightBooks: const [],
+            onBookTap: _showBookPreview,
+          ),
+        );
+      } else if (shelves.length == 2) {
+        shelves.add(
+          ClayShelf(
+            leftBooks: const [],
+            decorType: ShelfDecorType.middleShelfDecor,
+            rightBooks: const [],
+            onBookTap: _showBookPreview,
+          ),
+        );
+      } else {
+        shelves.add(
+          ClayShelf(
+            leftBooks: const [],
+            decorType: ShelfDecorType.singleAloe,
+            rightBooks: const [],
+            onBookTap: _showBookPreview,
+          ),
+        );
+      }
+    }
+
+    return shelves;
   }
 }

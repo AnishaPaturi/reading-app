@@ -129,6 +129,15 @@ void main() {
       expect(find.byType(TodaysPicksCard), findsOneWidget);
       expect(find.byType(DiscoverBanner), findsOneWidget);
 
+      // Verify ProfileScreen is scrollable and has Scrollbar
+      expect(find.descendant(of: find.byType(ProfileScreen), matching: find.byType(Scrollbar)), findsOneWidget);
+      final profileScrollView = find.descendant(of: find.byType(ProfileScreen), matching: find.byType(SingleChildScrollView));
+      expect(profileScrollView, findsOneWidget);
+
+      // Scroll down Overview tab
+      await tester.drag(profileScrollView, const Offset(0, -400));
+      await tester.pumpAndSettle();
+
       // Switch to Shelves & Settings
       await tester.tap(find.text('Shelves & Settings'));
       await tester.pumpAndSettle();
@@ -138,6 +147,11 @@ void main() {
       expect(find.text('Account Settings'), findsOneWidget);
       expect(find.text('Edit Profile'), findsOneWidget);
       expect(find.text('Reading Goals'), findsOneWidget);
+
+      // Shelves & Settings tab is also scrollable
+      await tester.drag(profileScrollView, const Offset(0, -200));
+      await tester.pumpAndSettle();
+      expect(find.text('Notifications'), findsOneWidget);
     });
 
     testWidgets('SettingsScreen renders Account & Privacy, Preferences with Switch, and Help', (tester) async {

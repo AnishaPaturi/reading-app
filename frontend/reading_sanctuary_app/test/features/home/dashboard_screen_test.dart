@@ -215,4 +215,32 @@ void main() {
     expect(find.text('Good evening, Alex!'), findsOneWidget);
     expect(find.text('Start Reading'), findsNothing);
   });
+
+  testWidgets('Audiobooks section displays all audiobooks and is scrollable', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(buildTestableWidget(size: const Size(1200, 900)));
+    await tester.pumpAndSettle();
+
+    // Verify Audiobook badge shows total audiobooks available (4 audiobooks)
+    expect(find.text('4 Audiobooks'), findsOneWidget);
+
+    // Verify first audiobook card is visible
+    expect(find.text('The Silent Patient'), findsWidgets);
+
+    // Find the ListView in the Audiobooks section and drag to scroll
+    final audiobooksListView = find.byWidgetPredicate(
+      (w) => w is ListView && w.physics is AlwaysScrollableScrollPhysics,
+    );
+    expect(audiobooksListView, findsOneWidget);
+
+    // Drag up to scroll through audiobooks
+    await tester.drag(audiobooksListView, const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    // Verify subsequent audiobooks scrolled into view
+    expect(find.text('The Song of Achilles'), findsWidgets);
+  });
 }

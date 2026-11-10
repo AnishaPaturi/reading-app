@@ -1,297 +1,166 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import '../../app/theme/app_colors.dart';
-import '../../core/utils/time_ago.dart';
-import '../../core/widgets/book_cover.dart';
-import '../../core/widgets/bookshelf.dart';
-import '../../core/widgets/common_widgets.dart';
-import '../../shared/models/book.dart';
-import '../../shared/services/providers.dart';
 
-String _greeting() {
-  final h = DateTime.now().hour;
-  final part = h < 12 ? 'morning' : (h < 18 ? 'afternoon' : 'evening');
-  return 'Good $part, Reader.';
-}
+import 'presentation/widgets/discover_banner.dart';
+import 'presentation/widgets/hero_reading_banner.dart';
+import 'presentation/widgets/metric_cards_row.dart';
+import 'presentation/widgets/reader_panel_header.dart';
+import 'presentation/widgets/reader_sidebar.dart';
+import 'presentation/widgets/reading_overview_chart.dart';
+import 'presentation/widgets/recently_read_card.dart';
+import 'presentation/widgets/todays_picks_card.dart';
+import 'presentation/widgets/top_genres_chart.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(booksProvider).when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => EmptyState(
-              icon: Icons.error_outline,
-              message: 'Something went wrong loading your books.',
-              actionLabel: 'Retry',
-              onAction: () => ref.invalidate(booksProvider)),
-          data: (books) {
-            if (books.isEmpty) {
-              return EmptyState(
-                  icon: Icons.menu_book_outlined,
-                  message: 'Your sanctuary is waiting for its first story.',
-                  actionLabel: 'Add Your First Book',
-                  onAction: () => context.push('/library/add'));
-            }
-            return LayoutBuilder(builder: (context, box) {
-              final wide = box.maxWidth >= 1000;
-              final main = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _ContinueReading(books: books),
-                _RecentlyAdded(books: books),
-              ]);
-              const side = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _GoalsCard(),
-                _QuickActions(),
-              ]);
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_greeting(), style: Theme.of(context).textTheme.headlineMedium),
-                  Text(DateFormat('EEEE, d MMMM').format(DateTime.now())),
-                  _ReadingGoalHero(books: books),
-                  wide
-                      ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Expanded(child: main),
-                          const SizedBox(width: 28),
-                          const SizedBox(width: 340, child: side),
-                        ])
-                      : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [main, side]),
-                ]),
-              );
-            });
-          },
-        );
-  }
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _ContinueReading extends ConsumerWidget {
-  const _ContinueReading({required this.books});
-  final List<Book> books;
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final reading = books.where((b) => b.status == ReadingStatus.currentlyReading).toList()
-      ..sort((a, b) => (b.lastOpenedAt ?? DateTime(0)).compareTo(a.lastOpenedAt ?? DateTime(0)));
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 850;
 
-    void move(Book b, ReadingStatus s) {
-      ref.read(booksProvider.notifier).setStatus(b.id, s);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('"${b.title}" moved to ${s.label}')));
-    }
+        if (isWide) {
+          // Desktop / Tablet layout with pinned sidebar
+          return Scaffold(
+            backgroundColor: const Color(0xFFF4F0FB),
+            body: SafeArea(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left 3D Reader Sidebar
+                  const ReaderSidebar(),
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SectionHeader('Continue Reading',
-          actionLabel: 'View all', onAction: () => context.go('/tracker/reading')),
-      if (reading.isEmpty)
-        const Text('Nothing in progress. Pick something from your library.')
-      else
-        LayoutBuilder(builder: (context, box) {
-          final cols = box.maxWidth >= 640 ? 2 : 1;
-          final w = (box.maxWidth - (cols - 1) * 16) / cols;
-          return Wrap(spacing: 16, runSpacing: 16, children: [
-            for (final b in reading)
-              SizedBox(
-                width: w,
-                child: SanctuaryCard(
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    SizedBox(width: 72, child: BookCover(book: b)),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(children: [
-                          Expanded(
-                              child: Text(b.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleLarge)),
-                          PopupMenuButton<String>(
-                            tooltip: 'More options',
-                            onSelected: (v) {
-                              switch (v) {
-                                case 'done':
-                                  move(b, ReadingStatus.completed);
-                                case 'hold':
-                                  move(b, ReadingStatus.onHold);
-                                case 'dnf':
-                                  move(b, ReadingStatus.dnf);
-                                case 'remove':
-                                  move(b, ReadingStatus.wantToRead);
-                                case 'details':
-                                  context.push('/book/${b.id}');
-                              }
-                            },
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'done', child: Text('Mark as Completed')),
-                              PopupMenuItem(value: 'hold', child: Text('Move to On Hold')),
-                              PopupMenuItem(value: 'dnf', child: Text('Move to DNF')),
-                              PopupMenuItem(value: 'remove', child: Text('Remove from Currently Reading')),
-                              PopupMenuItem(value: 'details', child: Text('Open Book Details')),
-                            ],
+                  // Main Reader Panel Content
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          child: ReaderPanelHeader(showMenuButton: false),
+                        ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            child: _buildDashboardBody(context, contentWidth: constraints.maxWidth - 234),
                           ),
-                        ]),
-                        Text(b.author, style: Theme.of(context).textTheme.bodySmall),
-                        const SizedBox(height: 10),
-                        ProgressBar(b.progress),
-                        const SizedBox(height: 4),
-                        Text(
-                            '${(b.progress * 100).round()}% · p. ${b.currentPage}/${b.pages} · ${timeAgo(b.lastOpenedAt)}',
-                            style: Theme.of(context).textTheme.bodySmall),
-                        const SizedBox(height: 10),
-                        Wrap(spacing: 8, children: [
-                          FilledButton(
-                              onPressed: () => context.go('/read'),
-                              child: const Text('Continue Reading')),
-                          TextButton(
-                              onPressed: () => context.push('/book/${b.id}'),
-                              child: const Text('Details')),
-                        ]),
-                      ]),
+                        ),
+                      ],
                     ),
-                  ]),
-                ),
+                  ),
+                ],
               ),
-          ]);
-        }),
-    ]);
-  }
-}
-
-class _RecentlyAdded extends StatelessWidget {
-  const _RecentlyAdded({required this.books});
-  final List<Book> books;
-
-  @override
-  Widget build(BuildContext context) {
-    final recent = ([...books]..sort((a, b) => b.addedAt.compareTo(a.addedAt))).take(8).toList();
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SectionHeader('Recently Added', actionLabel: 'Library', onAction: () => context.go('/library')),
-      SizedBox(
-        height: 250,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: recent.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 16),
-          itemBuilder: (context, i) {
-            final b = recent[i];
-            return SizedBox(
-              width: 120,
-              child: InkWell(
-                onTap: () => context.push('/book/${b.id}'),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  BookCover(book: b),
-                  const SizedBox(height: 8),
-                  Text(b.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall),
-                  Text(
-                      '${b.formats.map((f) => f.name).join(' + ')} · ${DateFormat.MMMd().format(b.addedAt)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall),
-                ]),
+            ),
+          );
+        } else {
+          // Mobile layout with drawer
+          return Scaffold(
+            key: _scaffoldKey,
+            backgroundColor: const Color(0xFFF4F0FB),
+            drawer: Drawer(
+              width: 220,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: ReaderSidebar(
+                onItemTapped: () => Navigator.of(context).pop(),
               ),
-            );
-          },
-        ),
-      ),
-    ]);
+            ),
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: ReaderPanelHeader(
+                      showMenuButton: true,
+                      onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: _buildDashboardBody(context, contentWidth: constraints.maxWidth - 32),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      },
+    );
   }
-}
 
-class _GoalsCard extends StatelessWidget {
-  const _GoalsCard();
+  Widget _buildDashboardBody(BuildContext context, {required double contentWidth}) {
+    final useTwoColumns = contentWidth >= 640;
 
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const SectionHeader('Reading Goals'),
-      SanctuaryCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Daily · 20 / 30 min'),
-          const SizedBox(height: 6),
-          const ProgressBar(20 / 30),
-          const SizedBox(height: 14),
-          const Text('Weekly · 3 / 5 hours'),
-          const SizedBox(height: 6),
-          const ProgressBar(3 / 5),
-          const SizedBox(height: 14),
-          Row(children: [
-            const Icon(Icons.local_fire_department_outlined, color: AppColors.gold),
-            const SizedBox(width: 6),
-            Text('12-day streak', style: t.titleSmall),
-          ]),
-          const SizedBox(height: 8),
-          Text('Sample data until goals are built (Milestone 5).', style: t.bodySmall),
-          Wrap(children: [
-            TextButton(onPressed: () => context.push('/settings'), child: const Text('Edit Goal')),
-            TextButton(onPressed: () => context.go('/statistics'), child: const Text('View Statistics')),
-          ]),
-        ]),
-      ),
-    ]);
-  }
-}
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 3D Hero Banner: Mia reading, star greeting & Start Reading button
+        const HeroReadingBanner(),
+        const SizedBox(height: 16),
 
-class _QuickActions extends StatelessWidget {
-  const _QuickActions();
+        // 4 Pastel Metric Cards: Books Read, Favorites, Hours Read, Daily Streak
+        const MetricCardsRow(),
+        const SizedBox(height: 16),
 
-  @override
-  Widget build(BuildContext context) {
-    Widget a(String label, IconData icon, String path) => OutlinedButton.icon(
-        onPressed: () => context.push(path), icon: Icon(icon, size: 18), label: Text(label));
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const SectionHeader('Quick Actions'),
-      Wrap(spacing: 8, runSpacing: 8, children: [
-        a('Upload Book', Icons.upload_file, '/library/add'),
-        a('Add Manually', Icons.edit_outlined, '/library/add-manual'),
-        a('Browse Library', Icons.local_library_outlined, '/library'),
-        a('Journal Entry', Icons.edit_note, '/journal/new'),
-        a('View TBR', Icons.bookmark_add_outlined, '/tracker/tbr'),
-        a('Statistics', Icons.insights_outlined, '/statistics'),
-      ]),
-    ]);
-  }
-}
+        // Charts Section: Reading Overview & Top Genres
+        if (useTwoColumns)
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: ReadingOverviewChart(),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                flex: 4,
+                child: TopGenresChart(),
+              ),
+            ],
+          )
+        else ...[
+          const ReadingOverviewChart(),
+          const SizedBox(height: 16),
+          const TopGenresChart(),
+        ],
+        const SizedBox(height: 16),
 
-class _ReadingGoalHero extends StatelessWidget {
-  const _ReadingGoalHero({required this.books});
-  final List<Book> books;
+        // Lower Section: Recently Read & Today's Picks
+        if (useTwoColumns)
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: RecentlyReadCard(),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                flex: 4,
+                child: TodaysPicksCard(),
+              ),
+            ],
+          )
+        else ...[
+          const RecentlyReadCard(),
+          const SizedBox(height: 16),
+          const TodaysPicksCard(),
+        ],
+        const SizedBox(height: 16),
 
-  static const _yearlyGoal = 50; // sample until the Goals screen (Milestone 5)
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-    final read = books.where((b) => b.status == ReadingStatus.completed).length;
-    final tbr = books.where((b) => b.status == ReadingStatus.wantToRead).length;
-    final left = (_yearlyGoal - read).clamp(0, _yearlyGoal);
-    Widget box(String n, String label) => Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(border: Border.all(color: AppColors.gold.withAlpha(120))),
-            child: Column(children: [
-              Text(n, style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-              Text(label, style: t.bodySmall),
-            ]),
-          ),
-        );
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: Column(children: [
-        Text('${DateTime.now().year} Reading Goal', style: t.headlineMedium),
-        const SizedBox(height: 12),
-        Row(children: [box('$tbr', 'in TBR'), box('$_yearlyGoal', 'in Goal'), box('$read', 'Read')]),
-        const SizedBox(height: 8),
-        Text('You have $left books left to complete your yearly reading goal',
-            textAlign: TextAlign.center, style: t.bodySmall),
-        const SizedBox(height: 20),
-        BookshelfView(books: books),
-      ]),
+        // Bottom Discover New Books Banner with Star Mascot
+        const DiscoverBanner(),
+        const SizedBox(height: 24),
+      ],
     );
   }
 }

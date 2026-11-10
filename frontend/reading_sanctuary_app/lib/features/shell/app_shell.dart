@@ -16,6 +16,18 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (location == '/home') {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF4F0FB),
+        body: Column(
+          children: [
+            Expanded(child: child),
+            const MiniAudioPlayer(),
+          ],
+        ),
+      );
+    }
+
     final size = Breakpoints.of(MediaQuery.sizeOf(context).width);
     final isDetail = isDetailRoute(location);
     final content = Align(

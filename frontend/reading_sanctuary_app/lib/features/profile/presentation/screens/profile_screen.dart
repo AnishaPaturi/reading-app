@@ -110,21 +110,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (!isWide) ...[
           IconButton(
             icon: const Icon(Icons.menu_rounded, color: ClayColors.deepPurple, size: 24),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
         ],
-        Text(
-          _activeTab == 0 ? 'My Profile' : "$userName's Library",
-          style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: ClayColors.textDark,
+        Expanded(
+          child: Text(
+            _activeTab == 0 ? 'My Profile' : "$userName's Library",
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: ClayColors.textDark,
+            ),
           ),
         ),
-        const Spacer(),
         IconButton(
           icon: const Icon(Icons.settings_rounded, color: ClayColors.deepPurple, size: 24),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
           onPressed: () => context.go('/settings'),
         ),
       ],

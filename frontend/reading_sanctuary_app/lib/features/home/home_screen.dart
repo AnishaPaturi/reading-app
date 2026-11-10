@@ -61,6 +61,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
           body: SafeArea(
+            bottom: false,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -102,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 isWide ? 24 : 16,
                                 8,
                                 isWide ? 24 : 16,
-                                isWide ? 24 : 90,
+                                isWide ? 24 : 20,
                               ),
                               child: _buildDashboardBody(
                                 context,
@@ -116,16 +117,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                       ),
-
-                      // Floating 3D Navigation Bar on Mobile
-                      if (!isWide)
-                        const ClayBottomNav(activeRoute: '/home'),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+          bottomNavigationBar: isWide
+              ? null
+              : const SafeArea(
+                  top: false,
+                  child: ClayBottomNav(activeRoute: '/home'),
+                ),
         );
       },
     );

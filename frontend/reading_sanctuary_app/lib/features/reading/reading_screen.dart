@@ -57,6 +57,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                   ),
                 ),
           body: SafeArea(
+            bottom: false,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -76,98 +77,86 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                         child: ClaySparkleStar(size: 24),
                       ),
 
-                      Column(
-                        children: [
-                          // Header
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-                            child: _buildHeader(isWide),
-                          ),
+                      booksAsync.when(
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(color: ClayColors.primaryPurple),
+                        ),
+                        error: (e, _) => Center(
+                          child: Text('Failed to load reading list', style: GoogleFonts.inter()),
+                        ),
+                        data: (books) {
+                          final readingBooks = books
+                              .where((b) => b.status == ReadingStatus.currentlyReading)
+                              .toList();
+                          final completedBooks = books
+                              .where((b) => b.status == ReadingStatus.completed)
+                              .toList();
 
-                          // Main Scrollable Body
-                          Expanded(
-                            child: booksAsync.when(
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(color: ClayColors.primaryPurple),
+                          final heroBook = readingBooks.isNotEmpty ? readingBooks.first : books.first;
+                          final otherReading = readingBooks.skip(1).toList();
+
+                          return Scrollbar(
+                            controller: _scrollController,
+                            thumbVisibility: isWide,
+                            child: SingleChildScrollView(
+                              controller: _scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(
+                                parent: BouncingScrollPhysics(),
                               ),
-                              error: (e, _) => Center(
-                                child: Text('Failed to load reading list', style: GoogleFonts.inter()),
+                              padding: EdgeInsets.fromLTRB(
+                                20,
+                                16,
+                                20,
+                                isWide ? 24 : 20,
                               ),
-                              data: (books) {
-                                final readingBooks = books
-                                    .where((b) => b.status == ReadingStatus.currentlyReading)
-                                    .toList();
-                                final completedBooks = books
-                                    .where((b) => b.status == ReadingStatus.completed)
-                                    .toList();
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Header (Scrolls with page content)
+                                  _buildHeader(isWide),
 
-                                final heroBook = readingBooks.isNotEmpty ? readingBooks.first : books.first;
-                                final otherReading = readingBooks.skip(1).toList();
+                                  const SizedBox(height: 14),
 
-                                return Scrollbar(
-                                  controller: _scrollController,
-                                  thumbVisibility: isWide,
-                                  child: SingleChildScrollView(
-                                    controller: _scrollController,
-                                    physics: const AlwaysScrollableScrollPhysics(
-                                      parent: BouncingScrollPhysics(),
-                                    ),
-                                    padding: EdgeInsets.fromLTRB(
-                                      20,
-                                      4,
-                                      20,
-                                      isWide ? 24 : 100,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        // 1. Hero Book Card
-                                        _buildHeroCard(heroBook),
+                                  // 1. Hero Book Card (Currently Reading section)
+                                  _buildHeroCard(heroBook),
 
-                                        const SizedBox(height: 14),
+                                  const SizedBox(height: 14),
 
-                                        // Hero Action Buttons
-                                        _buildHeroButtons(heroBook),
+                                  // Hero Action Buttons
+                                  _buildHeroButtons(heroBook),
 
-                                        const SizedBox(height: 28),
+                                  const SizedBox(height: 28),
 
-                                        // 2. Reading List
-                                        Text(
-                                          'Reading List',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w800,
-                                            color: ClayColors.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        _buildReadingList(otherReading.isNotEmpty ? otherReading : books.take(3).toList()),
-
-                                        const SizedBox(height: 28),
-
-                                        // 3. Recently Finished
-                                        Text(
-                                          'Recently Finished',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w800,
-                                            color: ClayColors.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        _buildRecentlyFinished(completedBooks.isNotEmpty ? completedBooks : books.take(4).toList()),
-                                      ],
+                                  // 2. Reading List
+                                  Text(
+                                    'Reading List',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: ClayColors.textDark,
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                          ),
+                                  const SizedBox(height: 14),
+                                  _buildReadingList(otherReading.isNotEmpty ? otherReading : books.take(3).toList()),
 
-                          // Mobile Bottom Nav
-                          if (!isWide)
-                            const ClayBottomNav(activeRoute: '/reading'),
-                        ],
+                                  const SizedBox(height: 28),
+
+                                  // 3. Recently Finished
+                                  Text(
+                                    'Recently Finished',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: ClayColors.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _buildRecentlyFinished(completedBooks.isNotEmpty ? completedBooks : books.take(4).toList()),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -175,6 +164,12 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
               ],
             ),
           ),
+          bottomNavigationBar: isWide
+              ? null
+              : const SafeArea(
+                  top: false,
+                  child: ClayBottomNav(activeRoute: '/reading'),
+                ),
         );
       },
     );

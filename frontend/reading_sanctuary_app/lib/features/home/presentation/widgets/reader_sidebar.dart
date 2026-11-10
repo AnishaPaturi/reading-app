@@ -34,112 +34,193 @@ class ReaderSidebar extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Avatar & Greeting
+            // Profile Section in Menu Bar
             Center(
-              child: Column(
-                children: [
-                  Container(
-                    width: 68,
-                    height: 68,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () {
+                    onItemTapped?.call();
+                    context.go('/profile');
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.12),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Image.asset(
+                                  'assets/images/dashboard/avatar_mia.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF5CB89A),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Hello, $userName!',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.person_outline_rounded, color: Colors.white, size: 12),
+                              SizedBox(width: 4),
+                              Text(
+                                'Profile',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/dashboard/avatar_mia.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Hello, $userName!',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
             // Navigation Items
-            _SidebarNavItem(
-              icon: Icons.home_rounded,
-              label: 'Panel',
-              isActive: activeRoute == '/home',
-              onTap: () {
-                onItemTapped?.call();
-                context.go('/home');
-              },
-            ),
-            const SizedBox(height: 8),
-            _SidebarNavItem(
-              icon: Icons.auto_stories_rounded,
-              label: 'My Library',
-              isActive: activeRoute == '/library',
-              onTap: () {
-                onItemTapped?.call();
-                context.go('/library');
-              },
-            ),
-            const SizedBox(height: 8),
-            _SidebarNavItem(
-              icon: Icons.favorite_rounded,
-              label: 'Favorites',
-              onTap: () {
-                onItemTapped?.call();
-                context.go('/library');
-              },
-            ),
-            const SizedBox(height: 8),
-            _SidebarNavItem(
-              icon: Icons.grid_view_rounded,
-              label: 'Booklists',
-              onTap: () {
-                onItemTapped?.call();
-                context.go('/bookshelves');
-              },
-            ),
-            const SizedBox(height: 8),
-            _SidebarNavItem(
-              icon: Icons.headphones_rounded,
-              label: 'Audiobooks',
-              onTap: () {
-                onItemTapped?.call();
-                context.go('/reading');
-              },
-            ),
-            const SizedBox(height: 8),
-            _SidebarNavItem(
-              icon: Icons.trending_up_rounded,
-              label: 'My Progress',
-              onTap: () {
-                onItemTapped?.call();
-                context.go('/statistics');
-              },
-            ),
-            const SizedBox(height: 8),
-            _SidebarNavItem(
-              icon: Icons.settings_rounded,
-              label: 'Settings',
-              onTap: () {
-                onItemTapped?.call();
-                context.go('/sync/settings');
-              },
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _SidebarNavItem(
+                      icon: Icons.home_rounded,
+                      label: 'Panel',
+                      isActive: activeRoute == '/home',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/home');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.auto_stories_rounded,
+                      label: 'My Library',
+                      isActive: activeRoute == '/library',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/library');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.favorite_rounded,
+                      label: 'Favorites',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/library');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.grid_view_rounded,
+                      label: 'Booklists',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/bookshelves');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.headphones_rounded,
+                      label: 'Audiobooks',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/reading');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.trending_up_rounded,
+                      label: 'My Progress',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/statistics');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.person_rounded,
+                      label: 'Profile',
+                      isActive: activeRoute == '/profile',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/profile');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.settings_rounded,
+                      label: 'Settings',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/sync/settings');
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
 
-            const Spacer(),
+            const SizedBox(height: 8),
 
             // Logout / Sign Out link
             Padding(

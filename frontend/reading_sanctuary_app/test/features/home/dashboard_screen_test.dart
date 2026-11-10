@@ -104,5 +104,28 @@ void main() {
     // Verify drawer contents
     expect(find.text('Hello, Mia!'), findsOneWidget);
     expect(find.text('Panel'), findsOneWidget);
+    expect(find.text('Profile'), findsWidgets);
+  });
+
+  testWidgets('Renders profile section in header and opens options menu', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(buildTestableWidget(size: const Size(1200, 900)));
+    await tester.pumpAndSettle();
+
+    // Verify Profile in Sidebar
+    expect(find.text('Profile'), findsWidgets);
+
+    // Tap Profile in Header menu bar
+    final profileMenu = find.byTooltip('Profile options');
+    expect(profileMenu, findsOneWidget);
+    await tester.tap(profileMenu);
+    await tester.pumpAndSettle();
+
+    // Verify popup menu items
+    expect(find.text('Sign Out'), findsWidgets);
+    expect(find.text('Settings'), findsWidgets);
   });
 }

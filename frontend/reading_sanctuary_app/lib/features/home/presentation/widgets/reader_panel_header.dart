@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../authentication/presentation/providers/auth_provider.dart';
 
-class ReaderPanelHeader extends StatelessWidget {
+class ReaderPanelHeader extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
   final bool showMenuButton;
 
@@ -12,7 +14,10 @@ class ReaderPanelHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authNotifierProvider);
+    final userName = authState.user?.displayName ?? 'Mia';
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 600;
@@ -157,25 +162,152 @@ class ReaderPanelHeader extends StatelessWidget {
             ),
             const SizedBox(width: 10),
 
-            // User Profile Avatar
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF9482E6), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
+            // User Profile Section in Menu Bar
+            PopupMenuButton<String>(
+              tooltip: 'Profile options',
+              offset: const Offset(0, 48),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              color: Colors.white,
+              elevation: 4,
+              onSelected: (value) {
+                if (value == 'profile') {
+                  context.go('/profile');
+                } else if (value == 'settings') {
+                  context.go('/sync/settings');
+                } else if (value == 'logout') {
+                  ref.read(authNotifierProvider.notifier).logout();
+                  context.go('/login');
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  enabled: false,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/dashboard/avatar_mia.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              userName,
+                              style: const TextStyle(
+                                color: Color(0xFF2D234A),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13.5,
+                              ),
+                            ),
+                            Text(
+                              authState.user?.email ?? 'mia@readingsanctuary.com',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF9E95A8),
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/dashboard/avatar_mia.png',
-                  fit: BoxFit.cover,
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'profile',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person_rounded, size: 18, color: Color(0xFF8C7CD6)),
+                      SizedBox(width: 10),
+                      Text('Profile', style: TextStyle(color: Color(0xFF2D234A), fontSize: 13.5)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'settings',
+                  child: Row(
+                    children: [
+                      Icon(Icons.settings_rounded, size: 18, color: Color(0xFF8C7CD6)),
+                      SizedBox(width: 10),
+                      Text('Settings', style: TextStyle(color: Color(0xFF2D234A), fontSize: 13.5)),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout_rounded, size: 18, color: Colors.redAccent),
+                      SizedBox(width: 10),
+                      Text('Sign Out', style: TextStyle(color: Colors.redAccent, fontSize: 13.5)),
+                    ],
+                  ),
+                ),
+              ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  color: isCompact ? Colors.transparent : const Color(0xFFFAF7F5),
+                  border: isCompact ? null : Border.all(color: const Color(0xFFEBE4DC)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF9482E6), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/dashboard/avatar_mia.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    if (!isCompact) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          color: Color(0xFF2D234A),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Color(0xFF9E95A8),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                  ],
                 ),
               ),
             ),

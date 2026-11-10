@@ -330,8 +330,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Row(
-                      children: const [
+                    const Row(
+                      children: [
                         Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
                         Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
                         Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
@@ -369,8 +369,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Row(
-                      children: const [
+                    const Row(
+                      children: [
                         Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
                         Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
                       ],

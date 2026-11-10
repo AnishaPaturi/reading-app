@@ -46,7 +46,7 @@ void main() {
       expect(find.text('Favorite Folders'), findsOneWidget);
       expect(find.textContaining('Currently'), findsOneWidget);
       expect(find.textContaining('Must'), findsOneWidget);
-      expect(find.textContaining('Want to'), findsOneWidget);
+      expect(find.textContaining('Buy'), findsOneWidget);
       expect(find.text('Audiobooks'), findsOneWidget);
       expect(find.text('Quick Access'), findsOneWidget);
       expect(find.text('Want to organize?'), findsOneWidget);
@@ -136,7 +136,7 @@ void main() {
       expect(find.text('Account & Privacy'), findsOneWidget);
       expect(find.text('Profile Settings'), findsOneWidget);
       expect(find.textContaining('Linked'), findsOneWidget);
-      expect(find.textContaining('Security'), findsOneWidget);
+      expect(find.textContaining('Privacy &'), findsOneWidget);
 
       // Switch to Preferences & Support
       await tester.tap(find.text('Preferences & Support'));

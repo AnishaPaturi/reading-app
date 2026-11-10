@@ -35,3 +35,7 @@ build/
 # Test Configuration
 src/test/resources/application.properties
 
+# Local environment secrets (never commit these)
+.env
+.env.*
+!.env.example

@@ -4,6 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/features/discover/presentation/discover_screen.dart';
 import 'package:reading_sanctuary_app/features/favorites/presentation/screens/favorites_screen.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/discover_banner.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/hero_reading_banner.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/metric_cards_row.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/reading_overview_chart.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/recently_read_card.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/todays_picks_card.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/top_genres_chart.dart';
 import 'package:reading_sanctuary_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:reading_sanctuary_app/features/reading/reading_screen.dart';
 import 'package:reading_sanctuary_app/features/settings/presentation/screens/settings_screen.dart';
@@ -112,6 +119,15 @@ void main() {
       expect(find.text('Achievements'), findsOneWidget);
       expect(find.text('Speed Reader'), findsOneWidget);
       expect(find.text('Night Owl'), findsOneWidget);
+
+      // Verify all home dashboard widgets are in profile page
+      expect(find.byType(HeroReadingBanner), findsOneWidget);
+      expect(find.byType(MetricCardsRow), findsOneWidget);
+      expect(find.byType(ReadingOverviewChart), findsOneWidget);
+      expect(find.byType(TopGenresChart), findsOneWidget);
+      expect(find.byType(RecentlyReadCard), findsOneWidget);
+      expect(find.byType(TodaysPicksCard), findsOneWidget);
+      expect(find.byType(DiscoverBanner), findsOneWidget);
 
       // Switch to Shelves & Settings
       await tester.tap(find.text('Shelves & Settings'));

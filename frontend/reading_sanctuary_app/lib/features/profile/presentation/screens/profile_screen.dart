@@ -5,7 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/discover_banner.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/hero_reading_banner.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/metric_cards_row.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/reading_overview_chart.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/recently_read_card.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/todays_picks_card.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/top_genres_chart.dart';
 import 'package:reading_sanctuary_app/features/library/widgets/clay_decorations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -27,6 +34,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 850;
+        final contentWidth = isWide ? constraints.maxWidth - 260 : constraints.maxWidth - 40;
+        final useTwoColumns = contentWidth >= 640;
 
         return Scaffold(
           key: _scaffoldKey,
@@ -83,7 +92,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               physics: const BouncingScrollPhysics(),
                               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                               child: _activeTab == 0
-                                  ? _buildProfileTab(userName)
+                                  ? _buildProfileTab(userName, useTwoColumns: useTwoColumns)
                                   : _buildLibraryTab(userName),
                             ),
                           ),
@@ -194,8 +203,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileTab(String userName) {
+  Widget _buildProfileTab(String userName, {required bool useTwoColumns}) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Avatar in soft rounded square frame
         Center(
@@ -266,42 +276,86 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
 
+        const SizedBox(height: 20),
+
+        // 3D Hero Banner: Mia reading, star greeting & Start Reading button
+        const HeroReadingBanner(),
+        const SizedBox(height: 16),
+
+        // 4 Pastel Metric Cards: Books Read, Favorites, Hours Read, Daily Streak
+        const MetricCardsRow(),
+        const SizedBox(height: 16),
+
+        // Charts Section: Reading Overview & Top Genres
+        if (useTwoColumns)
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: ReadingOverviewChart(),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                flex: 4,
+                child: TopGenresChart(),
+              ),
+            ],
+          )
+        else ...[
+          const ReadingOverviewChart(),
+          const SizedBox(height: 16),
+          const TopGenresChart(),
+        ],
+        const SizedBox(height: 20),
+
+        // Achievements Header & Cards
+        _buildAchievements(),
+        const SizedBox(height: 20),
+
+        // Lower Section: Recently Read & Today's Picks
+        if (useTwoColumns)
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: RecentlyReadCard(),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                flex: 4,
+                child: TodaysPicksCard(),
+              ),
+            ],
+          )
+        else ...[
+          const RecentlyReadCard(),
+          const SizedBox(height: 16),
+          const TodaysPicksCard(),
+        ],
+        const SizedBox(height: 20),
+
+        // Bottom Discover New Books Banner with Star Mascot
+        const DiscoverBanner(),
         const SizedBox(height: 24),
+      ],
+    );
+  }
 
-        // 3 Stat Cards in a row
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard('Books\nRead:', '42', Icons.menu_book_rounded, ClayColors.lavender),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildStatCard('Reading\nStreak:', '15 Days', Icons.local_fire_department_rounded, ClayColors.peach),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildStatCard('Favorites:', '18', Icons.favorite_rounded, ClayColors.coral),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 28),
-
-        // Achievements Header
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Achievements',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: ClayColors.textDark,
-            ),
+  Widget _buildAchievements() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Achievements',
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: ClayColors.textDark,
           ),
         ),
         const SizedBox(height: 14),
-
-        // 2 Achievement Cards
         Row(
           children: [
             Expanded(
@@ -444,58 +498,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           context.push('/notifications');
         }),
       ],
-    );
-  }
-
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
-    return Container(
-      height: 98,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F6FE),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: ClayColors.textMuted,
-                    height: 1.1,
-                  ),
-                ),
-              ),
-              Icon(icon, size: 18, color: color),
-            ],
-          ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: ClayColors.textDark,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

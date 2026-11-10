@@ -7,6 +7,7 @@ class BookshelfHeader extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
   final VoidCallback onFilterTap;
+  final VoidCallback? onAddTap;
   final VoidCallback? onMenuTap;
   final bool showMenuButton;
   final bool hasActiveFilters;
@@ -17,6 +18,7 @@ class BookshelfHeader extends StatelessWidget {
     required this.onSearchChanged,
     required this.onClearSearch,
     required this.onFilterTap,
+    this.onAddTap,
     this.onMenuTap,
     this.showMenuButton = false,
     this.hasActiveFilters = false,
@@ -169,6 +171,38 @@ class BookshelfHeader extends StatelessWidget {
             ),
           ),
         ),
+
+        if (onAddTap != null) ...[
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: onAddTap,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: BookshelfTheme.purpleAccent,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: BookshelfTheme.purpleAccent.withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    blurRadius: 2,
+                    offset: const Offset(0, -1),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

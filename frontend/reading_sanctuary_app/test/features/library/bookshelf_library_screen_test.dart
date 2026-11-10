@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
 import 'package:reading_sanctuary_app/features/library/library_screen.dart';
 import 'package:reading_sanctuary_app/features/library/widgets/book_preview_sheet.dart';
@@ -48,6 +49,9 @@ void main() {
 
     // Verify sparkles
     expect(find.byType(ClaySparkleStar), findsWidgets);
+
+    // Verify navigation bar is present on mobile
+    expect(find.byType(ClayBottomNav), findsOneWidget);
   });
 
   testWidgets('Searching filters books on the 3D shelves', (tester) async {
@@ -129,5 +133,6 @@ void main() {
     expect(find.byType(ReaderSidebar), findsOneWidget);
     expect(find.text('Library'), findsWidgets);
     expect(find.byType(ClayShelf), findsWidgets);
+    expect(find.byType(ClayBottomNav), findsNothing);
   });
 }

@@ -90,7 +90,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                           // Mobile Bottom Nav
                           if (!isWide)
-                            const ClayBottomNav(activeRoute: '/profile'),
+                            const ClayBottomNav(activeRoute: '/settings'),
                         ],
                       ),
                     ],

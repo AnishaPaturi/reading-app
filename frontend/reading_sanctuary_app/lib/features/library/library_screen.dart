@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/widgets/book_cover.dart';
+import '../../core/widgets/clay_components.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
@@ -75,22 +76,42 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         final isWide = constraints.maxWidth >= 850;
 
         return booksAsync.when(
-          loading: () => const Scaffold(
+          loading: () => Scaffold(
             backgroundColor: BookshelfTheme.backgroundColor,
-            body: Center(
-              child: CircularProgressIndicator(
-                color: BookshelfTheme.purpleAccent,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: BookshelfTheme.purpleAccent,
+                      ),
+                    ),
+                  ),
+                  if (!isWide)
+                    const ClayBottomNav(activeRoute: '/library'),
+                ],
               ),
             ),
           ),
           error: (e, _) => Scaffold(
             backgroundColor: BookshelfTheme.backgroundColor,
-            body: Center(
-              child: EmptyState(
-                icon: Icons.error_outline,
-                message: 'Could not load your library.',
-                actionLabel: 'Retry',
-                onAction: () => ref.invalidate(booksProvider),
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: EmptyState(
+                        icon: Icons.error_outline,
+                        message: 'Could not load your library.',
+                        actionLabel: 'Retry',
+                        onAction: () => ref.invalidate(booksProvider),
+                      ),
+                    ),
+                  ),
+                  if (!isWide)
+                    const ClayBottomNav(activeRoute: '/library'),
+                ],
               ),
             ),
           ),
@@ -128,7 +149,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 ),
               );
             } else {
-              // Mobile Layout with drawer and exact theme matching the reference
+              // Mobile Layout with drawer and bottom navigation bar
               return Scaffold(
                 key: _scaffoldKey,
                 backgroundColor: BookshelfTheme.backgroundColor,
@@ -143,21 +164,22 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   ),
                 ),
                 body: SafeArea(
-                  child: _buildBookshelfContent(
-                    context,
-                    shown: shown,
-                    totalBooks: books.length,
-                    query: query,
-                    statuses: statuses,
-                    isWide: false,
-                    contentWidth: constraints.maxWidth,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: _buildBookshelfContent(
+                          context,
+                          shown: shown,
+                          totalBooks: books.length,
+                          query: query,
+                          statuses: statuses,
+                          isWide: false,
+                          contentWidth: constraints.maxWidth,
+                        ),
+                      ),
+                      const ClayBottomNav(activeRoute: '/library'),
+                    ],
                   ),
-                ),
-                floatingActionButton: FloatingActionButton(
-                  backgroundColor: BookshelfTheme.purpleAccent,
-                  tooltip: 'Add Book',
-                  onPressed: () => context.push('/library/add'),
-                  child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
                 ),
               );
             }
@@ -212,6 +234,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         showMenuButton: !isWide,
                         hasActiveFilters: statuses.isNotEmpty || query.isNotEmpty,
                         onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+                        onAddTap: () => context.push('/library/add'),
                         onSearchChanged: (v) {
                           ref.read(libraryQueryProvider.notifier).state = v;
                         },

@@ -80,7 +80,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           // Main Scrollable Area
                           Expanded(
                             child: SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
+                              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                               child: _activeTab == 0
                                   ? _buildSettingsTab()

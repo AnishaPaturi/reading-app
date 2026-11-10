@@ -40,36 +40,43 @@ class _ReadingGoalsScreenState extends ConsumerState<ReadingGoalsScreen> {
       body: goalsAsync.when(
         data: (goals) {
           if (goals.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.track_changes, size: 64, color: AppColors.gold),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No Reading Goals Yet',
-                    style: TextStyle(
-                      color: AppColors.textLight,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.track_changes, size: 64, color: AppColors.gold),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No Reading Goals Yet',
+                      style: TextStyle(
+                        color: AppColors.textLight,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Set targets for reading minutes, completed books, or listening time.',
-                    style: TextStyle(color: AppColors.textLightSecondary, fontSize: 13),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () => _showGoalDialog(context),
-                    icon: const Icon(Icons.add, color: AppColors.walnut),
-                    label: const Text(
-                      'Create Your First Goal',
-                      style: TextStyle(color: AppColors.walnut, fontWeight: FontWeight.bold),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Set targets for reading minutes, completed books, or listening time.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textLightSecondary, fontSize: 13),
                     ),
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () => _showGoalDialog(context),
+                      icon: const Icon(Icons.add, color: AppColors.walnut),
+                      label: const Text(
+                        'Create Your First Goal',
+                        style: TextStyle(color: AppColors.walnut, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -78,6 +85,9 @@ class _ReadingGoalsScreenState extends ConsumerState<ReadingGoalsScreen> {
           final pastGoals = goals.where((g) => !g.active).toList();
 
           return ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
             padding: const EdgeInsets.all(20),
             children: [
               if (activeGoals.isNotEmpty) ...[

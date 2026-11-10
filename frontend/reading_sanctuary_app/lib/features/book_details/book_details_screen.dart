@@ -55,6 +55,9 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
         ];
 
         return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),

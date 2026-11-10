@@ -71,7 +71,9 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
           await _loadDevices();
         },
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(16),
           child: Center(
             child: ConstrainedBox(

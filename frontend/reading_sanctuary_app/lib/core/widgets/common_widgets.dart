@@ -47,19 +47,27 @@ class EmptyState extends StatelessWidget {
   final VoidCallback? onAction;
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 56, color: AppColors.gold),
-            const SizedBox(height: 16),
-            Text(message,
-                textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
-            if (actionLabel != null) ...[
-              const SizedBox(height: 20),
-              FilledButton(onPressed: onAction, child: Text(actionLabel!)),
-            ],
-          ]),
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(icon, size: 56, color: AppColors.gold),
+                  const SizedBox(height: 16),
+                  Text(message,
+                      textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
+                  if (actionLabel != null) ...[
+                    const SizedBox(height: 20),
+                    FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+                  ],
+                ]),
+              ),
+            ),
+          ),
         ),
       );
 }

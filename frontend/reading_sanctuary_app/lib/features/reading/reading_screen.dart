@@ -19,6 +19,19 @@ class ReadingScreen extends ConsumerStatefulWidget {
 
 class _ReadingScreenState extends ConsumerState<ReadingScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,48 +104,60 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                                 final heroBook = readingBooks.isNotEmpty ? readingBooks.first : books.first;
                                 final otherReading = readingBooks.skip(1).toList();
 
-                                return SingleChildScrollView(
-                                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // 1. Hero Book Card
-                                      _buildHeroCard(heroBook),
+                                return Scrollbar(
+                                  controller: _scrollController,
+                                  thumbVisibility: isWide,
+                                  child: SingleChildScrollView(
+                                    controller: _scrollController,
+                                    physics: const AlwaysScrollableScrollPhysics(
+                                      parent: BouncingScrollPhysics(),
+                                    ),
+                                    padding: EdgeInsets.fromLTRB(
+                                      20,
+                                      4,
+                                      20,
+                                      isWide ? 24 : 100,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // 1. Hero Book Card
+                                        _buildHeroCard(heroBook),
 
-                                      const SizedBox(height: 14),
+                                        const SizedBox(height: 14),
 
-                                      // Hero Action Buttons
-                                      _buildHeroButtons(heroBook),
+                                        // Hero Action Buttons
+                                        _buildHeroButtons(heroBook),
 
-                                      const SizedBox(height: 28),
+                                        const SizedBox(height: 28),
 
-                                      // 2. Reading List
-                                      Text(
-                                        'Reading List',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                          color: ClayColors.textDark,
+                                        // 2. Reading List
+                                        Text(
+                                          'Reading List',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: ClayColors.textDark,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 14),
-                                      _buildReadingList(otherReading.isNotEmpty ? otherReading : books.take(3).toList()),
+                                        const SizedBox(height: 14),
+                                        _buildReadingList(otherReading.isNotEmpty ? otherReading : books.take(3).toList()),
 
-                                      const SizedBox(height: 28),
+                                        const SizedBox(height: 28),
 
-                                      // 3. Recently Finished
-                                      Text(
-                                        'Recently Finished',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                          color: ClayColors.textDark,
+                                        // 3. Recently Finished
+                                        Text(
+                                          'Recently Finished',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color: ClayColors.textDark,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 14),
-                                      _buildRecentlyFinished(completedBooks.isNotEmpty ? completedBooks : books.take(4).toList()),
-                                    ],
+                                        const SizedBox(height: 14),
+                                        _buildRecentlyFinished(completedBooks.isNotEmpty ? completedBooks : books.take(4).toList()),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },

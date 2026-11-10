@@ -63,6 +63,9 @@ class StorageManagementScreen extends ConsumerWidget {
         ],
       ),
       body: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         padding: const EdgeInsets.all(16),
         child: Center(
           child: ConstrainedBox(

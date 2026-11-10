@@ -20,6 +20,22 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late final ScrollController _mainScrollController;
+  late final ScrollController _audiobookScrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _mainScrollController = ScrollController();
+    _audiobookScrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _mainScrollController.dispose();
+    _audiobookScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,20 +92,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               style: GoogleFonts.inter(color: ClayColors.textMuted),
                             ),
                           ),
-                          data: (books) => SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                            padding: EdgeInsets.fromLTRB(
-                              isWide ? 24 : 16,
-                              8,
-                              isWide ? 24 : 16,
-                              20,
-                            ),
-                            child: _buildDashboardBody(
-                              context,
-                              contentWidth: isWide
-                                  ? constraints.maxWidth - 234
-                                  : constraints.maxWidth - 32,
-                              books: books,
+                          data: (books) => Scrollbar(
+                            controller: _mainScrollController,
+                            thumbVisibility: isWide,
+                            child: SingleChildScrollView(
+                              controller: _mainScrollController,
+                              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                              padding: EdgeInsets.fromLTRB(
+                                isWide ? 24 : 16,
+                                8,
+                                isWide ? 24 : 16,
+                                isWide ? 24 : 90,
+                              ),
+                              child: _buildDashboardBody(
+                                context,
+                                contentWidth: isWide
+                                    ? constraints.maxWidth - 234
+                                    : constraints.maxWidth - 32,
+                                books: books,
+                                isWide: isWide,
+                              ),
                             ),
                           ),
                         ),
@@ -113,6 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     BuildContext context, {
     required double contentWidth,
     required List<Book> books,
+    bool isWide = false,
   }) {
     final useTwoColumns = contentWidth >= 800;
 
@@ -127,12 +150,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 (b.progress > 0 && b.progress < 1.0)))
         .toList();
 
+    final allAudiobooks = books
+        .where((b) => b.formats.contains(BookFormat.audiobook))
+        .toList();
+
     final effectiveReading = readingBooks.isNotEmpty
         ? readingBooks
         : books.take(2).toList();
     final effectiveListening = listeningBooks.isNotEmpty
-        ? listeningBooks
-        : books.where((b) => b.formats.contains(BookFormat.audiobook)).take(2).toList();
+        ? [
+            ...listeningBooks,
+            ...allAudiobooks.where((b) => !listeningBooks.contains(b)),
+          ]
+        : allAudiobooks;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -150,14 +180,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               const SizedBox(width: 24),
               Expanded(
-                child: _buildCurrentlyListeningSection(context, effectiveListening),
+                child: _buildCurrentlyListeningSection(
+                  context,
+                  effectiveListening,
+                  isWide: isWide,
+                ),
               ),
             ],
           )
         else ...[
           _buildCurrentlyReadingSection(context, effectiveReading),
           const SizedBox(height: 24),
-          _buildCurrentlyListeningSection(context, effectiveListening),
+          _buildCurrentlyListeningSection(
+            context,
+            effectiveListening,
+            isWide: isWide,
+          ),
         ],
         const SizedBox(height: 16),
       ],
@@ -426,7 +464,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildCurrentlyListeningSection(BuildContext context, List<Book> books) {
+  Widget _buildCurrentlyListeningSection(
+    BuildContext context,
+    List<Book> books, {
+    bool isWide = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -501,11 +543,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         const SizedBox(height: 16),
 
-        // List of Currently Listening Cards
-        for (final book in books) ...[
-          _buildListeningCard(context, book),
-          const SizedBox(height: 14),
-        ],
+        // Scrollable List of Currently Listening Audiobooks
+        SizedBox(
+          height: 340,
+          child: Scrollbar(
+            controller: _audiobookScrollController,
+            thumbVisibility: isWide,
+            child: ListView.separated(
+              controller: _audiobookScrollController,
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              itemCount: books.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 14),
+              itemBuilder: (context, index) =>
+                  _buildListeningCard(context, books[index]),
+            ),
+          ),
+        ),
       ],
     );
   }

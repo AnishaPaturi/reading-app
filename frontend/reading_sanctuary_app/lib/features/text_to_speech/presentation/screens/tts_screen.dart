@@ -125,6 +125,9 @@ class _TtsScreenState extends ConsumerState<TtsScreen> {
                       // Text Display
                       Expanded(
                         child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: TtsTextDisplay(
                             text: ttsState.currentChunkText,

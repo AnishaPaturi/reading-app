@@ -71,7 +71,7 @@ class AuthScaffold extends StatelessWidget {
             SafeArea(
               child: Center(
                 child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   padding: EdgeInsets.symmetric(
                     horizontal: isCompact ? 16 : 24,
                     vertical: isCompact ? 12 : 28,

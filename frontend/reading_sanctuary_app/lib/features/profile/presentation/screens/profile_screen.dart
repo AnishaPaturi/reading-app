@@ -25,6 +25,19 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _activeTab = 0; // 0: My Profile, 1: Mia's Library
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,12 +101,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                           // Main Scrollable Area
                           Expanded(
-                            child: SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                              child: _activeTab == 0
-                                  ? _buildProfileTab(userName, useTwoColumns: useTwoColumns)
-                                  : _buildLibraryTab(userName),
+                            child: Scrollbar(
+                              controller: _scrollController,
+                              thumbVisibility: isWide,
+                              child: SingleChildScrollView(
+                                controller: _scrollController,
+                                physics: const AlwaysScrollableScrollPhysics(
+                                  parent: BouncingScrollPhysics(),
+                                ),
+                                padding: EdgeInsets.fromLTRB(
+                                  20,
+                                  8,
+                                  20,
+                                  isWide ? 24 : 100,
+                                ),
+                                child: _activeTab == 0
+                                    ? _buildProfileTab(userName, useTwoColumns: useTwoColumns)
+                                    : _buildLibraryTab(userName),
+                              ),
                             ),
                           ),
 
@@ -158,7 +183,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _activeTab = 0),
+              onTap: () {
+                setState(() => _activeTab = 0);
+                if (_scrollController.hasClients) {
+                  _scrollController.jumpTo(0);
+                }
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 decoration: BoxDecoration(
@@ -179,7 +209,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _activeTab = 1),
+              onTap: () {
+                setState(() => _activeTab = 1);
+                if (_scrollController.hasClients) {
+                  _scrollController.jumpTo(0);
+                }
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 decoration: BoxDecoration(

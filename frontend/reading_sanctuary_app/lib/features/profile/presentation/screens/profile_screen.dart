@@ -492,15 +492,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: ClayColors.textDark,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSettingRow(IconData icon, String label, VoidCallback onTap) {
     return ClayCard(

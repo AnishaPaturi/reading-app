@@ -17,8 +17,18 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
+    // Null only for accounts authenticated exclusively through Google.
+    @Column(name = "password_hash", length = 255)
     private String passwordHash;
+
+    @Column(name = "display_name", length = 100)
+    private String displayName;
+
+    @Column(name = "profile_picture_url", length = 2048)
+    private String profilePictureUrl;
+
+    @Column(name = "google_sub", unique = true, length = 255)
+    private String googleSub;
 
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
@@ -29,12 +39,19 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    protected User() {
-    }
+    protected User() {}
 
     public User(String email, String passwordHash) {
+        this(email, passwordHash, null, null, null);
+    }
+
+    public User(String email, String passwordHash, String displayName,
+                String profilePictureUrl, String googleSub) {
         this.email = email;
         this.passwordHash = passwordHash;
+        this.displayName = displayName;
+        this.profilePictureUrl = profilePictureUrl;
+        this.googleSub = googleSub;
         this.active = true;
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
@@ -42,12 +59,8 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = OffsetDateTime.now();
-        }
-        if (updatedAt == null) {
-            updatedAt = OffsetDateTime.now();
-        }
+        if (createdAt == null) createdAt = OffsetDateTime.now();
+        if (updatedAt == null) updatedAt = OffsetDateTime.now();
     }
 
     @PreUpdate
@@ -55,39 +68,19 @@ public class User {
         updatedAt = OffsetDateTime.now();
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public OffsetDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+    public UUID getId() { return id; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public String getProfilePictureUrl() { return profilePictureUrl; }
+    public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
+    public String getGoogleSub() { return googleSub; }
+    public void setGoogleSub(String googleSub) { this.googleSub = googleSub; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public OffsetDateTime getCreatedAt() { return createdAt; }
+    public OffsetDateTime getUpdatedAt() { return updatedAt; }
 }

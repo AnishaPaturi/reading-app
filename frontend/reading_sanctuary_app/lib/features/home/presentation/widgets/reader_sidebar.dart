@@ -6,8 +6,14 @@ import '../../../authentication/presentation/providers/auth_provider.dart';
 class ReaderSidebar extends ConsumerWidget {
   final VoidCallback? onItemTapped;
   final double? width;
+  final String activeRoute;
 
-  const ReaderSidebar({super.key, this.onItemTapped, this.width});
+  const ReaderSidebar({
+    super.key,
+    this.onItemTapped,
+    this.width,
+    this.activeRoute = '/home',
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,7 +77,7 @@ class ReaderSidebar extends ConsumerWidget {
             _SidebarNavItem(
               icon: Icons.home_rounded,
               label: 'Panel',
-              isActive: true,
+              isActive: activeRoute == '/home',
               onTap: () {
                 onItemTapped?.call();
                 context.go('/home');
@@ -81,6 +87,7 @@ class ReaderSidebar extends ConsumerWidget {
             _SidebarNavItem(
               icon: Icons.auto_stories_rounded,
               label: 'My Library',
+              isActive: activeRoute == '/library',
               onTap: () {
                 onItemTapped?.call();
                 context.go('/library');

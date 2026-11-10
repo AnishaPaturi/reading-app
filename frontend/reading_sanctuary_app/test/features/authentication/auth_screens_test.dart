@@ -38,6 +38,12 @@ void main() {
       expect(find.byTooltip('Continue with Google'), findsOneWidget);
       expect(find.byTooltip('Continue with Apple'), findsOneWidget);
       expect(find.byTooltip('Continue with Facebook'), findsOneWidget);
+
+      // Verify input bars have white fill
+      final emailField = tester.widget<TextField>(find.widgetWithText(TextField, 'Email or Username'));
+      final passwordField = tester.widget<TextField>(find.widgetWithText(TextField, 'Password'));
+      expect(emailField.decoration?.fillColor, const Color(0xFFFFFFFF));
+      expect(passwordField.decoration?.fillColor, const Color(0xFFFFFFFF));
     });
 
     testWidgets('shows validation errors when fields are empty', (tester) async {
@@ -69,6 +75,32 @@ void main() {
 
       expect(find.text('Reset Password'), findsOneWidget);
       expect(find.text('Send Reset Link'), findsOneWidget);
+    });
+
+    testWidgets('renders input bars white instead of dark theme fillColor', (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: ThemeData.dark().copyWith(
+              inputDecorationTheme: const InputDecorationTheme(
+                filled: true,
+                fillColor: Colors.black,
+              ),
+            ),
+            home: const LoginScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final emailField = tester.widget<TextField>(find.widgetWithText(TextField, 'Email or Username'));
+      final passwordField = tester.widget<TextField>(find.widgetWithText(TextField, 'Password'));
+      expect(emailField.decoration?.fillColor, const Color(0xFFFFFFFF));
+      expect(passwordField.decoration?.fillColor, const Color(0xFFFFFFFF));
     });
   });
 

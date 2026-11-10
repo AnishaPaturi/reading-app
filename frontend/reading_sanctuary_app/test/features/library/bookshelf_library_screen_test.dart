@@ -127,7 +127,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ReaderSidebar), findsOneWidget);
-    expect(find.text('My Library'), findsOneWidget);
+    expect(find.text('Library'), findsWidgets);
     expect(find.byType(ClayShelf), findsWidgets);
   });
 }

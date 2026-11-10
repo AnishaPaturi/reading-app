@@ -21,11 +21,12 @@ class AuthApiService {
   }
 
   Future<AuthUser> register({
-    required String email, required String password, String? username,
+    required String email, required String password, String? username, String? gender,
   }) async {
     final response = await _apiClient.post('/users/register', body: {
       'email': email.trim(), 'password': password,
       if (username != null && username.trim().isNotEmpty) 'displayName': username.trim(),
+      if (gender != null && gender.trim().isNotEmpty) 'gender': gender.trim(),
     });
     if (response is! Map<String, dynamic>) {
       throw const ApiException(message: 'Failed to create user account', statusCode: 500);

@@ -50,11 +50,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<bool> register({required String email, required String password,
-      String? username}) async {
+      String? username, String? gender}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final user = await _apiService.register(
-          email: email, password: password, username: username);
+          email: email, password: password, username: username, gender: gender);
       _tokenNotifier.state = user.token;
       state = state.copyWith(isLoading: false, user: user);
       return true;

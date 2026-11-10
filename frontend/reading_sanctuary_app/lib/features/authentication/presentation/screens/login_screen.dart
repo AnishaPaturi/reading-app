@@ -77,7 +77,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             icon: Icons.lock_rounded, isPassword: true,
             textInputAction: TextInputAction.done, onFieldSubmitted: (_) => _handleLogin(),
             validator: (val) => val == null || val.isEmpty
-                ? 'Please enter a password' : null),
+                ? 'Please enter your password' : null),
           const SizedBox(height: 10),
           Align(alignment: Alignment.centerRight, child: TextButton(
             style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),

@@ -117,9 +117,50 @@ void main() {
       expect(find.text('Email Address'), findsOneWidget);
       expect(find.text('Password'), findsOneWidget);
       expect(find.text('Confirm Password'), findsOneWidget);
+      expect(find.text('Gender'), findsOneWidget);
+      expect(find.text('Male'), findsOneWidget);
+      expect(find.text('Female'), findsOneWidget);
+      expect(find.byType(Radio<String>), findsNWidgets(2));
       expect(find.text('Sign Up'), findsOneWidget);
       expect(find.text('Already have an account? '), findsOneWidget);
       expect(find.text('Login'), findsOneWidget);
+    });
+
+    testWidgets('renders and toggles gender radio buttons on signup', (tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(_buildTestApp(const SignUpScreen()));
+      await tester.pumpAndSettle();
+
+      // Check initial state (neither selected)
+      final maleRadio = tester.widget<Radio<String>>(find.byWidgetPredicate(
+        (w) => w is Radio<String> && w.value == 'male',
+      ));
+      final femaleRadio = tester.widget<Radio<String>>(find.byWidgetPredicate(
+        (w) => w is Radio<String> && w.value == 'female',
+      ));
+      expect(maleRadio.groupValue, isNull);
+      expect(femaleRadio.groupValue, isNull);
+
+      // Select Male
+      await tester.tap(find.text('Male'));
+      await tester.pumpAndSettle();
+
+      final maleSelected = tester.widget<Radio<String>>(find.byWidgetPredicate(
+        (w) => w is Radio<String> && w.value == 'male',
+      ));
+      expect(maleSelected.groupValue, 'male');
+
+      // Select Female
+      await tester.tap(find.text('Female'));
+      await tester.pumpAndSettle();
+
+      final femaleSelected = tester.widget<Radio<String>>(find.byWidgetPredicate(
+        (w) => w is Radio<String> && w.value == 'female',
+      ));
+      expect(femaleSelected.groupValue, 'female');
     });
 
     testWidgets('validates password mismatch on signup', (tester) async {

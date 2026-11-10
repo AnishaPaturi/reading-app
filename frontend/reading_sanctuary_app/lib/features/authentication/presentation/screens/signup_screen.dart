@@ -20,6 +20,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  String? _selectedGender;
 
   @override
   void dispose() {
@@ -33,8 +34,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
     final success = await ref.read(authNotifierProvider.notifier).register(
-      email: _emailController.text.trim(), password: _passwordController.text,
-      username: _usernameController.text.trim());
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      username: _usernameController.text.trim(),
+      gender: _selectedGender,
+    );
     if (!mounted) return;
     if (success) {
       context.go('/home');
@@ -89,6 +93,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           onFieldSubmitted: (_) => _handleSignUp(),
           validator: (v) => v == null || v.isEmpty ? 'Please confirm your password'
               : v != _passwordController.text ? 'Passwords do not match' : null),
+        const SizedBox(height: 14),
+        _buildGenderSelector(),
         const SizedBox(height: 22),
         ClayButton(label: 'Sign Up', isLoading: authState.isLoading, onPressed: _handleSignUp),
         const SizedBox(height: 20),
@@ -111,6 +117,106 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               color: AuthPalette.textLink, fontSize: 14, fontWeight: FontWeight.w700))),
         ])),
       ])),
+    );
+  }
+
+  Widget _buildGenderSelector() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      decoration: BoxDecoration(
+        color: AuthPalette.inputBackground,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: AuthPalette.inputBorder, width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 4),
+            child: Text(
+              'Gender',
+              style: TextStyle(
+                color: AuthPalette.textMuted,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => setState(() => _selectedGender = 'male'),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Radio<String>(
+                          value: 'male',
+                          groupValue: _selectedGender,
+                          activeColor: AuthPalette.primaryPurpleDark,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                          onChanged: (val) => setState(() => _selectedGender = val),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Male',
+                          style: TextStyle(
+                            color: AuthPalette.textDark,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => setState(() => _selectedGender = 'female'),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Radio<String>(
+                          value: 'female',
+                          groupValue: _selectedGender,
+                          activeColor: AuthPalette.primaryPurpleDark,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                          onChanged: (val) => setState(() => _selectedGender = val),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Female',
+                          style: TextStyle(
+                            color: AuthPalette.textDark,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

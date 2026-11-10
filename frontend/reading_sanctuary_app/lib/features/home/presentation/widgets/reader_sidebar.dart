@@ -143,7 +143,7 @@ class ReaderSidebar extends ConsumerWidget {
                   children: [
                     _SidebarNavItem(
                       icon: Icons.home_rounded,
-                      label: 'Panel',
+                      label: 'Home',
                       isActive: activeRoute == '/home',
                       onTap: () {
                         onItemTapped?.call();

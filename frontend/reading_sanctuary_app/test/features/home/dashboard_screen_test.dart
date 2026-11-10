@@ -35,7 +35,7 @@ void main() {
     // Verify Sidebar exists
     expect(find.byType(ReaderSidebar), findsOneWidget);
     expect(find.text('Hello, Mia!'), findsOneWidget);
-    expect(find.text('Panel'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
     expect(find.text('My Library'), findsOneWidget);
     expect(find.text('Favorites'), findsWidgets);
     expect(find.text('Booklists'), findsOneWidget);
@@ -103,7 +103,7 @@ void main() {
 
     // Verify drawer contents
     expect(find.text('Hello, Mia!'), findsOneWidget);
-    expect(find.text('Panel'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
     expect(find.text('Profile'), findsWidgets);
   });
 

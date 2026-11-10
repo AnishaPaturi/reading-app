@@ -16,9 +16,11 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (location == '/home') {
+    if (location == '/home' || location == '/library') {
       return Scaffold(
-        backgroundColor: const Color(0xFFF4F0FB),
+        backgroundColor: location == '/home'
+            ? const Color(0xFFF4F0FB)
+            : const Color(0xFFEDE5F8),
         body: Column(
           children: [
             Expanded(child: child),

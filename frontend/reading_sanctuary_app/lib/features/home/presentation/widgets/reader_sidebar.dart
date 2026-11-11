@@ -215,9 +215,11 @@ class ReaderSidebar extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  ref.read(authNotifierProvider.notifier).logout();
-                  context.go('/login');
+                onTap: () async {
+                  await ref.read(authNotifierProvider.notifier).logout();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
                 },
                 child: const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),

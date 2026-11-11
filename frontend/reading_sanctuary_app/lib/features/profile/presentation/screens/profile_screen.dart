@@ -626,6 +626,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _buildSettingRow(Icons.notifications_none_rounded, 'Notifications', () {
           context.push('/notifications');
         }),
+        const SizedBox(height: 10),
+        _buildSettingRow(Icons.logout_rounded, 'Log Out', () async {
+          await ref.read(authNotifierProvider.notifier).logout();
+          if (mounted) {
+            context.go('/login');
+          }
+        }),
       ],
     );
   }

@@ -4,6 +4,7 @@ import '../../../../core/network/network_providers.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../data/models/auth_user.dart';
 import '../../data/services/auth_api_service.dart';
+import '../../data/services/session_storage.dart';
 
 class AuthState {
   final bool isLoading;
@@ -25,20 +26,45 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final AuthApiService _apiService;
   final StateController<String?> _tokenNotifier;
   final GoogleSignIn _googleSignIn;
+  final AuthSessionStorage _sessionStorage;
 
-  AuthNotifier({required AuthApiService apiService,
-      required StateController<String?> tokenNotifier,
-      required GoogleSignIn googleSignIn})
-      : _apiService = apiService,
+  AuthNotifier({
+    required AuthApiService apiService,
+    required StateController<String?> tokenNotifier,
+    required GoogleSignIn googleSignIn,
+    required AuthSessionStorage sessionStorage,
+  })  : _apiService = apiService,
         _tokenNotifier = tokenNotifier,
         _googleSignIn = googleSignIn,
+        _sessionStorage = sessionStorage,
         super(const AuthState());
 
   void clearError() => state = state.copyWith(clearError: true);
 
+  /// Restores session on app startup if a valid stored session is found.
+  /// - On mobile: Restores persistent session saved in SharedPreferences.
+  /// - On web: Restores session if the browser tab/window session exists.
+  Future<bool> restoreSession() async {
+    try {
+      final session = await _sessionStorage.loadSession();
+      if (session != null && session.token.isNotEmpty) {
+        _tokenNotifier.state = session.token;
+        state = state.copyWith(user: session.user, isLoading: false);
+        return true;
+      }
+    } catch (_) {
+      // Gracefully continue without session if loading fails
+    }
+    return false;
+  }
+
   void setGender(String gender) {
     if (state.user != null) {
-      state = state.copyWith(user: state.user!.copyWith(gender: gender));
+      final updatedUser = state.user!.copyWith(gender: gender);
+      state = state.copyWith(user: updatedUser);
+      if (updatedUser.token != null && updatedUser.token!.isNotEmpty) {
+        _sessionStorage.saveSession(token: updatedUser.token!, user: updatedUser);
+      }
     }
   }
 
@@ -48,6 +74,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final user = await _apiService.login(email: email, password: password);
       _tokenNotifier.state = user.token;
       state = state.copyWith(isLoading: false, user: user);
+      if (user.token != null && user.token!.isNotEmpty) {
+        await _sessionStorage.saveSession(token: user.token!, user: user);
+      }
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
@@ -63,6 +92,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           email: email, password: password, username: username, gender: gender);
       _tokenNotifier.state = user.token;
       state = state.copyWith(isLoading: false, user: user);
+      if (user.token != null && user.token!.isNotEmpty) {
+        await _sessionStorage.saveSession(token: user.token!, user: user);
+      }
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
@@ -99,6 +131,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       _tokenNotifier.state = user.token;
       state = state.copyWith(isLoading: false, user: user);
+      await _sessionStorage.saveSession(token: user.token!, user: user);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
@@ -112,6 +145,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (_) {
       // Local logout must still complete if Google sign-out is unavailable.
     }
+    await _sessionStorage.clearSession();
     _tokenNotifier.state = null;
     state = const AuthState();
   }
@@ -140,6 +174,7 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref
     apiService: ref.watch(authApiServiceProvider),
     tokenNotifier: ref.watch(authTokenProvider.notifier),
     googleSignIn: ref.watch(googleSignInProvider),
+    sessionStorage: ref.watch(authSessionStorageProvider),
   );
 });
 

@@ -462,9 +462,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           width: double.infinity,
           height: 48,
           child: ElevatedButton.icon(
-            onPressed: () {
-              ref.read(authNotifierProvider.notifier).logout();
-              context.go('/login');
+            onPressed: () async {
+              await ref.read(authNotifierProvider.notifier).logout();
+              if (mounted) {
+                context.go('/login');
+              }
             },
             icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 20),
             label: Text(

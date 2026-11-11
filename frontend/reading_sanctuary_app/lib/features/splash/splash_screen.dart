@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_theme.dart';
+import '../authentication/presentation/providers/auth_provider.dart';
 import '../reader/presentation/providers/reader_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -15,16 +16,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future<void>.delayed(const Duration(milliseconds: 1600), () {
-      if (mounted) {
-        final token = ref.read(authTokenProvider);
-        if (token != null && token.isNotEmpty) {
-          context.go('/home');
-        } else {
-          context.go('/landing');
-        }
+    _initApp();
+  }
+
+  Future<void> _initApp() async {
+    final restoreFuture = ref.read(authNotifierProvider.notifier).restoreSession();
+    final delayFuture = Future<void>.delayed(const Duration(milliseconds: 1600));
+
+    await Future.wait([restoreFuture, delayFuture]);
+
+    if (mounted) {
+      final token = ref.read(authTokenProvider);
+      if (token != null && token.isNotEmpty) {
+        context.go('/home');
+      } else {
+        context.go('/landing');
       }
-    });
+    }
   }
 
   @override

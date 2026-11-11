@@ -161,3 +161,15 @@ final userAvatarAssetProvider = Provider<String>((ref) {
   }
   return 'assets/images/dashboard/avatar_mia.png';
 });
+
+/// Centralized provider for the dashboard hero banner image path.
+/// Automatically updates throughout the app based on selected gender:
+/// - 'girl': assets/images/dashboard/dash_banner.png (animated girl reading)
+/// - 'boy': assets/images/dashboard/dash_banner_boy.png (animated boy reading)
+final userBannerAssetProvider = Provider<String>((ref) {
+  final gender = ref.watch(userGenderProvider);
+  if (gender == 'boy') {
+    return 'assets/images/dashboard/dash_banner_boy.png';
+  }
+  return 'assets/images/dashboard/dash_banner.png';
+});

@@ -177,6 +177,10 @@ void main() {
         (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_boy'),
       );
       expect(boyImages, isNotEmpty);
+      final boyBanner = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('dash_banner_boy'),
+      );
+      expect(boyBanner, isNotEmpty);
 
       // Tap 'Girl' again
       await tester.tap(find.text('Girl'));
@@ -187,6 +191,10 @@ void main() {
         (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_mia'),
       );
       expect(girlImages, isNotEmpty);
+      final girlBanner = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.endsWith('dash_banner.png'),
+      );
+      expect(girlBanner, isNotEmpty);
     });
 
     testWidgets('SettingsScreen renders Account & Privacy, Preferences with Switch, and Help', (tester) async {

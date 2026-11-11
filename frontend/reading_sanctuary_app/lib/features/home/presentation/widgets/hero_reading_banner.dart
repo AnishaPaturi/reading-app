@@ -39,6 +39,7 @@ class HeroReadingBanner extends ConsumerWidget {
             : defaultName;
 
     final greeting = getGreeting(currentTime);
+    final bannerAsset = ref.watch(userBannerAssetProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -62,7 +63,7 @@ class HeroReadingBanner extends ConsumerWidget {
           child: Stack(
             children: [
               Image.asset(
-                'assets/images/dashboard/dash_banner.png',
+                bannerAsset,
                 fit: BoxFit.contain,
                 width: double.infinity,
               ),

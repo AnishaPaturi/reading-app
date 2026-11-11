@@ -36,6 +36,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void clearError() => state = state.copyWith(clearError: true);
 
+  void setGender(String gender) {
+    if (state.user != null) {
+      state = state.copyWith(user: state.user!.copyWith(gender: gender));
+    }
+  }
+
   Future<bool> login({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -135,4 +141,23 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref
     tokenNotifier: ref.watch(authTokenProvider.notifier),
     googleSignIn: ref.watch(googleSignInProvider),
   );
+});
+
+/// Avatar gender provider: 'girl' (default) or 'boy'.
+/// Normalizes 'male' -> 'boy', 'female' -> 'girl'.
+final userGenderProvider = StateProvider<String>((ref) {
+  final authUser = ref.watch(authNotifierProvider).user;
+  final g = authUser?.gender?.toLowerCase();
+  if (g == 'male' || g == 'boy') return 'boy';
+  return 'girl';
+});
+
+/// Centralized provider for the animated character avatar image path.
+/// Automatically updates throughout the app based on selected gender.
+final userAvatarAssetProvider = Provider<String>((ref) {
+  final gender = ref.watch(userGenderProvider);
+  if (gender == 'boy') {
+    return 'assets/images/dashboard/avatar_boy.png';
+  }
+  return 'assets/images/dashboard/avatar_mia.png';
 });

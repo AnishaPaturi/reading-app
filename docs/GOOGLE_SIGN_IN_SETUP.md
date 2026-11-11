@@ -59,10 +59,29 @@ On startup, Flyway runs V10__google_authentication.sql. It makes password_hash n
 
 ## 3. Run Flutter on the Android emulator
 
-Open PowerShell in frontend/reading_sanctuary_app:
+Open PowerShell in `frontend/reading_sanctuary_app`:
 
 ```powershell
 flutter pub get
+```
+
+Copy `config.json.example` to `config.json` and insert your Web application Client ID:
+
+```json
+{
+  "GOOGLE_SERVER_CLIENT_ID": "YOUR_WEB_APPLICATION_CLIENT_ID.apps.googleusercontent.com"
+}
+```
+
+Then run with `--dart-define-from-file`:
+
+```powershell
+flutter run --dart-define-from-file=config.json
+```
+
+Or pass it directly as a command-line flag:
+
+```powershell
 flutter run --dart-define=GOOGLE_SERVER_CLIENT_ID=YOUR_WEB_APPLICATION_CLIENT_ID.apps.googleusercontent.com
 ```
 

@@ -31,6 +31,10 @@ class AuthApiService {
     if (response is! Map<String, dynamic>) {
       throw const ApiException(message: 'Failed to create user account', statusCode: 500);
     }
-    return login(email: email, password: password);
+    final loggedInUser = await login(email: email, password: password);
+    if (gender != null && gender.trim().isNotEmpty) {
+      return loggedInUser.copyWith(gender: gender.trim());
+    }
+    return loggedInUser;
   }
 }

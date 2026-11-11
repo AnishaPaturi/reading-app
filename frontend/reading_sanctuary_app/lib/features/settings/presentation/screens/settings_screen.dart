@@ -210,7 +210,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           iconWidget: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Image.asset(
-              'assets/images/dashboard/avatar_mia.png',
+              ref.watch(userAvatarAssetProvider),
               width: 38,
               height: 38,
               fit: BoxFit.cover,

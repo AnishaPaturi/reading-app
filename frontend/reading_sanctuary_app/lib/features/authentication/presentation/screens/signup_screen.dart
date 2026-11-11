@@ -33,6 +33,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedGender != null) {
+      final genderKey = _selectedGender == 'male' ? 'boy' : 'girl';
+      ref.read(userGenderProvider.notifier).state = genderKey;
+    }
     final success = await ref.read(authNotifierProvider.notifier).register(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -41,6 +45,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     );
     if (!mounted) return;
     if (success) {
+      if (_selectedGender != null) {
+        final genderKey = _selectedGender == 'male' ? 'boy' : 'girl';
+        ref.read(authNotifierProvider.notifier).setGender(genderKey);
+        ref.read(userGenderProvider.notifier).state = genderKey;
+      }
       context.go('/home');
     } else {
       _showAuthError(ref.read(authNotifierProvider).error ?? 'Sign up failed');

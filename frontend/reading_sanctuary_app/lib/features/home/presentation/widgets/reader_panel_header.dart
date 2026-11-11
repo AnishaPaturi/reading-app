@@ -16,7 +16,10 @@ class ReaderPanelHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
-    final userName = authState.user?.displayName ?? 'Mia';
+    final isBoy = ref.watch(userGenderProvider) == 'boy';
+    final defaultName = isBoy ? 'Leo' : 'Mia';
+    final userName = authState.user?.displayName ?? defaultName;
+    final avatarAsset = ref.watch(userAvatarAssetProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -192,7 +195,7 @@ class ReaderPanelHeader extends ConsumerWidget {
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/images/dashboard/avatar_mia.png',
+                            avatarAsset,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -284,7 +287,7 @@ class ReaderPanelHeader extends ConsumerWidget {
                       ),
                       child: ClipOval(
                         child: Image.asset(
-                          'assets/images/dashboard/avatar_mia.png',
+                          avatarAsset,
                           fit: BoxFit.cover,
                         ),
                       ),

@@ -42,7 +42,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-    final userName = authState.user?.displayName ?? 'Mia';
+    final isBoy = ref.watch(userGenderProvider) == 'boy';
+    final defaultName = isBoy ? 'Leo' : 'Mia';
+    final userName = authState.user?.displayName ?? defaultName;
+    final avatarAsset = ref.watch(userAvatarAssetProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -116,7 +119,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   isWide ? 24 : 100,
                                 ),
                                 child: _activeTab == 0
-                                    ? _buildProfileTab(userName, useTwoColumns: useTwoColumns)
+                                    ? _buildProfileTab(
+                                        userName,
+                                        useTwoColumns: useTwoColumns,
+                                        avatarAsset: avatarAsset,
+                                        isBoy: isBoy,
+                                      )
                                     : _buildLibraryTab(userName),
                               ),
                             ),
@@ -238,7 +246,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileTab(String userName, {required bool useTwoColumns}) {
+  Widget _buildProfileTab(
+    String userName, {
+    required bool useTwoColumns,
+    required String avatarAsset,
+    required bool isBoy,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -268,7 +281,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: Image.asset(
-                    'assets/images/dashboard/avatar_mia.png',
+                    avatarAsset,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -305,6 +318,87 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF4C2A1E),
                   ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Animated Character Gender Switcher (Girl / Boy)
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDD2F5).withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: const EdgeInsets.all(3),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        ref.read(userGenderProvider.notifier).state = 'girl';
+                        ref.read(authNotifierProvider.notifier).setGender('girl');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: !isBoy ? ClayColors.deepPurple : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.female_rounded,
+                              size: 14,
+                              color: !isBoy ? Colors.white : ClayColors.textDark,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Girl',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: !isBoy ? FontWeight.w700 : FontWeight.w500,
+                                color: !isBoy ? Colors.white : ClayColors.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        ref.read(userGenderProvider.notifier).state = 'boy';
+                        ref.read(authNotifierProvider.notifier).setGender('boy');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isBoy ? ClayColors.deepPurple : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.male_rounded,
+                              size: 14,
+                              color: isBoy ? Colors.white : ClayColors.textDark,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Boy',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: isBoy ? FontWeight.w700 : FontWeight.w500,
+                                color: isBoy ? Colors.white : ClayColors.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -30,11 +30,13 @@ class HeroReadingBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
+    final isBoy = ref.watch(userGenderProvider) == 'boy';
+    final defaultName = isBoy ? 'Leo' : 'Mia';
     final userName = (customUserName != null && customUserName!.trim().isNotEmpty)
         ? customUserName!.trim()
         : (authState.user?.displayName != null && authState.user!.displayName!.trim().isNotEmpty)
             ? authState.user!.displayName!.trim()
-            : 'Mia';
+            : defaultName;
 
     final greeting = getGreeting(currentTime);
 

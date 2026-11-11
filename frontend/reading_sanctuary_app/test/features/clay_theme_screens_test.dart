@@ -154,6 +154,41 @@ void main() {
       expect(find.text('Notifications'), findsOneWidget);
     });
 
+    testWidgets('ProfileScreen toggles between girl and boy animated avatars', (tester) async {
+      tester.view.physicalSize = const Size(400, 850);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(testWrapper(const ProfileScreen()));
+      await tester.pumpAndSettle();
+
+      // Initially Girl (Mia)
+      expect(find.text('Girl'), findsOneWidget);
+      expect(find.text('Boy'), findsOneWidget);
+      expect(find.text('Mia'), findsOneWidget);
+
+      // Tap 'Boy'
+      await tester.tap(find.text('Boy'));
+      await tester.pumpAndSettle();
+
+      // Verified Leo / Boy character active
+      expect(find.text('Leo'), findsOneWidget);
+      final boyImages = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_boy'),
+      );
+      expect(boyImages, isNotEmpty);
+
+      // Tap 'Girl' again
+      await tester.tap(find.text('Girl'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mia'), findsOneWidget);
+      final girlImages = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_mia'),
+      );
+      expect(girlImages, isNotEmpty);
+    });
+
     testWidgets('SettingsScreen renders Account & Privacy, Preferences with Switch, and Help', (tester) async {
       tester.view.physicalSize = const Size(400, 850);
       tester.view.devicePixelRatio = 1.0;

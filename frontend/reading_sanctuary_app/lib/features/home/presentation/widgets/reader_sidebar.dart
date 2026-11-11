@@ -77,7 +77,7 @@ class ReaderSidebar extends ConsumerWidget {
                               ),
                               child: ClipOval(
                                 child: Image.asset(
-                                  'assets/images/dashboard/avatar_mia.png',
+                                  avatarAsset,
                                   fit: BoxFit.cover,
                                 ),
                               ),

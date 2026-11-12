@@ -36,15 +36,26 @@ class _ClayTextFieldState extends State<ClayTextField> {
   void initState() {
     super.initState();
     _obscured = widget.isPassword;
-    _focusNode.addListener(() {
-      if (mounted) {
-        setState(() => _isFocused = _focusNode.hasFocus);
-      }
-    });
+    _focusNode.addListener(_handleFocusChange);
+    widget.controller.addListener(_handleControllerChange);
+  }
+
+  void _handleFocusChange() {
+    if (mounted) {
+      setState(() => _isFocused = _focusNode.hasFocus);
+    }
+  }
+
+  void _handleControllerChange() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_handleFocusChange);
+    widget.controller.removeListener(_handleControllerChange);
     _focusNode.dispose();
     super.dispose();
   }
@@ -52,7 +63,7 @@ class _ClayTextFieldState extends State<ClayTextField> {
   @override
   Widget build(BuildContext context) {
     return FormField<String>(
-      validator: widget.validator,
+      validator: (val) => widget.validator?.call(widget.controller.text),
       initialValue: widget.controller.text,
       builder: (fieldState) {
         final hasError = fieldState.hasError;
@@ -122,6 +133,8 @@ class _ClayTextFieldState extends State<ClayTextField> {
                       controller: widget.controller,
                       focusNode: _focusNode,
                       obscureText: _obscured,
+                      autocorrect: !widget.isPassword,
+                      enableSuggestions: !widget.isPassword,
                       keyboardType: widget.keyboardType,
                       textInputAction: widget.textInputAction,
                       onSubmitted: widget.onFieldSubmitted,

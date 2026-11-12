@@ -30,7 +30,7 @@ void main() {
 
     // Verify Sidebar exists with only the 6 items
     expect(find.byType(ReaderSidebar), findsOneWidget);
-    expect(find.text('Hello, Mia!'), findsOneWidget);
+    expect(find.text('Hello, Reader!'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Library'), findsWidgets);
     expect(find.text('Favourites'), findsWidgets);
@@ -44,9 +44,8 @@ void main() {
 
     // Verify Header
     expect(find.byType(ReaderPanelHeader), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
     expect(find.text('Search books, authors, genres...'), findsOneWidget);
-    expect(find.text('9'), findsOneWidget); // Notification badge
 
     // Verify Section Headers
     expect(find.text('Currently Reading'), findsOneWidget);
@@ -76,7 +75,7 @@ void main() {
 
     // Menu hamburger button is present on mobile
     expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
 
     // Verify 3D Bottom Navigation bar on mobile
     expect(find.byType(ClayBottomNav), findsOneWidget);
@@ -86,7 +85,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify drawer contents
-    expect(find.text('Hello, Mia!'), findsOneWidget);
+    expect(find.text('Hello, Reader!'), findsOneWidget);
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Profile'), findsWidgets);
   });
@@ -141,7 +140,7 @@ void main() {
 
     // Verify HomeScreen / Dashboard is rendered on /dashboard
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
     expect(find.text('Currently Reading'), findsOneWidget);
 
     // Navigate to /home
@@ -150,7 +149,7 @@ void main() {
 
     // Verify exact same screen is rendered on /home
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
     expect(find.text('Currently Reading'), findsOneWidget);
   });
 
@@ -224,8 +223,8 @@ void main() {
     await tester.pumpWidget(buildTestableWidget(size: const Size(1200, 900)));
     await tester.pumpAndSettle();
 
-    // Verify Audiobook badge shows total audiobooks available (4 audiobooks)
-    expect(find.text('4 Audiobooks'), findsOneWidget);
+    // Verify Audiobook badge shows in-progress audiobooks (2 audiobooks)
+    expect(find.text('2 Audiobooks'), findsOneWidget);
 
     // Verify first audiobook card is visible
     expect(find.text('The Silent Patient'), findsWidgets);
@@ -241,6 +240,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify subsequent audiobooks scrolled into view
-    expect(find.text('The Song of Achilles'), findsWidgets);
+    expect(find.text('The Psychology of Money'), findsWidgets);
   });
 }

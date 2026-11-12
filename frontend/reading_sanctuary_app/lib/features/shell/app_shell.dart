@@ -25,6 +25,8 @@ class AppShell extends ConsumerWidget {
       '/reading',
       '/profile',
       '/settings',
+      '/journal',
+      '/bookshelves',
     }.contains(location);
 
     if (isClayThemed) {

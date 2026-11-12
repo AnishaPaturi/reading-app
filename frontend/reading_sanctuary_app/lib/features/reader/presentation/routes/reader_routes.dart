@@ -7,7 +7,7 @@ final readerRoutes = [
     builder: (context, state) {
       final bookId = state.pathParameters['bookId']!;
       final fileId = state.pathParameters['fileId']!;
-      final title = state.uri.queryParameters['title'] ?? 'Reader';
+      final title = state.uri.queryParameters['title'] ?? 'Untitled Book';
       final format = state.uri.queryParameters['format'] ?? 'PDF';
 
       return ReaderScreen(

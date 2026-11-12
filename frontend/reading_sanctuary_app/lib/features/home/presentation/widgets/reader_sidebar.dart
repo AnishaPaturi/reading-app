@@ -17,8 +17,8 @@ class ReaderSidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
-    final userName = authState.user?.displayName ?? 'Mia';
+    final userName = ref.watch(userDisplayNameProvider);
+    final avatarAsset = ref.watch(userAvatarAssetProvider);
 
     return Container(
       width: width ?? 210,
@@ -74,7 +74,7 @@ class ReaderSidebar extends ConsumerWidget {
                               ),
                               child: ClipOval(
                                 child: Image.asset(
-                                  'assets/images/dashboard/avatar_mia.png',
+                                  avatarAsset,
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -162,6 +162,26 @@ class ReaderSidebar extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     _SidebarNavItem(
+                      icon: Icons.shelves,
+                      label: 'Bookshelves',
+                      isActive: activeRoute == '/bookshelves',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/bookshelves');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.edit_note_rounded,
+                      label: 'Journal',
+                      isActive: activeRoute == '/journal' || activeRoute == '/journal/new',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/journal');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
                       icon: Icons.favorite_rounded,
                       label: 'Favourites',
                       isActive: activeRoute == '/favorites',
@@ -212,9 +232,11 @@ class ReaderSidebar extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  ref.read(authNotifierProvider.notifier).logout();
-                  context.go('/login');
+                onTap: () async {
+                  await ref.read(authNotifierProvider.notifier).logout();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
                 },
                 child: const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),

@@ -31,7 +31,7 @@ class ReaderScreen extends ConsumerStatefulWidget {
     super.key,
     required this.bookId,
     required this.fileId,
-    this.bookTitle = 'Reader',
+    this.bookTitle = 'Book Reader',
     this.fileFormat = 'PDF',
   });
 

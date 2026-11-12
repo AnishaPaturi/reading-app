@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/models/activity_session.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/models/analytics_overview.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/models/author_analytics.dart';
-import 'package:reading_sanctuary_app/features/analytics/data/models/books_completed.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/models/daily_activity.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/models/genre_analytics.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/models/goal_progress.dart';

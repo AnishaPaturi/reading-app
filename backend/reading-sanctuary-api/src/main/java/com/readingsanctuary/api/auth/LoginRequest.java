@@ -1,12 +1,15 @@
 package com.readingsanctuary.api.auth;
 
-import jakarta.validation.constraints.Email;
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public record LoginRequest(
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Enter a valid email address")
+    @NotBlank(message = "Email or username is required")
+    @Size(max = 255, message = "Identifier cannot exceed 255 characters")
+    @JsonAlias({"username", "identifier", "login"})
     String email,
 
     @NotBlank(message = "Password is required")

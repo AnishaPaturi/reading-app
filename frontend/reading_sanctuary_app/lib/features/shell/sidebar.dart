@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_theme.dart';
 import '../../shared/services/providers.dart';
+import '../authentication/presentation/providers/auth_provider.dart';
 import 'destinations.dart';
 
 bool _selected(String location, String path) =>
@@ -149,12 +150,14 @@ class _Footer extends ConsumerWidget {
       icon: const Icon(Icons.help_outline),
       onPressed: () => context.go('/help'),
     );
+    final displayName = ref.watch(userDisplayNameProvider);
+    final avatarLetter = displayName.trim().isNotEmpty ? displayName.trim()[0].toUpperCase() : 'B';
     final avatar = InkWell(
       onTap: () => context.go('/profile'),
-      child: const CircleAvatar(
+      child: CircleAvatar(
           radius: 18,
           backgroundColor: AppColors.bronze,
-          child: Text('R', style: TextStyle(color: AppColors.ivory))),
+          child: Text(avatarLetter, style: const TextStyle(color: AppColors.ivory))),
     );
 
     return Padding(
@@ -164,7 +167,7 @@ class _Footer extends ConsumerWidget {
           : Row(children: [
               avatar,
               const SizedBox(width: 10),
-              const Expanded(child: Text('Reader', overflow: TextOverflow.ellipsis)),
+              Expanded(child: Text(displayName, overflow: TextOverflow.ellipsis)),
               themeBtn,
               helpBtn,
             ]),

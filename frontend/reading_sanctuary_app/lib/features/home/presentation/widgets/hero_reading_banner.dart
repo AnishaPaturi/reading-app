@@ -29,14 +29,13 @@ class HeroReadingBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
+    final resolvedDisplayName = ref.watch(userDisplayNameProvider);
     final userName = (customUserName != null && customUserName!.trim().isNotEmpty)
         ? customUserName!.trim()
-        : (authState.user?.displayName != null && authState.user!.displayName!.trim().isNotEmpty)
-            ? authState.user!.displayName!.trim()
-            : 'Mia';
+        : resolvedDisplayName;
 
     final greeting = getGreeting(currentTime);
+    final bannerAsset = ref.watch(userBannerAssetProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -60,7 +59,7 @@ class HeroReadingBanner extends ConsumerWidget {
           child: Stack(
             children: [
               Image.asset(
-                'assets/images/dashboard/dash_banner.png',
+                bannerAsset,
                 fit: BoxFit.contain,
                 width: double.infinity,
               ),

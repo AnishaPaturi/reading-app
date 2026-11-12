@@ -7,5 +7,8 @@ public record UserResponse(
     UUID id,
     String email,
     boolean active,
-    OffsetDateTime createdAt
+    OffsetDateTime createdAt,
+    String displayName,
+    String profilePictureUrl,
+    String gender
 ) {}

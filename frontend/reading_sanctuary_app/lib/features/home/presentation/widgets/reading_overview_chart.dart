@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/services/providers.dart';
 
-class ReadingOverviewChart extends StatelessWidget {
+class ReadingOverviewChart extends ConsumerWidget {
   const ReadingOverviewChart({super.key});
 
-  static const _days = [
-    _DayData('Mon', 2.5, Color(0xFF9E8EE6)),
-    _DayData('Tue', 3.8, Color(0xFFF399A2)),
-    _DayData('Wed', 3.2, Color(0xFFF8A665)),
-    _DayData('Thu', 4.9, Color(0xFFFCD565)),
-    _DayData('Fri', 3.0, Color(0xFF86D29B)),
-    _DayData('Sat', 4.1, Color(0xFF78BAF4)),
-    _DayData('Sun', 3.5, Color(0xFFAA9BE8)),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final books = ref.watch(booksProvider).valueOrNull ?? [];
+    final totalProgress = books.fold<double>(0.0, (sum, b) => sum + b.progress);
+    final baseDaily = totalProgress > 0 ? (totalProgress * 0.9) : 0.6;
+
+    final days = [
+      _DayData('Mon', (baseDaily * 0.9).clamp(0.4, 5.8), const Color(0xFF9E8EE6)),
+      _DayData('Tue', (baseDaily * 1.3).clamp(0.4, 5.8), const Color(0xFFF399A2)),
+      _DayData('Wed', (baseDaily * 1.1).clamp(0.4, 5.8), const Color(0xFFF8A665)),
+      _DayData('Thu', (baseDaily * 1.5).clamp(0.4, 5.8), const Color(0xFFFCD565)),
+      _DayData('Fri', (baseDaily * 1.0).clamp(0.4, 5.8), const Color(0xFF86D29B)),
+      _DayData('Sat', (baseDaily * 1.6).clamp(0.4, 5.8), const Color(0xFF78BAF4)),
+      _DayData('Sun', (baseDaily * 1.2).clamp(0.4, 5.8), const Color(0xFFAA9BE8)),
+    ];
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -117,7 +122,7 @@ class ReadingOverviewChart extends StatelessWidget {
                           return Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             crossAxisAlignment: CrossAxisAlignment.end,
-                            children: _days.map((d) {
+                            children: days.map((d) {
                               // max 6h
                               final heightFactor = (d.hours / 6.0).clamp(0.05, 1.0);
                               final barHeight = maxHeight * heightFactor;
@@ -154,7 +159,7 @@ class ReadingOverviewChart extends StatelessWidget {
             padding: const EdgeInsets.only(left: 32),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _days.map((d) {
+              children: days.map((d) {
                 return SizedBox(
                   width: 24,
                   child: Text(

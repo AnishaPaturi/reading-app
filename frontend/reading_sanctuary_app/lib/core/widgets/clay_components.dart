@@ -19,6 +19,7 @@ abstract final class ClayColors {
   static const Color softLilac = Color(0xFFC7B2F0);
   static const Color lightLilac = Color(0xFFDDD2F5);
   static const Color cardBg = Color(0xFFF9F6FE);
+  static const Color clayBorder = Color(0xFFE5DCF4);
 
   // Clay Accent Tiles
   static const Color peach = Color(0xFFFFC3A6);

@@ -7,7 +7,7 @@ import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../../../shared/services/providers.dart';
 import '../../../library/theme/bookshelf_theme.dart';
-import '../application/quotes_highlights_provider.dart';
+import '../../application/quotes_highlights_provider.dart';
 
 class ReadingTrackerScreen extends ConsumerWidget {
   final String title;

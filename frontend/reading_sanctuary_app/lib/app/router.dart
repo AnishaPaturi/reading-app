@@ -7,14 +7,17 @@ import '../features/analytics/presentation/screens/yearly_wrap_up_screen.dart';
 import '../features/audiobook/presentation/screens/audiobook_screen.dart';
 import '../features/authentication/presentation/screens/login_screen.dart';
 import '../features/authentication/presentation/screens/signup_screen.dart';
+import '../features/bookshelf/presentation/bookshelves_screen.dart';
 import '../features/book_details/book_details_screen.dart';
 import '../features/cloud_storage/presentation/screens/storage_management_screen.dart';
 import '../core/sync/presentation/screens/sync_settings_screen.dart';
 import '../features/discover/presentation/discover_screen.dart';
 import '../features/favorites/presentation/screens/favorites_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/journal/presentation/journal_screen.dart';
 import '../features/reading/reading_screen.dart';
 import '../features/library/library_screen.dart';
+import '../features/library/screens/add_book_screen.dart';
 import '../features/notifications/presentation/screens/notifications_screen.dart';
 import '../features/help/presentation/screens/help_screen.dart';
 import '../features/search/presentation/screens/search_screen.dart';
@@ -56,18 +59,21 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      // Reader / audiobook player will live OUTSIDE the shell (immersive) in Milestone 4/6.
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(path: '/home', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/dashboard', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/library', pageBuilder: (c, s) => _page(s, const LibraryScreen())),
+          GoRoute(path: '/library/add', pageBuilder: (c, s) => _page(s, const AddBookScreen())),
+          GoRoute(path: '/library/add-manual', pageBuilder: (c, s) => _page(s, const AddBookScreen())),
           GoRoute(path: '/favorites', pageBuilder: (c, s) => _page(s, const FavoritesScreen())),
           GoRoute(path: '/discover', pageBuilder: (c, s) => _page(s, const DiscoverScreen())),
           GoRoute(path: '/reading', pageBuilder: (c, s) => _page(s, const ReadingScreen())),
           GoRoute(path: '/profile', pageBuilder: (c, s) => _page(s, const ProfileScreen())),
           GoRoute(path: '/settings', pageBuilder: (c, s) => _page(s, const SettingsScreen())),
+          GoRoute(path: '/journal', pageBuilder: (c, s) => _page(s, const JournalScreen())),
+          GoRoute(path: '/journal/new', pageBuilder: (c, s) => _page(s, const JournalScreen(openNew: true))),
           GoRoute(
             path: '/book/:id',
             pageBuilder: (c, s) =>
@@ -136,7 +142,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/bookshelves',
-            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(title: 'My Bookshelves')),
+            pageBuilder: (c, s) => _page(s, const BookshelvesScreen()),
           ),
           GoRoute(
             path: '/highlights',

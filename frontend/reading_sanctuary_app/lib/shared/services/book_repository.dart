@@ -11,7 +11,7 @@ abstract class BookRepository {
 }
 
 class MockBookRepository implements BookRepository {
-  MockBookRepository() : _books = _sample();
+  MockBookRepository() : _books = sample();
   List<Book> _books;
 
   @override
@@ -58,7 +58,7 @@ class MockBookRepository implements BookRepository {
     ];
   }
 
-  static List<Book> _sample() {
+  static List<Book> sample() {
     final now = DateTime.now();
     Book b(String id, String t, String a, String g, ReadingStatus s, double p, int pages,
             List<BookFormat> f, int addedDays, int? openedDays, double? r, int c1, int c2,

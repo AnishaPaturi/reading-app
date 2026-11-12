@@ -169,6 +169,26 @@ class ReaderSidebar extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     _SidebarNavItem(
+                      icon: Icons.shelves,
+                      label: 'Bookshelves',
+                      isActive: activeRoute == '/bookshelves',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/bookshelves');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
+                      icon: Icons.edit_note_rounded,
+                      label: 'Journal',
+                      isActive: activeRoute == '/journal' || activeRoute == '/journal/new',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/journal');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
                       icon: Icons.favorite_rounded,
                       label: 'Favourites',
                       isActive: activeRoute == '/favorites',

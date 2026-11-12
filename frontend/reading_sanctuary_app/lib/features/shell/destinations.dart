@@ -16,7 +16,7 @@ const primaryDestinations = [
   NavDest('Settings', '/settings', Icons.settings_outlined),
 ];
 
-/// Desktop sidebar order (per spec).
+/// Desktop sidebar order.
 const sidebarDestinations = [
   NavDest('Home', '/home', Icons.home_outlined),
   NavDest('Library', '/library', Icons.local_library_outlined),
@@ -26,40 +26,35 @@ const sidebarDestinations = [
   NavDest('Settings', '/settings', Icons.settings_outlined),
 ];
 
-class PlaceholderInfo {
-  const PlaceholderInfo(this.title, this.milestone, this.blurb);
-  final String title;
-  final int milestone;
-  final String blurb;
-}
-
-const placeholders = <String, PlaceholderInfo>{
-  '/read': PlaceholderInfo('Reader', 4, 'The PDF / EPUB / DOCX reader with highlights and bookmarks.'),
-  '/journal': PlaceholderInfo('Journal', 5, 'Your reading journal and book notes.'),
-  '/profile': PlaceholderInfo('Profile', 7, 'Profile, preferences and sign out.'),
-  '/bookshelves': PlaceholderInfo('Bookshelves', 3, 'Collections and the bookshelf view.'),
-  '/tracker/reading': PlaceholderInfo('Currently Reading', 5, 'Reading tracker.'),
-  '/tracker/tbr': PlaceholderInfo('Want to Read', 5, 'TBR list with priorities.'),
-  '/tracker/completed': PlaceholderInfo('Completed', 5, 'Completed books.'),
-  '/tracker/dnf': PlaceholderInfo('DNF', 5, 'Did-not-finish books (notes are always preserved).'),
-  '/highlights': PlaceholderInfo('Highlights', 4, 'All highlights across books.'),
-  '/quotes': PlaceholderInfo('Quotes', 5, 'Your quotes collection.'),
-  '/settings': PlaceholderInfo('Settings', 7, 'Appearance, reading, audio, privacy, sync.'),
-  '/help': PlaceholderInfo('Help & About', 7, 'FAQ, support, policies.'),
-  '/search': PlaceholderInfo('Search', 3, 'Global search across books, notes, quotes.'),
-  '/notifications': PlaceholderInfo('Notifications', 7, 'Goal reminders and sync status.'),
-  '/library/add': PlaceholderInfo('Add Book', 3, 'Upload files or add a book manually.'),
-  '/library/add-manual': PlaceholderInfo('Add Book Manually', 3, 'Create a record without a file.'),
-  '/journal/new': PlaceholderInfo('New Journal Entry', 5, 'Write a journal entry.'),
+final Map<String, String> _routeTitles = {
+  '/dashboard': 'Home',
+  '/home': 'Home',
+  '/library': 'Library',
+  '/favorites': 'Favorites',
+  '/reading': 'Audiobooks',
+  '/profile': 'Profile',
+  '/settings': 'Settings',
+  '/sync/settings': 'Sync & Devices',
+  '/storage/manage': 'Storage & Offline',
+  '/journal': 'Reading Journal',
+  '/journal/new': 'New Journal Entry',
+  '/bookshelves': 'My Bookshelves',
+  '/tracker/reading': 'Currently Reading',
+  '/tracker/tbr': 'Want to Read',
+  '/tracker/completed': 'Completed Books',
+  '/tracker/dnf': 'Did Not Finish',
+  '/highlights': 'Saved Highlights',
+  '/quotes': 'Favorite Quotes',
+  '/search': 'Search',
+  '/notifications': 'Notifications',
+  '/help': 'Help & Support',
+  '/library/add': 'Add Book',
+  '/library/add-manual': 'Add Book',
 };
 
 String titleFor(String location) {
-  if (location == '/dashboard') return 'Home';
   if (location.startsWith('/book/')) return 'Book Details';
-  if (location == '/sync/settings') return 'Sync & Devices';
-  if (location == '/storage/manage') return 'Storage & Offline';
-  final p = placeholders[location];
-  if (p != null) return p.title;
+  if (_routeTitles.containsKey(location)) return _routeTitles[location]!;
   for (final d in [...sidebarDestinations, ...primaryDestinations]) {
     if (d.path == location) return d.label;
   }

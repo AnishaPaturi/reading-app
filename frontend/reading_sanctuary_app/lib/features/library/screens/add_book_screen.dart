@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/widgets/clay_components.dart';
-import '../../../../shared/models/book.dart';
-import '../../../../shared/services/providers.dart';
-import '../../../authentication/presentation/widgets/clay_button.dart';
-import '../../../notifications/application/notifications_provider.dart';
+import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
+import 'package:reading_sanctuary_app/shared/models/book.dart';
+import 'package:reading_sanctuary_app/shared/services/providers.dart';
+import 'package:reading_sanctuary_app/features/authentication/presentation/widgets/clay_button.dart';
+import 'package:reading_sanctuary_app/features/notifications/application/notifications_provider.dart';
 
 class AddBookScreen extends ConsumerStatefulWidget {
   const AddBookScreen({super.key});

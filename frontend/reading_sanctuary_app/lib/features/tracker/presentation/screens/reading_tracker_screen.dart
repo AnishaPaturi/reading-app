@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../../../shared/services/providers.dart';
 import '../../../library/theme/bookshelf_theme.dart';
+import '../application/quotes_highlights_provider.dart';
 
 class ReadingTrackerScreen extends ConsumerWidget {
   final String title;
@@ -43,12 +45,31 @@ class ReadingTrackerScreen extends ConsumerWidget {
             color: ClayColors.textDark,
           ),
         ),
+        actions: [
+          if (isHighlightsMode || isQuotesMode)
+            IconButton(
+              icon: const Icon(Icons.add_rounded, color: ClayColors.deepPurple, size: 26),
+              tooltip: isQuotesMode ? 'Add Quote' : 'Add Highlight',
+              onPressed: () => _showAddDialog(context, ref, isQuote: isQuotesMode, books: books),
+            ),
+        ],
       ),
       body: SafeArea(
         child: isHighlightsMode || isQuotesMode
-            ? _buildQuotesAndHighlights(context, books, isQuotes: isQuotesMode)
+            ? _buildQuotesAndHighlights(context, ref, isQuotes: isQuotesMode)
             : _buildBooksList(context, filtered),
       ),
+      floatingActionButton: (isHighlightsMode || isQuotesMode)
+          ? FloatingActionButton.extended(
+              onPressed: () => _showAddDialog(context, ref, isQuote: isQuotesMode, books: books),
+              backgroundColor: ClayColors.deepPurple,
+              icon: const Icon(Icons.edit_note_rounded, color: Colors.white),
+              label: Text(
+                isQuotesMode ? 'New Quote' : 'New Highlight',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: Colors.white),
+              ),
+            )
+          : null,
     );
   }
 
@@ -61,7 +82,7 @@ class ReadingTrackerScreen extends ConsumerWidget {
             Icon(Icons.menu_book_rounded, size: 54, color: ClayColors.textMuted.withValues(alpha: 0.4)),
             const SizedBox(height: 12),
             Text(
-              'No books in this shelf yet',
+              'No books in this list yet',
               style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: ClayColors.textMuted),
             ),
             const SizedBox(height: 14),
@@ -106,26 +127,27 @@ class ReadingTrackerScreen extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
                         color: ClayColors.textDark,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       book.author,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
-                        fontSize: 12,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
                         color: ClayColors.textMuted,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Text(
-                          '$pct% progress',
+                          '$pct% completed',
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -153,37 +175,43 @@ class ReadingTrackerScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuotesAndHighlights(BuildContext context, List<Book> books, {required bool isQuotes}) {
-    final sampleItems = [
-      {
-        'text': isQuotes
-            ? '“Between life and death there is a library, and within that library, the shelves go on for ever.”'
-            : 'She stopped talking because words felt like unnecessary baggage.',
-        'source': 'The Midnight Library',
-        'chapter': 'Chapter 1 · Page 12',
-      },
-      {
-        'text': isQuotes
-            ? '“You do not rise to the level of your goals. You fall to the level of your systems.”'
-            : 'Habits are the compound interest of self-improvement.',
-        'source': 'Atomic Habits',
-        'chapter': 'Fundamentals · Page 27',
-      },
-      {
-        'text': isQuotes
-            ? '“Doing well with money has a little to do with how smart you are and a lot to do with how you behave.”'
-            : 'No one is crazy. People do crazy things with money because our experiences vary.',
-        'source': 'The Psychology of Money',
-        'chapter': 'No One is Crazy · Page 15',
-      },
-    ];
+  Widget _buildQuotesAndHighlights(BuildContext context, WidgetRef ref, {required bool isQuotes}) {
+    final allItems = ref.watch(quotesHighlightsProvider);
+    final items = allItems.where((i) => i.isQuote == isQuotes).toList();
+
+    if (items.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isQuotes ? Icons.format_quote_rounded : Icons.highlight_rounded,
+              size: 54,
+              color: ClayColors.textMuted.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isQuotes ? 'No quotes saved yet' : 'No highlights saved yet',
+              style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: ClayColors.textMuted),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isQuotes
+                  ? 'Tap "+ New Quote" to save memorable passages.'
+                  : 'Tap "+ New Highlight" to capture key notes from your reads.',
+              style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textMuted),
+            ),
+          ],
+        ),
+      );
+    }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      itemCount: sampleItems.length,
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+      itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final item = sampleItems[index];
+        final item = items[index];
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -200,41 +228,160 @@ class ReadingTrackerScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                item['text']!,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  fontStyle: isQuotes ? FontStyle.italic : FontStyle.normal,
-                  color: ClayColors.textDark,
-                  height: 1.4,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.text,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontStyle: isQuotes ? FontStyle.italic : FontStyle.normal,
+                        color: ClayColors.textDark,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert_rounded, size: 18, color: ClayColors.textMuted),
+                    onSelected: (action) {
+                      if (action == 'copy') {
+                        Clipboard.setData(ClipboardData(text: item.text));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Copied to clipboard!'), behavior: SnackBarBehavior.floating),
+                        );
+                      } else if (action == 'delete') {
+                        ref.read(quotesHighlightsProvider.notifier).removeItem(item.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Deleted successfully!'), behavior: SnackBarBehavior.floating),
+                        );
+                      }
+                    },
+                    itemBuilder: (c) => [
+                      const PopupMenuItem(value: 'copy', child: Row(children: [Icon(Icons.copy_rounded, size: 16), SizedBox(width: 8), Text('Copy')])),
+                      const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.red))])),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    item['source']!,
+                    item.source,
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: ClayColors.primaryPurple,
                     ),
                   ),
-                  Text(
-                    item['chapter']!,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: ClayColors.textMuted,
+                  if (item.chapter.isNotEmpty)
+                    Text(
+                      item.chapter,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: ClayColors.textMuted,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  void _showAddDialog(BuildContext context, WidgetRef ref, {required bool isQuote, required List<Book> books}) {
+    final textController = TextEditingController();
+    final sourceController = TextEditingController();
+    final chapterController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          isQuote ? 'Add New Quote' : 'Add New Highlight',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: ClayColors.textDark, fontSize: 18),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: textController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: isQuote ? 'Enter the quote passage...' : 'Enter highlight text...',
+                  filled: true,
+                  fillColor: const Color(0xFFF6F3FB),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: sourceController,
+                decoration: InputDecoration(
+                  hintText: 'Book title or author',
+                  prefixIcon: const Icon(Icons.book_rounded, color: ClayColors.primaryPurple, size: 20),
+                  filled: true,
+                  fillColor: const Color(0xFFF6F3FB),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: chapterController,
+                decoration: InputDecoration(
+                  hintText: 'Chapter or page (optional)',
+                  prefixIcon: const Icon(Icons.bookmark_outline_rounded, color: ClayColors.primaryPurple, size: 20),
+                  filled: true,
+                  fillColor: const Color(0xFFF6F3FB),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('Cancel', style: GoogleFonts.inter(color: ClayColors.textMuted, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ClayColors.deepPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            ),
+            onPressed: () {
+              final text = textController.text.trim();
+              final source = sourceController.text.trim();
+              if (text.isNotEmpty) {
+                ref.read(quotesHighlightsProvider.notifier).addItem(
+                      text: text,
+                      source: source.isNotEmpty ? source : 'Personal Collection',
+                      chapter: chapterController.text.trim(),
+                      isQuote: isQuote,
+                    );
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(isQuote ? 'Quote added!' : 'Highlight added!'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: Text('Save', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 }

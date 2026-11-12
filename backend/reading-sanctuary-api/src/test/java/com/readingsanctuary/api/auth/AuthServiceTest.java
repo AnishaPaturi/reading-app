@@ -9,7 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.Mock;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -99,8 +101,8 @@ class AuthServiceTest {
         ReflectionTestUtils.setField(user2, "id", UUID.randomUUID());
 
         when(userRepository.findLoginCandidates("Reader")).thenReturn(java.util.List.of(user1, user2));
-        when(passwordEncoder.matches("mypass2", "hash1")).thenReturn(false);
-        when(passwordEncoder.matches("mypass2", "hash2")).thenReturn(true);
+        lenient().when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
+        lenient().when(passwordEncoder.matches("mypass2", "hash2")).thenReturn(true);
         when(jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(jwt);
         when(jwt.getTokenValue()).thenReturn("test-token-2");
 

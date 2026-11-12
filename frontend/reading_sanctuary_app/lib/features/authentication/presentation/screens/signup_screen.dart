@@ -101,7 +101,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           icon: Icons.verified_user_rounded, isPassword: true, textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => _handleSignUp(),
           validator: (v) => v == null || v.isEmpty ? 'Please confirm your password'
-              : v != _passwordController.text ? 'Passwords do not match' : null),
+              : v.trim() != _passwordController.text.trim() ? 'Passwords do not match' : null),
         const SizedBox(height: 14),
         _buildGenderSelector(),
         const SizedBox(height: 22),

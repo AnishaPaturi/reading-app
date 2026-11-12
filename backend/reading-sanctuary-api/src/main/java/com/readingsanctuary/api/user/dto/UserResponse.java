@@ -9,5 +9,6 @@ public record UserResponse(
     boolean active,
     OffsetDateTime createdAt,
     String displayName,
-    String profilePictureUrl
+    String profilePictureUrl,
+    String gender
 ) {}

@@ -10,5 +10,7 @@ import com.readingsanctuary.api.user.entity.User;
 public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmailIgnoreCase(String email);
     Optional<User> findByEmailIgnoreCase(String email);
+    Optional<User> findFirstByDisplayNameIgnoreCase(String displayName);
+    Optional<User> findByDisplayNameIgnoreCase(String displayName);
     Optional<User> findByGoogleSub(String googleSub);
 }

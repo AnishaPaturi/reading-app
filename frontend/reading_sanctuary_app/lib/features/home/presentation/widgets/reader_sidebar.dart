@@ -18,9 +18,13 @@ class ReaderSidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
-    final isBoy = ref.watch(userGenderProvider) == 'boy';
-    final defaultName = isBoy ? 'Leo' : 'Mia';
-    final userName = authState.user?.displayName ?? defaultName;
+    final rawName = authState.user?.displayName?.trim();
+    final email = authState.user?.email ?? '';
+    final emailPrefix = email.contains('@') ? email.split('@').first : email;
+    final fallback = emailPrefix.isNotEmpty
+        ? (emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : ''))
+        : 'Reader';
+    final userName = (rawName != null && rawName.isNotEmpty) ? rawName : fallback;
     final avatarAsset = ref.watch(userAvatarAssetProvider);
 
     return Container(

@@ -37,4 +37,22 @@ class AuthApiService {
     }
     return loggedInUser;
   }
+
+  Future<AuthUser> fetchUserProfile() async {
+    final response = await _apiClient.get('/users/me');
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Failed to fetch user profile', statusCode: 500);
+  }
+
+  Future<AuthUser> updateProfile({required String displayName}) async {
+    final response = await _apiClient.patch('/users/me', body: {'displayName': displayName.trim()});
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Failed to update profile', statusCode: 500);
+  }
+
+  Future<AuthUser> setGender(String gender) async {
+    final response = await _apiClient.patch('/users/me/gender', body: {'gender': gender});
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Failed to set gender', statusCode: 500);
+  }
 }

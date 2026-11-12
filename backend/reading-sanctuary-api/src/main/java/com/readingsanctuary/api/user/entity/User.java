@@ -30,6 +30,9 @@ public class User {
     @Column(name = "google_sub", unique = true, length = 255)
     private String googleSub;
 
+    @Column(name = "gender", length = 20)
+    private String gender;
+
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
@@ -42,16 +45,22 @@ public class User {
     protected User() {}
 
     public User(String email, String passwordHash) {
-        this(email, passwordHash, null, null, null);
+        this(email, passwordHash, null, null, null, null);
     }
 
     public User(String email, String passwordHash, String displayName,
                 String profilePictureUrl, String googleSub) {
+        this(email, passwordHash, displayName, profilePictureUrl, googleSub, null);
+    }
+
+    public User(String email, String passwordHash, String displayName,
+                String profilePictureUrl, String googleSub, String gender) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.displayName = displayName;
         this.profilePictureUrl = profilePictureUrl;
         this.googleSub = googleSub;
+        this.gender = gender;
         this.active = true;
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
@@ -69,6 +78,7 @@ public class User {
     }
 
     public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPasswordHash() { return passwordHash; }
@@ -79,6 +89,8 @@ public class User {
     public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
     public String getGoogleSub() { return googleSub; }
     public void setGoogleSub(String googleSub) { this.googleSub = googleSub; }
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
     public OffsetDateTime getCreatedAt() { return createdAt; }

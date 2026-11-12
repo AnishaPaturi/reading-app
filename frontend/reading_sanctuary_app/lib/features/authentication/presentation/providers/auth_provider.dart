@@ -50,6 +50,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (session != null && session.token.isNotEmpty) {
         _tokenNotifier.state = session.token;
         state = state.copyWith(user: session.user, isLoading: false);
+        // Silently refresh profile in the background from database
+        refreshUserProfile();
         return true;
       }
     } catch (_) {
@@ -58,13 +60,76 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return false;
   }
 
-  void setGender(String gender) {
+  /// Sets user gender. Once set, gender is permanent and cannot be switched.
+  Future<bool> setGender(String gender) async {
     if (state.user != null) {
-      final updatedUser = state.user!.copyWith(gender: gender);
+      // Once gender is set, switching is not allowed
+      if (state.user!.gender != null && state.user!.gender!.trim().isNotEmpty) {
+        return false;
+      }
+      final normalized = (gender.toLowerCase() == 'male' || gender.toLowerCase() == 'boy')
+          ? 'boy'
+          : 'girl';
+      final updatedUser = state.user!.copyWith(gender: normalized);
       state = state.copyWith(user: updatedUser);
       if (updatedUser.token != null && updatedUser.token!.isNotEmpty) {
-        _sessionStorage.saveSession(token: updatedUser.token!, user: updatedUser);
+        await _sessionStorage.saveSession(token: updatedUser.token!, user: updatedUser);
+        try {
+          await _apiService.setGender(normalized);
+        } catch (_) {}
       }
+      return true;
+    }
+    return false;
+  }
+
+  /// Updates user display name and persists to database and session storage.
+  Future<bool> updateDisplayName(String displayName) async {
+    final trimmed = displayName.trim();
+    if (trimmed.isEmpty) return false;
+    final token = _tokenNotifier.state;
+    try {
+      if (token != null && token.isNotEmpty) {
+        final updated = await _apiService.updateProfile(displayName: trimmed);
+        final merged = updated.copyWith(token: token);
+        state = state.copyWith(user: merged);
+        await _sessionStorage.saveSession(token: token, user: merged);
+        return true;
+      } else if (state.user != null) {
+        final updated = state.user!.copyWith(displayName: trimmed);
+        state = state.copyWith(user: updated);
+        return true;
+      }
+    } catch (_) {
+      if (state.user != null) {
+        final updated = state.user!.copyWith(displayName: trimmed);
+        state = state.copyWith(user: updated);
+        if (token != null && token.isNotEmpty) {
+          await _sessionStorage.saveSession(token: token, user: updated);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Refreshes user profile directly from database (/api/v1/users/me).
+  Future<void> refreshUserProfile() async {
+    final token = _tokenNotifier.state;
+    if (token == null || token.isEmpty) return;
+    try {
+      final fetched = await _apiService.fetchUserProfile();
+      final current = state.user;
+      final merged = fetched.copyWith(
+        token: token,
+        gender: (fetched.gender != null && fetched.gender!.isNotEmpty)
+            ? fetched.gender
+            : current?.gender,
+      );
+      state = state.copyWith(user: merged);
+      await _sessionStorage.saveSession(token: token, user: merged);
+    } catch (_) {
+      // Fallback gracefully to existing session
     }
   }
 
@@ -184,6 +249,7 @@ final userGenderProvider = StateProvider<String>((ref) {
   final authUser = ref.watch(authNotifierProvider).user;
   final g = authUser?.gender?.toLowerCase();
   if (g == 'male' || g == 'boy') return 'boy';
+  if (g == 'female' || g == 'girl') return 'girl';
   return 'girl';
 });
 

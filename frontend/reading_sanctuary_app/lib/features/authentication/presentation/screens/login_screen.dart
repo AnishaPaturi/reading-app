@@ -68,7 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           ClayTextField(controller: _emailController, hintText: 'Email or Username',
-            icon: Icons.person_rounded, keyboardType: TextInputType.emailAddress,
+            icon: Icons.person_rounded, keyboardType: TextInputType.text,
             textInputAction: TextInputAction.next,
             validator: (val) => val == null || val.trim().isEmpty
                 ? 'Please enter your email or username' : null),

@@ -15,13 +15,16 @@ import '../features/favorites/presentation/screens/favorites_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/reading/reading_screen.dart';
 import '../features/library/library_screen.dart';
+import '../features/notifications/presentation/screens/notifications_screen.dart';
+import '../features/help/presentation/screens/help_screen.dart';
+import '../features/search/presentation/screens/search_screen.dart';
+import '../features/tracker/presentation/screens/reading_tracker_screen.dart';
+import '../shared/models/book.dart';
 import '../features/landing/presentation/screens/landing_screen.dart';
-import '../features/placeholder/placeholder_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/reader/presentation/routes/reader_routes.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
 import '../features/shell/app_shell.dart';
-import '../features/shell/destinations.dart';
 import '../features/splash/splash_screen.dart';
 
 Page<void> _page(GoRouterState s, Widget w) => NoTransitionPage(key: s.pageKey, child: w);
@@ -100,11 +103,49 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/storage/manage',
             pageBuilder: (c, s) => _page(s, const StorageManagementScreen()),
           ),
-          for (final e in placeholders.entries)
-            GoRoute(
-              path: e.key,
-              pageBuilder: (c, s) => _page(s, PlaceholderScreen(info: e.value)),
-            ),
+          GoRoute(path: '/notifications', pageBuilder: (c, s) => _page(s, const NotificationsScreen())),
+          GoRoute(path: '/help', pageBuilder: (c, s) => _page(s, const HelpScreen())),
+          GoRoute(path: '/search', pageBuilder: (c, s) => _page(s, const SearchScreen())),
+          GoRoute(
+            path: '/tracker/reading',
+            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(
+              title: 'Currently Reading',
+              statusFilter: ReadingStatus.currentlyReading,
+            )),
+          ),
+          GoRoute(
+            path: '/tracker/tbr',
+            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(
+              title: 'Want to Read',
+              statusFilter: ReadingStatus.wantToRead,
+            )),
+          ),
+          GoRoute(
+            path: '/tracker/completed',
+            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(
+              title: 'Completed Books',
+              statusFilter: ReadingStatus.completed,
+            )),
+          ),
+          GoRoute(
+            path: '/tracker/dnf',
+            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(
+              title: 'Did Not Finish',
+              statusFilter: ReadingStatus.dnf,
+            )),
+          ),
+          GoRoute(
+            path: '/bookshelves',
+            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(title: 'My Bookshelves')),
+          ),
+          GoRoute(
+            path: '/highlights',
+            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(title: 'Saved Highlights', isHighlightsMode: true)),
+          ),
+          GoRoute(
+            path: '/quotes',
+            pageBuilder: (c, s) => _page(s, const ReadingTrackerScreen(title: 'Favorite Quotes', isQuotesMode: true)),
+          ),
         ],
       ),
     ],

@@ -31,15 +31,24 @@ class AuthUser {
     gender: gender ?? this.gender,
   );
 
-  factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
-    id: json['userId']?.toString() ?? json['id']?.toString() ?? '',
-    email: json['email']?.toString() ?? '',
-    token: json['accessToken']?.toString() ?? json['token']?.toString(),
-    displayName: json['displayName']?.toString()
-        ?? json['email']?.toString().split('@').first,
-    profilePictureUrl: json['profilePictureUrl']?.toString(),
-    gender: json['gender']?.toString(),
-  );
+  factory AuthUser.fromJson(Map<String, dynamic> json) {
+    final rawName = json['displayName']?.toString().trim();
+    final email = json['email']?.toString().trim() ?? '';
+    final emailPrefix = email.contains('@') ? email.split('@').first : email;
+    final formattedFallback = emailPrefix.isNotEmpty
+        ? (emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : ''))
+        : 'Reader';
+    final name = (rawName != null && rawName.isNotEmpty) ? rawName : formattedFallback;
+
+    return AuthUser(
+      id: json['userId']?.toString() ?? json['id']?.toString() ?? '',
+      email: email,
+      token: json['accessToken']?.toString() ?? json['token']?.toString(),
+      displayName: name,
+      profilePictureUrl: json['profilePictureUrl']?.toString(),
+      gender: json['gender']?.toString(),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,

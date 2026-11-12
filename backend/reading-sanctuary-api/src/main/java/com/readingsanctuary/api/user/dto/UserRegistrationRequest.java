@@ -15,5 +15,8 @@ public record UserRegistrationRequest(
     String password,
 
     @Size(max = 100, message = "Name cannot exceed 100 characters")
-    String displayName
+    String displayName,
+
+    @Size(max = 20, message = "Gender cannot exceed 20 characters")
+    String gender
 ) {}

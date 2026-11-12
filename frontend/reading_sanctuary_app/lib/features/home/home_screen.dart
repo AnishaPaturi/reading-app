@@ -153,19 +153,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 (b.progress > 0 && b.progress < 1.0)))
         .toList();
 
-    final allAudiobooks = books
-        .where((b) => b.formats.contains(BookFormat.audiobook))
-        .toList();
-
-    final effectiveReading = readingBooks.isNotEmpty
-        ? readingBooks
-        : books.take(2).toList();
-    final effectiveListening = listeningBooks.isNotEmpty
-        ? [
-            ...listeningBooks,
-            ...allAudiobooks.where((b) => !listeningBooks.contains(b)),
-          ]
-        : allAudiobooks;
+    final effectiveReading = readingBooks;
+    final effectiveListening = listeningBooks;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -281,24 +270,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         const SizedBox(height: 16),
 
         // List of Currently Reading Cards
-        for (final book in books) ...[
-          _buildReadingCard(context, book),
-          const SizedBox(height: 14),
-        ],
+        if (books.isEmpty)
+          ClayCard(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.menu_book_rounded, color: ClayColors.primaryPurple, size: 36),
+                  const SizedBox(height: 10),
+                  Text(
+                    'No books currently in progress',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: ClayColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Explore your library to start reading!',
+                    style: GoogleFonts.inter(fontSize: 12.5, color: ClayColors.textMuted),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () => context.go('/library'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ClayColors.deepPurple,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    ),
+                    child: const Text('Browse Library', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          for (final book in books) ...[
+            _buildReadingCard(context, book),
+            const SizedBox(height: 14),
+          ],
       ],
     );
   }
 
   Widget _buildReadingCard(BuildContext context, Book book) {
     final palette = BookshelfTheme.paletteForId(book.id);
-    final progressPct = (book.progress > 0 ? (book.progress * 100).round() : 42);
-    final totalPages = book.pages > 0 ? book.pages : 336;
+    final progressPct = (book.progress * 100).round();
+    final totalPages = book.pages > 0 ? book.pages : 100;
     final currentPage = book.currentPage > 0
         ? book.currentPage
         : ((totalPages * progressPct) / 100).round();
-    final pagesRemaining = totalPages - currentPage;
+    final pagesRemaining = (totalPages - currentPage).clamp(0, totalPages);
     final hoursRemaining =
-        (pagesRemaining * 1.5 / 60).clamp(0.5, 24.0).toStringAsFixed(1);
+        (pagesRemaining * 1.5 / 60).clamp(0.1, 24.0).toStringAsFixed(1);
 
     return ClayCard(
       padding: const EdgeInsets.all(16),
@@ -547,35 +573,72 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         const SizedBox(height: 16),
 
         // Scrollable List of Currently Listening Audiobooks
-        SizedBox(
-          height: 340,
-          child: Scrollbar(
-            controller: _audiobookScrollController,
-            thumbVisibility: isWide,
-            child: ListView.separated(
-              controller: _audiobookScrollController,
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+        if (books.isEmpty)
+          ClayCard(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.headphones_rounded, color: Color(0xFF4379EE), size: 36),
+                  const SizedBox(height: 10),
+                  Text(
+                    'No audiobooks currently in progress',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: ClayColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Browse audiobooks in your library to start listening!',
+                    style: GoogleFonts.inter(fontSize: 12.5, color: ClayColors.textMuted),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () => context.go('/library'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4379EE),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    ),
+                    child: const Text('Find Audiobooks', style: TextStyle(color: Colors.white, fontSize: 13)),
+                  ),
+                ],
               ),
-              itemCount: books.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 14),
-              itemBuilder: (context, index) =>
-                  _buildListeningCard(context, books[index]),
+            ),
+          )
+        else
+          SizedBox(
+            height: 340,
+            child: Scrollbar(
+              controller: _audiobookScrollController,
+              thumbVisibility: isWide,
+              child: ListView.separated(
+                controller: _audiobookScrollController,
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                itemCount: books.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 14),
+                itemBuilder: (context, index) =>
+                    _buildListeningCard(context, books[index]),
+              ),
             ),
           ),
-        ),
       ],
     );
   }
 
   Widget _buildListeningCard(BuildContext context, Book book) {
     final palette = BookshelfTheme.paletteForId(book.id);
-    final progressPct = (book.progress > 0 ? (book.progress * 100).round() : 35);
+    final progressPct = (book.progress * 100).round();
     const totalChapters = 14;
     final currentChapter =
-        ((progressPct / 100.0) * totalChapters).clamp(1, totalChapters).round();
+        ((book.progress) * totalChapters).clamp(1, totalChapters).round();
     final hoursRemaining =
-        ((1.0 - (progressPct / 100.0)) * 9.5).clamp(0.5, 20.0).toStringAsFixed(1);
+        ((1.0 - book.progress) * 8.0).clamp(0.0, 20.0).toStringAsFixed(1);
 
     return ClayCard(
       padding: const EdgeInsets.all(16),

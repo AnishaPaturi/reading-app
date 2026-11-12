@@ -16,9 +16,13 @@ class ReaderPanelHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
-    final isBoy = ref.watch(userGenderProvider) == 'boy';
-    final defaultName = isBoy ? 'Leo' : 'Mia';
-    final userName = authState.user?.displayName ?? defaultName;
+    final rawName = authState.user?.displayName?.trim();
+    final email = authState.user?.email ?? '';
+    final emailPrefix = email.contains('@') ? email.split('@').first : email;
+    final fallback = emailPrefix.isNotEmpty
+        ? (emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : ''))
+        : 'Reader';
+    final userName = (rawName != null && rawName.isNotEmpty) ? rawName : fallback;
     final avatarAsset = ref.watch(userAvatarAssetProvider);
 
     return LayoutBuilder(
@@ -76,11 +80,7 @@ class ReaderPanelHeader extends ConsumerWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
-                          onSubmitted: (query) {
-                            if (query.trim().isNotEmpty) {
-                              context.push('/library');
-                            }
-                          },
+                          onSubmitted: (_) => context.push('/search'),
                           style: const TextStyle(
                             color: Color(0xFF2D234A),
                             fontSize: 13.5,
@@ -108,60 +108,64 @@ class ReaderPanelHeader extends ConsumerWidget {
 
             if (isCompact) ...[
               IconButton(
-                onPressed: () => context.push('/library'),
+                onPressed: () => context.push('/search'),
                 icon: const Icon(Icons.search_rounded, color: Color(0xFF2D234A)),
                 tooltip: 'Search',
               ),
               const SizedBox(width: 4),
             ],
 
-            // Notification Bell with Badge '9'
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAF7F5),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFEBE4DC)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.notifications_rounded,
-                    color: Color(0xFF8C7CD6),
-                    size: 20,
-                  ),
-                ),
-                Positioned(
-                  top: -2,
-                  right: -2,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            // Notification Bell with Badge
+            InkWell(
+              onTap: () => context.push('/notifications'),
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEE7186),
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFFFAF7F5),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFEBE4DC)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: const Text(
-                      '9',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                    child: const Icon(
+                      Icons.notifications_rounded,
+                      color: Color(0xFF8C7CD6),
+                      size: 20,
+                    ),
+                  ),
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEE7186),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: const Text(
+                        '3',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(width: 10),
 
@@ -215,7 +219,7 @@ class ReaderPanelHeader extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              authState.user?.email ?? 'mia@readingsanctuary.com',
+                              authState.user?.email ?? '',
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 color: Color(0xFF9E95A8),

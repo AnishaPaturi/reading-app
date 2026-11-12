@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/services/providers.dart';
 
-class TodaysPicksCard extends StatelessWidget {
+class TodaysPicksCard extends ConsumerWidget {
   final VoidCallback? onSeeAll;
   final VoidCallback? onPlay;
 
@@ -12,7 +14,11 @@ class TodaysPicksCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final books = ref.watch(booksProvider).valueOrNull ?? [];
+    final totalBooks = books.length;
+    final topPicksCount = books.where((b) => (b.rating ?? 0) >= 4.0 || b.progress > 0).length;
+    final displayPicks = topPicksCount > 0 ? topPicksCount : 5;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -87,11 +93,11 @@ class TodaysPicksCard extends StatelessWidget {
           // Title & Play button
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Cozy Reads',
                       style: TextStyle(
                         fontSize: 14,
@@ -99,10 +105,10 @@ class TodaysPicksCard extends StatelessWidget {
                         color: Color(0xFF2E2248),
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      '80 books · 15 recommendations',
-                      style: TextStyle(
+                      '$totalBooks books · $displayPicks recommendations',
+                      style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFF8D82A2),
                         fontWeight: FontWeight.w500,
@@ -113,7 +119,7 @@ class TodaysPicksCard extends StatelessWidget {
               ),
               // Clay Play Button
               GestureDetector(
-                onTap: onPlay ?? () => context.go('/audiobooks'),
+                onTap: onPlay ?? () => context.go('/reading'),
                 child: Container(
                   width: 36,
                   height: 36,

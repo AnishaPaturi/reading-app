@@ -121,15 +121,35 @@ void main() {
       expect(stored.user.gender, 'boy');
     });
 
-    test('setGender updates user and session storage', () async {
-      fakeApiService.loginResult = sampleUser;
+    test('setGender updates user and session storage when gender is unset', () async {
+      final unsetUser = AuthUser(
+        id: sampleUser.id,
+        email: sampleUser.email,
+        token: sampleUser.token,
+        displayName: sampleUser.displayName,
+        gender: null,
+      );
+      fakeApiService.loginResult = unsetUser;
       await authNotifier.login(email: 'test@sanctuary.app', password: 'password123');
 
-      authNotifier.setGender('girl');
+      final result = await authNotifier.setGender('girl');
 
+      expect(result, isTrue);
       expect(authNotifier.state.user?.gender, 'girl');
       final stored = await fakeStorage.loadSession();
       expect(stored?.user.gender, 'girl');
+    });
+
+    test('setGender prevents switching when gender is already set', () async {
+      fakeApiService.loginResult = sampleUser; // has gender 'boy'
+      await authNotifier.login(email: 'test@sanctuary.app', password: 'password123');
+
+      final result = await authNotifier.setGender('girl');
+
+      expect(result, isFalse);
+      expect(authNotifier.state.user?.gender, 'boy');
+      final stored = await fakeStorage.loadSession();
+      expect(stored?.user.gender, 'boy');
     });
 
     test('logout clears session from storage and resets state', () async {

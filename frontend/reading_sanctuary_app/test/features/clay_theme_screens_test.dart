@@ -112,7 +112,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('My Profile'), findsOneWidget);
-      expect(find.text('Mia'), findsOneWidget);
+      expect(find.text('Reader'), findsOneWidget);
       expect(find.text('Book Lover'), findsOneWidget);
       expect(find.textContaining('Books'), findsWidgets);
       expect(find.textContaining('Streak'), findsOneWidget);
@@ -162,17 +162,17 @@ void main() {
       await tester.pumpWidget(testWrapper(const ProfileScreen()));
       await tester.pumpAndSettle();
 
-      // Initially Girl (Mia)
+      // Initially Girl avatar with dynamic reader name
       expect(find.text('Girl'), findsOneWidget);
       expect(find.text('Boy'), findsOneWidget);
-      expect(find.text('Mia'), findsOneWidget);
+      expect(find.text('Reader'), findsOneWidget);
 
       // Tap 'Boy'
       await tester.tap(find.text('Boy'));
       await tester.pumpAndSettle();
 
-      // Verified Leo / Boy character active
-      expect(find.text('Leo'), findsOneWidget);
+      // Verified Boy character active while preserving real user name
+      expect(find.text('Reader'), findsOneWidget);
       final boyImages = tester.widgetList<Image>(find.byType(Image)).where(
         (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_boy'),
       );
@@ -186,7 +186,7 @@ void main() {
       await tester.tap(find.text('Girl'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Mia'), findsOneWidget);
+      expect(find.text('Reader'), findsOneWidget);
       final girlImages = tester.widgetList<Image>(find.byType(Image)).where(
         (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_mia'),
       );

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
-import '../../../notifications/application/notifications_provider.dart';
 
 class ReaderPanelHeader extends ConsumerWidget {
   final VoidCallback? onMenuPressed;
@@ -17,8 +16,13 @@ class ReaderPanelHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
-    final userName = ref.watch(userDisplayNameProvider);
-    final unreadCount = ref.watch(unreadNotificationCountProvider);
+    final rawName = authState.user?.displayName?.trim();
+    final email = authState.user?.email ?? '';
+    final emailPrefix = email.contains('@') ? email.split('@').first : email;
+    final fallback = emailPrefix.isNotEmpty
+        ? (emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : ''))
+        : 'Reader';
+    final userName = (rawName != null && rawName.isNotEmpty) ? rawName : fallback;
     final avatarAsset = ref.watch(userAvatarAssetProvider);
 
     return LayoutBuilder(
@@ -38,22 +42,21 @@ class ReaderPanelHeader extends ConsumerWidget {
 
             // Title
             if (isCompact)
-              Expanded(
+              const Expanded(
                 child: Text(
-                  '$userName\'s Sanctuary',
-                  style: const TextStyle(
+                  'Reader Panel',
+                  style: TextStyle(
                     color: Color(0xFF2D234A),
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               )
             else ...[
-              Text(
-                '$userName\'s Sanctuary',
-                style: const TextStyle(
+              const Text(
+                'Reader Panel',
+                style: TextStyle(
                   color: Color(0xFF2D234A),
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -140,28 +143,27 @@ class ReaderPanelHeader extends ConsumerWidget {
                       size: 20,
                     ),
                   ),
-                  if (unreadCount > 0)
-                    Positioned(
-                      top: -2,
-                      right: -2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEE7186),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                        child: Text(
-                          '$unreadCount',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEE7186),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      child: const Text(
+                        '3',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
+                  ),
                 ],
               ),
             ),

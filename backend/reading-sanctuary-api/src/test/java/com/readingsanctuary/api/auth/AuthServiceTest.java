@@ -90,4 +90,34 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(new LoginRequest("unknown@example.com", "wrongpass")))
             .isInstanceOf(ResponseStatusException.class);
     }
+
+    @Test
+    void loginWithMultipleCandidates_SelectsUserWithMatchingPassword() {
+        User user1 = new User("user1@example.com", "hash1", "Reader", null, null, "male");
+        ReflectionTestUtils.setField(user1, "id", UUID.randomUUID());
+        User user2 = new User("user2@example.com", "hash2", "Reader", null, null, "female");
+        ReflectionTestUtils.setField(user2, "id", UUID.randomUUID());
+
+        when(userRepository.findLoginCandidates("Reader")).thenReturn(java.util.List.of(user1, user2));
+        when(passwordEncoder.matches("mypass2", "hash1")).thenReturn(false);
+        when(passwordEncoder.matches("mypass2", "hash2")).thenReturn(true);
+        when(jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(jwt);
+        when(jwt.getTokenValue()).thenReturn("test-token-2");
+
+        LoginResponse response = authService.login(new LoginRequest("Reader", "mypass2"));
+
+        assertThat(response.accessToken()).isEqualTo("test-token-2");
+        assertThat(response.email()).isEqualTo("user2@example.com");
+        assertThat(response.displayName()).isEqualTo("Reader");
+    }
+
+    @Test
+    void loginWithGoogleAccountWithoutPassword_GivesClearHelpfulMessage() {
+        User googleUser = new User("google@example.com", null, "Google User", null, "google-sub-123", null);
+        when(userRepository.findLoginCandidates("google@example.com")).thenReturn(java.util.List.of(googleUser));
+
+        assertThatThrownBy(() -> authService.login(new LoginRequest("google@example.com", "anypass")))
+            .isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining("Google Sign-In");
+    }
 }

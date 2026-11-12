@@ -39,7 +39,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     }
     final success = await ref.read(authNotifierProvider.notifier).register(
       email: _emailController.text.trim(),
-      password: _passwordController.text,
+      password: _passwordController.text.trim(),
       username: _usernameController.text.trim(),
       gender: _selectedGender,
     );

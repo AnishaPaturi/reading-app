@@ -8,7 +8,8 @@ class AuthApiService {
 
   Future<AuthUser> login({required String email, required String password}) async {
     final response = await _apiClient.post('/auth/login', body: {
-      'email': email.trim(), 'password': password,
+      'email': email.trim(),
+      'password': password.trim(),
     });
     if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
     throw const ApiException(message: 'Invalid response from server', statusCode: 500);
@@ -23,15 +24,18 @@ class AuthApiService {
   Future<AuthUser> register({
     required String email, required String password, String? username, String? gender,
   }) async {
+    final trimmedEmail = email.trim();
+    final trimmedPassword = password.trim();
     final response = await _apiClient.post('/users/register', body: {
-      'email': email.trim(), 'password': password,
+      'email': trimmedEmail,
+      'password': trimmedPassword,
       if (username != null && username.trim().isNotEmpty) 'displayName': username.trim(),
       if (gender != null && gender.trim().isNotEmpty) 'gender': gender.trim(),
     });
     if (response is! Map<String, dynamic>) {
       throw const ApiException(message: 'Failed to create user account', statusCode: 500);
     }
-    final loggedInUser = await login(email: email, password: password);
+    final loggedInUser = await login(email: trimmedEmail, password: trimmedPassword);
     if (gender != null && gender.trim().isNotEmpty) {
       return loggedInUser.copyWith(gender: gender.trim());
     }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../../core/network/api_exception.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../data/models/auth_user.dart';
@@ -216,6 +217,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   String _extractErrorMessage(dynamic e) {
+    if (e is ApiException) return e.message;
     final msg = e.toString();
     if (msg.contains('Exception:')) return msg.split('Exception:').last.trim();
     return msg;

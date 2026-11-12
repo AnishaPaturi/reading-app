@@ -54,7 +54,8 @@ public class UserService {
         } else {
             displayName = displayName.trim();
         }
-        User user = new User(normalizedEmail, passwordEncoder.encode(request.password()),
+        String passwordToHash = request.password() != null ? request.password().trim() : "";
+        User user = new User(normalizedEmail, passwordEncoder.encode(passwordToHash),
             displayName, null, null, gender);
         User saved = userRepository.save(user);
         return new UserResponse(saved.getId(), saved.getEmail(), saved.isActive(),

@@ -29,16 +29,10 @@ class HeroReadingBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
-    final rawName = customUserName?.trim().isNotEmpty == true
+    final resolvedDisplayName = ref.watch(userDisplayNameProvider);
+    final userName = (customUserName != null && customUserName!.trim().isNotEmpty)
         ? customUserName!.trim()
-        : authState.user?.displayName?.trim();
-    final email = authState.user?.email ?? '';
-    final emailPrefix = email.contains('@') ? email.split('@').first : email;
-    final fallback = emailPrefix.isNotEmpty
-        ? (emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : ''))
-        : 'Reader';
-    final userName = (rawName != null && rawName.isNotEmpty) ? rawName : fallback;
+        : resolvedDisplayName;
 
     final greeting = getGreeting(currentTime);
     final bannerAsset = ref.watch(userBannerAssetProvider);

@@ -43,14 +43,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
-    final rawName = authState.user?.displayName?.trim();
-    final email = authState.user?.email ?? '';
-    final emailPrefix = email.contains('@') ? email.split('@').first : email;
-    final fallback = emailPrefix.isNotEmpty
-        ? (emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : ''))
-        : 'Reader';
-    final userName = (rawName != null && rawName.isNotEmpty) ? rawName : fallback;
+    final userName = ref.watch(userDisplayNameProvider);
     final isBoy = ref.watch(userGenderProvider) == 'boy';
     final avatarAsset = ref.watch(userAvatarAssetProvider);
 
@@ -756,6 +749,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               final newName = textController.text.trim();
               if (newName.isNotEmpty) {
                 Navigator.of(ctx).pop();
+                await ref.read(customDisplayNameProvider.notifier).setName(newName);
                 final ok = await ref.read(authNotifierProvider.notifier).updateDisplayName(newName);
                 if (!mounted) return;
                 if (ok) {

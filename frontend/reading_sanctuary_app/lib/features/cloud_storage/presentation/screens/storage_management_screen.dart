@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/sync/providers/sync_providers.dart';
-import '../../../offline/domain/models/download_task.dart';
 
 class StorageManagementScreen extends ConsumerWidget {
   const StorageManagementScreen({super.key});

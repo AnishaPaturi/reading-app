@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
@@ -53,8 +54,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = state.copyWith(user: session.user, isLoading: false);
         // Silently refresh profile in the background from database
         refreshUserProfile();
-        return true;
       }
+      final prefs = await SharedPreferences.getInstance();
+      final customName = prefs.getString('sanctuary_user_display_name');
+      if (customName != null && customName.isNotEmpty) {
+        if (state.user != null) {
+          state = state.copyWith(user: state.user!.copyWith(displayName: customName));
+        } else {
+          state = state.copyWith(
+            user: AuthUser(id: 'local_user', email: '', displayName: customName),
+          );
+        }
+      }
+      if (session != null && session.token.isNotEmpty) return true;
     } catch (_) {
       // Gracefully continue without session if loading fails
     }
@@ -84,34 +96,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return false;
   }
 
-  /// Updates user display name and persists to database and session storage.
+  /// Updates user display name and persists to database, session storage, and local preferences.
   Future<bool> updateDisplayName(String displayName) async {
     final trimmed = displayName.trim();
     if (trimmed.isEmpty) return false;
-    final token = _tokenNotifier.state;
     try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('sanctuary_user_display_name', trimmed);
+    } catch (_) {}
+
+    final token = _tokenNotifier.state;
+    if (state.user != null) {
+      final updated = state.user!.copyWith(displayName: trimmed);
+      state = state.copyWith(user: updated);
       if (token != null && token.isNotEmpty) {
-        final updated = await _apiService.updateProfile(displayName: trimmed);
-        final merged = updated.copyWith(token: token);
-        state = state.copyWith(user: merged);
-        await _sessionStorage.saveSession(token: token, user: merged);
-        return true;
-      } else if (state.user != null) {
-        final updated = state.user!.copyWith(displayName: trimmed);
-        state = state.copyWith(user: updated);
-        return true;
+        await _sessionStorage.saveSession(token: token, user: updated);
+        try {
+          await _apiService.updateProfile(displayName: trimmed);
+        } catch (_) {}
       }
-    } catch (_) {
-      if (state.user != null) {
-        final updated = state.user!.copyWith(displayName: trimmed);
-        state = state.copyWith(user: updated);
-        if (token != null && token.isNotEmpty) {
-          await _sessionStorage.saveSession(token: token, user: updated);
-        }
-        return true;
-      }
+      return true;
+    } else {
+      final localUser = AuthUser(id: 'local_user', email: '', displayName: trimmed);
+      state = state.copyWith(user: localUser);
+      return true;
     }
-    return false;
   }
 
   /// Refreshes user profile directly from database (/api/v1/users/me).
@@ -277,16 +286,52 @@ final userBannerAssetProvider = Provider<String>((ref) {
   return 'assets/images/dashboard/dash_banner.png';
 });
 
+class CustomDisplayNameNotifier extends StateNotifier<String?> {
+  static const _key = 'sanctuary_user_display_name';
+
+  CustomDisplayNameNotifier() : super(null) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_key);
+      if (saved != null && saved.trim().isNotEmpty) {
+        state = saved.trim();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> setName(String name) async {
+    final trimmed = name.trim();
+    state = trimmed;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_key, trimmed);
+    } catch (_) {}
+  }
+}
+
+final customDisplayNameProvider =
+    StateNotifierProvider<CustomDisplayNameNotifier, String?>((ref) {
+  return CustomDisplayNameNotifier();
+});
+
 /// Resolves the user's friendly display name across the application.
 final userDisplayNameProvider = Provider<String>((ref) {
+  final customName = ref.watch(customDisplayNameProvider);
+  if (customName != null && customName.trim().isNotEmpty) {
+    return customName.trim();
+  }
   final authUser = ref.watch(authNotifierProvider).user;
   final rawName = authUser?.displayName?.trim();
-  if (rawName != null && rawName.isNotEmpty) {
+  if (rawName != null && rawName.isNotEmpty && rawName.toLowerCase() != 'reader') {
     return rawName;
   }
   final email = authUser?.email ?? '';
   final emailPrefix = email.contains('@') ? email.split('@').first : email;
-  if (emailPrefix.isNotEmpty) {
+  if (emailPrefix.isNotEmpty && emailPrefix.toLowerCase() != 'reader') {
     return emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : '');
   }
   return 'Reader';

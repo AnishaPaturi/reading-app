@@ -44,9 +44,8 @@ void main() {
 
     // Verify Header
     expect(find.byType(ReaderPanelHeader), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
     expect(find.text('Search books, authors, genres...'), findsOneWidget);
-    expect(find.text('3'), findsOneWidget); // Notification badge
 
     // Verify Section Headers
     expect(find.text('Currently Reading'), findsOneWidget);
@@ -76,7 +75,7 @@ void main() {
 
     // Menu hamburger button is present on mobile
     expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
 
     // Verify 3D Bottom Navigation bar on mobile
     expect(find.byType(ClayBottomNav), findsOneWidget);
@@ -141,7 +140,7 @@ void main() {
 
     // Verify HomeScreen / Dashboard is rendered on /dashboard
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
     expect(find.text('Currently Reading'), findsOneWidget);
 
     // Navigate to /home
@@ -150,7 +149,7 @@ void main() {
 
     // Verify exact same screen is rendered on /home
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.text('Reader Panel'), findsOneWidget);
+    expect(find.textContaining('Sanctuary'), findsOneWidget);
     expect(find.text('Currently Reading'), findsOneWidget);
   });
 

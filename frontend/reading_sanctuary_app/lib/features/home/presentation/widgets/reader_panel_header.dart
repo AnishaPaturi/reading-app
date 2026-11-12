@@ -42,21 +42,22 @@ class ReaderPanelHeader extends ConsumerWidget {
 
             // Title
             if (isCompact)
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Reader Panel',
-                  style: TextStyle(
+                  '$userName\'s Sanctuary',
+                  style: const TextStyle(
                     color: Color(0xFF2D234A),
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               )
             else ...[
-              const Text(
-                'Reader Panel',
-                style: TextStyle(
+              Text(
+                '$userName\'s Sanctuary',
+                style: const TextStyle(
                   color: Color(0xFF2D234A),
                   fontSize: 22,
                   fontWeight: FontWeight.w800,

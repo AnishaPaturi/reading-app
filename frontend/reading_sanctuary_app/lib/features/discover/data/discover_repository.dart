@@ -15,7 +15,7 @@ class MockDiscoverRepository implements DiscoverRepository {
             int releasedDaysAgo, int c1, int c2, String desc, {String? series}) =>
         Book(
           id: id, title: t, author: a, genre: g, pages: pages, avgRating: avg, tropes: tropes,
-          series: series, description: 'Sample entry. $desc',
+          series: series, description: desc,
           status: ReadingStatus.wantToRead, progress: 0,
           formats: const [BookFormat.ebook],
           addedAt: now.subtract(Duration(days: releasedDaysAgo)),
@@ -34,8 +34,8 @@ class MockDiscoverRepository implements DiscoverRepository {
       d('d10', 'The Night Circus', 'Erin Morgenstern', 'Fantasy', 400, 4.0, ['Forbidden Love', 'Slow Burn'], 5000, 0xFF2B2B3A, 0xFF0B0B12, 'Two illusionists are bound in a competition.'),
       d('d11', 'Book Lovers', 'Emily Henry', 'Romance', 377, 4.1, ['Second Chance Romance', 'Grumpy x Sunshine'], 1200, 0xFFB5651D, 0xFF5E3210, 'A literary agent and an editor keep crossing paths in a small town.'),
       d('d12', 'The Secret History', 'Donna Tartt', 'Literary Fiction', 559, 4.1, ['Morally Grey Characters'], 12000, 0xFF3F4B3A, 0xFF141A12, 'A circle of classics students and a secret.'),
-      d('d13', 'Fresh Pages', 'Sample Author', 'Romance', 320, 3.8, ['Slow Burn', 'Friends to Lovers'], 20, 0xFFE0A458, 0xFF5E3E12, 'A brand-new sample release to demonstrate the New Releases shelf.'),
-      d('d14', 'Midnight Ledger', 'Sample Author', 'Mystery', 352, 3.9, ['Morally Grey Characters'], 35, 0xFF2E6F6A, 0xFF123532, 'Another sample new release.'),
+      d('d13', 'Fresh Pages', 'Elena Harper', 'Romance', 320, 3.8, ['Slow Burn', 'Friends to Lovers'], 20, 0xFFE0A458, 0xFF5E3E12, 'A passionate contemporary romance about finding second chances.'),
+      d('d14', 'Midnight Ledger', 'David Vance', 'Mystery', 352, 3.9, ['Morally Grey Characters'], 35, 0xFF2E6F6A, 0xFF123532, 'An atmospheric detective mystery set in Victorian London.'),
     ];
   }
 }

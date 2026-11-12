@@ -276,3 +276,18 @@ final userBannerAssetProvider = Provider<String>((ref) {
   }
   return 'assets/images/dashboard/dash_banner.png';
 });
+
+/// Resolves the user's friendly display name across the application.
+final userDisplayNameProvider = Provider<String>((ref) {
+  final authUser = ref.watch(authNotifierProvider).user;
+  final rawName = authUser?.displayName?.trim();
+  if (rawName != null && rawName.isNotEmpty) {
+    return rawName;
+  }
+  final email = authUser?.email ?? '';
+  final emailPrefix = email.contains('@') ? email.split('@').first : email;
+  if (emailPrefix.isNotEmpty) {
+    return emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : '');
+  }
+  return 'Reader';
+});

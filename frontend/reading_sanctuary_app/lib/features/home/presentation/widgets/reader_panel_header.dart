@@ -16,13 +16,7 @@ class ReaderPanelHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
-    final rawName = authState.user?.displayName?.trim();
-    final email = authState.user?.email ?? '';
-    final emailPrefix = email.contains('@') ? email.split('@').first : email;
-    final fallback = emailPrefix.isNotEmpty
-        ? (emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : ''))
-        : 'Reader';
-    final userName = (rawName != null && rawName.isNotEmpty) ? rawName : fallback;
+    final userName = ref.watch(userDisplayNameProvider);
     final avatarAsset = ref.watch(userAvatarAssetProvider);
 
     return LayoutBuilder(
@@ -43,15 +37,19 @@ class ReaderPanelHeader extends ConsumerWidget {
             // Title
             if (isCompact)
               Expanded(
-                child: Text(
-                  '$userName\'s Sanctuary',
-                  style: const TextStyle(
-                    color: Color(0xFF2D234A),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '$userName\'s Sanctuary',
+                    style: const TextStyle(
+                      color: Color(0xFF2D234A),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                    maxLines: 1,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               )
             else ...[

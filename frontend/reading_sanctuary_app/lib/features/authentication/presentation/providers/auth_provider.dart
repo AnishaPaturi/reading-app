@@ -333,14 +333,38 @@ class CustomDisplayNameNotifier extends StateNotifier<String?> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getString(_key);
-      if (saved != null && saved.trim().isNotEmpty) {
+      if (saved != null && saved.trim().isNotEmpty && saved.trim().toLowerCase() != 'reader') {
         state = saved.trim();
+        return;
+      }
+
+      // Check stored session user if custom display name is not directly set
+      final userJson = prefs.getString('sanctuary_auth_user');
+      if (userJson != null && userJson.isNotEmpty) {
+        final decoded = jsonDecode(userJson);
+        if (decoded is Map<String, dynamic>) {
+          final raw = decoded['displayName']?.toString().trim();
+          if (raw != null && raw.isNotEmpty && raw.toLowerCase() != 'reader') {
+            state = raw;
+            await prefs.setString(_key, raw);
+            return;
+          }
+          final email = decoded['email']?.toString().trim() ?? '';
+          final prefix = email.contains('@') ? email.split('@').first : email;
+          if (prefix.isNotEmpty && prefix.toLowerCase() != 'reader') {
+            final formatted = prefix[0].toUpperCase() + (prefix.length > 1 ? prefix.substring(1) : '');
+            state = formatted;
+            await prefs.setString(_key, formatted);
+            return;
+          }
+        }
       }
     } catch (_) {}
   }
 
   Future<void> setName(String name) async {
     final trimmed = name.trim();
+    if (trimmed.isEmpty) return;
     state = trimmed;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -357,7 +381,7 @@ final customDisplayNameProvider =
 /// Resolves the user's friendly display name across the application.
 final userDisplayNameProvider = Provider<String>((ref) {
   final customName = ref.watch(customDisplayNameProvider);
-  if (customName != null && customName.trim().isNotEmpty) {
+  if (customName != null && customName.trim().isNotEmpty && customName.trim().toLowerCase() != 'reader') {
     return customName.trim();
   }
   final authUser = ref.watch(authNotifierProvider).user;

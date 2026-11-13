@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/listening_analytics.dart';
 
 class ListeningAnalyticsCard extends StatelessWidget {
@@ -22,20 +23,8 @@ class ListeningAnalyticsCard extends StatelessWidget {
     final audioRatio = (listening.audiobookPercentage / 100.0).clamp(0.0, 1.0);
     final ttsRatio = (listening.ttsPercentage / 100.0).clamp(0.0, 1.0);
 
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.walnut),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,28 +33,29 @@ class ListeningAnalyticsCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.headphones, color: AppColors.hlBlue, size: 22),
+                  const Icon(Icons.headphones_rounded, color: Color(0xFF67B5EC), size: 22),
                   const SizedBox(width: 8),
                   Text(
                     'Listening Analytics (Audio & TTS)',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textLight,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: GoogleFonts.inter(
+                      color: ClayColors.textDark,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFF67B5EC).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '${_formatHoursAndMinutes(listening.totalListeningMinutes)} Total',
-                  style: const TextStyle(
-                    color: AppColors.hlBlue,
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF67B5EC),
+                    fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),
                 ),
@@ -83,16 +73,16 @@ class ListeningAnalyticsCard extends StatelessWidget {
                   if (audioRatio > 0)
                     Expanded(
                       flex: (audioRatio * 100).toInt(),
-                      child: Container(color: AppColors.hlSage),
+                      child: Container(color: const Color(0xFF2E9E67)),
                     ),
                   if (ttsRatio > 0)
                     Expanded(
                       flex: (ttsRatio * 100).toInt(),
-                      child: Container(color: AppColors.hlBlue),
+                      child: Container(color: const Color(0xFF67B5EC)),
                     ),
                   if (audioRatio == 0 && ttsRatio == 0)
                     Expanded(
-                      child: Container(color: AppColors.secondary),
+                      child: Container(color: const Color(0xFFDDD2F5)),
                     ),
                 ],
               ),
@@ -109,7 +99,7 @@ class ListeningAnalyticsCard extends StatelessWidget {
                   duration: _formatHoursAndMinutes(listening.audiobookMinutes),
                   percentage: '${listening.audiobookPercentage.toStringAsFixed(0)}%',
                   sessions: '${listening.totalAudiobookSessions} sessions',
-                  color: AppColors.hlSage,
+                  color: const Color(0xFF2E9E67),
                   extra: '${listening.audiobooksCompleted} completed',
                 ),
               ),
@@ -121,7 +111,7 @@ class ListeningAnalyticsCard extends StatelessWidget {
                   duration: _formatHoursAndMinutes(listening.ttsMinutes),
                   percentage: '${listening.ttsPercentage.toStringAsFixed(0)}%',
                   sessions: '${listening.totalTtsSessions} sessions',
-                  color: AppColors.hlBlue,
+                  color: const Color(0xFF67B5EC),
                   extra: 'Avg speed: ${listening.averageListeningSpeed.toStringAsFixed(2)}x',
                 ),
               ),
@@ -144,9 +134,9 @@ class ListeningAnalyticsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.secondary,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.25)),
+        color: const Color(0xFFFAF7FE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFDDD2F5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,17 +146,17 @@ class ListeningAnalyticsCard extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: AppColors.textLight,
-                  fontWeight: FontWeight.w600,
+                style: GoogleFonts.inter(
+                  color: ClayColors.textDark,
+                  fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
               ),
               Text(
                 percentage,
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   color: color,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   fontSize: 13,
                 ),
               ),
@@ -175,22 +165,22 @@ class ListeningAnalyticsCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             duration,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              fontSize: 19,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             sessions,
-            style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 11),
+            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 11),
           ),
           const SizedBox(height: 2),
           Text(
             extra,
-            style: TextStyle(
-              color: AppColors.textLightSecondary.withOpacity(0.8),
+            style: GoogleFonts.inter(
+              color: ClayColors.textMuted,
               fontSize: 11,
             ),
           ),

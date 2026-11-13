@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../models/sync_models.dart';
 import '../../providers/sync_providers.dart';
 import '../widgets/sync_conflict_card.dart';
@@ -50,11 +52,26 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
     final timeFormatter = DateFormat.yMMMd().add_jms();
 
     return Scaffold(
+      backgroundColor: ClayColors.background,
       appBar: AppBar(
-        title: const Text('Sync & Devices'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: ClayColors.textDark),
+          tooltip: 'Back',
+          onPressed: () => context.canPop() ? context.pop() : context.go('/settings'),
+        ),
+        title: Text(
+          'Sync & Devices',
+          style: GoogleFonts.inter(
+            color: ClayColors.textDark,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded, color: ClayColors.deepPurple),
             tooltip: 'Sync Now',
             onPressed: engine.isSyncing
                 ? null
@@ -63,9 +80,11 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
                     _loadDevices();
                   },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
+        color: ClayColors.deepPurple,
         onRefresh: () async {
           await engine.syncNow();
           await _loadDevices();
@@ -74,7 +93,7 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
@@ -82,89 +101,94 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Sync Status Header Card
-                  Card(
-                    color: AppColors.card,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.walnut,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              status == SyncStatus.synced
-                                  ? Icons.cloud_done
-                                  : (status == SyncStatus.syncing
-                                      ? Icons.sync
-                                      : (status == SyncStatus.offline
-                                          ? Icons.cloud_off
-                                          : Icons.cloud_upload)),
-                              color: status == SyncStatus.synced
-                                  ? const Color(0xFF5CB89A)
-                                  : (status == SyncStatus.offline
-                                      ? AppColors.textLightSecondary
-                                      : AppColors.gold),
-                              size: 32,
-                            ),
+                  ClayCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAF7FE),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFFDDD2F5)),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  status == SyncStatus.synced
-                                      ? 'Synchronized'
-                                      : (status == SyncStatus.syncing
-                                          ? 'Synchronizing...'
-                                          : (status == SyncStatus.offline
-                                              ? 'Offline Mode'
-                                              : 'Changes Pending Upload')),
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textLight,
-                                  ),
+                          child: Icon(
+                            status == SyncStatus.synced
+                                ? Icons.cloud_done_rounded
+                                : (status == SyncStatus.syncing
+                                    ? Icons.sync_rounded
+                                    : (status == SyncStatus.offline
+                                        ? Icons.cloud_off_rounded
+                                        : Icons.cloud_upload_rounded)),
+                            color: status == SyncStatus.synced
+                                ? const Color(0xFF2E9E67)
+                                : (status == SyncStatus.offline
+                                    ? ClayColors.textMuted
+                                    : ClayColors.deepPurple),
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                status == SyncStatus.synced
+                                    ? 'Synchronized'
+                                    : (status == SyncStatus.syncing
+                                        ? 'Synchronizing...'
+                                        : (status == SyncStatus.offline
+                                            ? 'Offline Mode'
+                                            : 'Changes Pending Upload')),
+                                style: GoogleFonts.inter(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: ClayColors.textDark,
                                 ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                lastSync != null
+                                    ? 'Last synced: ${timeFormatter.format(lastSync)}'
+                                    : 'Never synchronized',
+                                style: GoogleFonts.inter(fontSize: 12.5, color: ClayColors.textMuted),
+                              ),
+                              if (engine.lastErrorMessage != null) ...[
                                 const SizedBox(height: 4),
                                 Text(
-                                  lastSync != null
-                                      ? 'Last synced: ${timeFormatter.format(lastSync)}'
-                                      : 'Never synchronized',
-                                  style: const TextStyle(fontSize: 13, color: AppColors.textLightSecondary),
+                                  engine.lastErrorMessage!,
+                                  style: GoogleFonts.inter(fontSize: 12, color: Colors.redAccent),
                                 ),
-                                if (engine.lastErrorMessage != null) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    engine.lastErrorMessage!,
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFFE05A7A)),
-                                  ),
-                                ],
                               ],
-                            ),
+                            ],
                           ),
-                          FilledButton.icon(
-                            onPressed: engine.isSyncing
-                                ? null
-                                : () async {
-                                    await engine.syncNow();
-                                    _loadDevices();
-                                  },
-                            icon: engine.isSyncing
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Icon(Icons.sync, size: 18),
-                            label: Text(engine.isSyncing ? 'Syncing...' : 'Sync Now'),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: engine.isSyncing
+                              ? null
+                              : () async {
+                                  await engine.syncNow();
+                                  _loadDevices();
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ClayColors.deepPurple,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           ),
-                        ],
-                      ),
+                          icon: engine.isSyncing
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : const Icon(Icons.sync_rounded, size: 18, color: Colors.white),
+                          label: Text(
+                            engine.isSyncing ? 'Syncing...' : 'Sync Now',
+                            style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -173,149 +197,174 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
                     const SizedBox(height: 24),
                     Row(
                       children: [
-                        const Icon(Icons.warning_amber_rounded, color: Color(0xFFE8613C), size: 20),
+                        const Icon(Icons.warning_amber_rounded, color: ClayColors.coral, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           'Conflicts Requiring Resolution (${conflicts.length})',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: ClayColors.textDark),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     for (final conflict in conflicts)
                       SyncConflictCard(conflict: conflict),
                   ],
 
                   // Outbox Queue Card
-                  const SizedBox(height: 20),
-                  Card(
-                    color: AppColors.card,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Pending Changes (Outbox)',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textLight)),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: engine.pendingCount > 0 ? const Color(0xFFE6A23C) : const Color(0xFF5CB89A),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  '${engine.pendingCount} pending',
-                                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
+                  const SizedBox(height: 18),
+                  ClayCard(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Pending Changes (Outbox)',
+                              style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15, color: ClayColors.textDark),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: engine.pendingCount > 0
+                                    ? ClayColors.amber.withValues(alpha: 0.2)
+                                    : const Color(0xFF2E9E67).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${engine.pendingCount} pending',
+                                style: GoogleFonts.inter(
+                                  color: engine.pendingCount > 0 ? const Color(0xFFB47814) : const Color(0xFF2E9E67),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12,
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          if (engine.pendingCount == 0)
-                            const Text(
-                              'All offline changes have been sent to the cloud.',
-                              style: TextStyle(color: AppColors.textLightSecondary, fontSize: 13),
-                            )
-                          else
-                            Text(
-                              '${engine.pendingCount} reading position, bookmark, note or goal updates saved locally and queued for upload.',
-                              style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 13),
                             ),
-                        ],
-                      ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        if (engine.pendingCount == 0)
+                          Text(
+                            'All offline changes have been sent to the cloud.',
+                            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 13),
+                          )
+                        else
+                          Text(
+                            '${engine.pendingCount} reading position, bookmark, note or goal updates saved locally and queued for upload.',
+                            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 13),
+                          ),
+                      ],
                     ),
                   ),
 
                   // Current Device Details Card
-                  const SizedBox(height: 20),
-                  Card(
-                    color: AppColors.card,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('This Device',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textLight)),
-                          const SizedBox(height: 12),
-                          _DetailRow(label: 'Name', value: deviceName),
-                          _DetailRow(label: 'Platform', value: engine.devicePlatform),
-                          _DetailRow(label: 'Identifier', value: deviceId),
-                          _DetailRow(label: 'Sync Cursor', value: '$cursor'),
-                        ],
-                      ),
+                  const SizedBox(height: 18),
+                  ClayCard(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'This Device',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 15, color: ClayColors.textDark),
+                        ),
+                        const SizedBox(height: 12),
+                        _DetailRow(label: 'Name', value: deviceName),
+                        _DetailRow(label: 'Platform', value: engine.devicePlatform),
+                        _DetailRow(label: 'Identifier', value: deviceId),
+                        _DetailRow(label: 'Sync Cursor', value: '$cursor'),
+                      ],
                     ),
                   ),
 
                   // Other Devices List
                   const SizedBox(height: 24),
-                  const Text('Registered Devices',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textLight)),
+                  Text(
+                    'Registered Devices',
+                    style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: ClayColors.textDark),
+                  ),
                   const SizedBox(height: 10),
                   if (_loadingDevices)
-                    const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+                    const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: ClayColors.deepPurple)))
                   else if (_devices.isEmpty)
-                    Card(
-                      color: AppColors.card,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: const Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Center(
-                          child: Text(
-                            'No other devices registered yet. Log in on another phone or computer to sync.',
-                            style: TextStyle(color: AppColors.textLightSecondary),
-                            textAlign: TextAlign.center,
-                          ),
+                    ClayCard(
+                      padding: const EdgeInsets.all(22),
+                      child: Center(
+                        child: Text(
+                          'No other devices registered yet. Log in on another phone or computer to sync.',
+                          style: GoogleFonts.inter(color: ClayColors.textMuted),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     )
                   else
                     for (final dev in _devices)
-                      Card(
-                        color: AppColors.card,
-                        margin: const EdgeInsets.only(bottom: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ClayCard(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         child: ListTile(
-                          leading: Icon(
-                            dev.platform == 'ANDROID'
-                                ? Icons.phone_android
-                                : (dev.platform == 'IOS' ? Icons.phone_iphone : Icons.laptop),
-                            color: AppColors.gold,
+                          contentPadding: EdgeInsets.zero,
+                          leading: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFAF7FE),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFDDD2F5)),
+                            ),
+                            child: Icon(
+                              dev.platform == 'ANDROID'
+                                  ? Icons.phone_android_rounded
+                                  : (dev.platform == 'IOS' ? Icons.phone_iphone_rounded : Icons.laptop_rounded),
+                              color: ClayColors.deepPurple,
+                              size: 22,
+                            ),
                           ),
-                          title: Text(dev.deviceName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          title: Text(
+                            dev.deviceName,
+                            style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: ClayColors.textDark, fontSize: 14),
+                          ),
                           subtitle: Text(
                             dev.lastSeenAt != null
                                 ? 'Last seen ${timeFormatter.format(dev.lastSeenAt!)} · Cursor ${dev.lastSyncCursor}'
                                 : 'Cursor ${dev.lastSyncCursor}',
-                            style: const TextStyle(fontSize: 12),
+                            style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textMuted),
                           ),
                           trailing: dev.id == deviceId
                               ? Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppColors.gold.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(6),
+                                    color: ClayColors.lavender.withValues(alpha: 0.35),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: const Text('Current',
-                                      style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  child: Text(
+                                    'Current',
+                                    style: GoogleFonts.inter(color: ClayColors.deepPurple, fontSize: 11.5, fontWeight: FontWeight.w700),
+                                  ),
                                 )
                               : IconButton(
-                                  icon: const Icon(Icons.delete_outline, size: 20),
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Colors.redAccent),
                                   tooltip: 'Deactivate device',
                                   onPressed: () async {
                                     final confirmed = await showDialog<bool>(
                                       context: context,
                                       builder: (ctx) => AlertDialog(
-                                        title: const Text('Deactivate Device'),
-                                        content: Text('Remove "${dev.deviceName}" from your synced devices?'),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                        title: Text('Deactivate Device', style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
+                                        content: Text('Remove "${dev.deviceName}" from your synced devices?', style: GoogleFonts.inter()),
                                         actions: [
-                                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                                          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Deactivate')),
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx, false),
+                                            child: Text('Cancel', style: GoogleFonts.inter(color: ClayColors.textMuted)),
+                                          ),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.redAccent,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                            ),
+                                            onPressed: () => Navigator.pop(ctx, true),
+                                            child: Text('Deactivate', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700)),
+                                          ),
                                         ],
                                       ),
                                     );
@@ -350,11 +399,11 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 13)),
+          Text(label, style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 13)),
           Flexible(
             child: Text(
               value,
-              style: const TextStyle(color: AppColors.textLight, fontWeight: FontWeight.w500, fontSize: 13),
+              style: GoogleFonts.inter(color: ClayColors.textDark, fontWeight: FontWeight.w600, fontSize: 13),
               overflow: TextOverflow.ellipsis,
             ),
           ),

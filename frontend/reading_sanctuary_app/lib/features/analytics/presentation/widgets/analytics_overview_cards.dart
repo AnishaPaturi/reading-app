@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/analytics_overview.dart';
 
 class AnalyticsOverviewCards extends StatelessWidget {
@@ -26,8 +27,8 @@ class AnalyticsOverviewCards extends StatelessWidget {
         title: 'Total Books',
         value: '${overview.totalBooks}',
         subtitle: '${overview.booksCompletedThisYear} finished this year',
-        icon: Icons.menu_book,
-        accentColor: AppColors.gold,
+        icon: Icons.menu_book_rounded,
+        accentColor: ClayColors.deepPurple,
       ),
       _MetricData(
         title: 'Completed',
@@ -35,36 +36,36 @@ class AnalyticsOverviewCards extends StatelessWidget {
         subtitle: overview.totalBooks > 0
             ? '${((overview.completedBooks / overview.totalBooks) * 100).toStringAsFixed(0)}% of library'
             : '0% of library',
-        icon: Icons.check_circle_outline,
-        accentColor: AppColors.hlSage,
+        icon: Icons.check_circle_rounded,
+        accentColor: const Color(0xFF2E9E67),
       ),
       _MetricData(
         title: 'Currently Reading',
         value: '${overview.currentlyReadingBooks}',
         subtitle: 'Active books in progress',
-        icon: Icons.chrome_reader_mode_outlined,
-        accentColor: AppColors.hlLavender,
+        icon: Icons.chrome_reader_mode_rounded,
+        accentColor: ClayColors.coral,
       ),
       _MetricData(
         title: 'TBR / DNF',
         value: '${overview.tbrBooks} / ${overview.dnfBooks}',
         subtitle: '${overview.tbrBooks} want to read, ${overview.dnfBooks} DNF',
-        icon: Icons.bookmark_border,
-        accentColor: AppColors.hlRose,
+        icon: Icons.bookmark_rounded,
+        accentColor: const Color(0xFF8D64CD),
       ),
       _MetricData(
         title: 'Reading Time',
         value: _formatHoursAndMinutes(overview.totalReadingMinutes),
         subtitle: 'From active reader sessions',
-        icon: Icons.timer_outlined,
-        accentColor: AppColors.gold,
+        icon: Icons.timer_rounded,
+        accentColor: ClayColors.amber,
       ),
       _MetricData(
         title: 'Listening Time',
         value: _formatHoursAndMinutes(overview.totalListeningMinutes),
         subtitle: '${_formatHoursAndMinutes(overview.totalAudiobookMinutes)} audio, ${_formatHoursAndMinutes(overview.totalTtsMinutes)} TTS',
-        icon: Icons.headphones_outlined,
-        accentColor: AppColors.hlBlue,
+        icon: Icons.headphones_rounded,
+        accentColor: const Color(0xFF67B5EC),
       ),
     ];
 
@@ -94,29 +95,17 @@ class AnalyticsOverviewCards extends StatelessWidget {
   }
 
   Widget _buildCard(BuildContext context, _MetricData data) {
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: data.accentColor.withOpacity(0.25)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.18),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: data.accentColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
+              color: data.accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(data.icon, color: data.accentColor, size: 26),
+            child: Icon(data.icon, color: data.accentColor, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -126,28 +115,30 @@ class AnalyticsOverviewCards extends StatelessWidget {
               children: [
                 Text(
                   data.title,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textLightSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textMuted,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   data.value,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppColors.textLight,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textDark,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   data.subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textLightSecondary.withOpacity(0.8),
-                        fontSize: 11,
-                      ),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textMuted,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),

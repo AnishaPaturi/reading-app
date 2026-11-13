@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../application/analytics_providers.dart';
 import '../../data/models/yearly_wrap_up.dart';
 
@@ -20,29 +22,38 @@ class YearlyWrapUpScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final int selectedYear = year ?? ref.watch(selectedAnalyticsYearProvider);
     final wrapUpAsync = ref.watch(yearlyWrapUpProvider(selectedYear));
 
     return Scaffold(
-      backgroundColor: AppColors.espresso,
+      backgroundColor: ClayColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.walnut,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: ClayColors.textDark),
+          tooltip: 'Back',
+          onPressed: () => context.canPop() ? context.pop() : context.go('/statistics'),
+        ),
         title: Text(
           '$selectedYear Reading Wrap-Up',
-          style: const TextStyle(color: AppColors.textLight, fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(
+            color: ClayColors.textDark,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
         ),
       ),
       body: wrapUpAsync.when(
         data: (wrapUp) => _buildWrapUpContent(context, wrapUp, selectedYear),
         loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.gold),
+          child: CircularProgressIndicator(color: ClayColors.deepPurple),
         ),
         error: (e, _) => Center(
           child: Text(
             'Failed to load wrap-up: $e',
-            style: const TextStyle(color: AppColors.hlRose),
+            style: GoogleFonts.inter(color: ClayColors.coral),
           ),
         ),
       ),
@@ -59,37 +70,33 @@ class YearlyWrapUpScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Banner / Story Header
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2C1938), Color(0xFF1B192A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.gold.withOpacity(0.4)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.gold.withOpacity(0.12),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
+          ClayCard(
+            padding: const EdgeInsets.all(22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.auto_awesome, color: AppColors.gold, size: 28),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Your $year in Books',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: AppColors.textLight,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFAF7FE),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFDDD2F5)),
+                      ),
+                      child: const Icon(Icons.auto_awesome_rounded, color: ClayColors.primaryPurple, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Your $year in Books',
+                        style: GoogleFonts.inter(
+                          color: ClayColors.textDark,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -97,15 +104,16 @@ class YearlyWrapUpScreen extends ConsumerWidget {
                 Text(
                   data.summaryStory ??
                       'In $year, you immersed yourself in stories, expanded your horizons, and dedicated meaningful hours to literature in your personal sanctuary.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textLight.withOpacity(0.9),
-                        height: 1.5,
-                      ),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textDark,
+                    fontSize: 13.5,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
 
           // Big Milestone Numbers
           Row(
@@ -115,8 +123,8 @@ class YearlyWrapUpScreen extends ConsumerWidget {
                   context,
                   title: 'Books Completed',
                   value: '${data.totalBooksCompleted}',
-                  icon: Icons.check_circle,
-                  color: AppColors.hlSage,
+                  icon: Icons.check_circle_rounded,
+                  color: const Color(0xFF2E9E67),
                 ),
               ),
               const SizedBox(width: 14),
@@ -125,8 +133,8 @@ class YearlyWrapUpScreen extends ConsumerWidget {
                   context,
                   title: 'Total Time',
                   value: _formatHoursAndMinutes(data.totalAllMinutes),
-                  icon: Icons.timer,
-                  color: AppColors.gold,
+                  icon: Icons.timer_rounded,
+                  color: ClayColors.deepPurple,
                 ),
               ),
             ],
@@ -139,8 +147,8 @@ class YearlyWrapUpScreen extends ConsumerWidget {
                   context,
                   title: 'Active Days',
                   value: '${data.activeReadingDays}',
-                  icon: Icons.calendar_today,
-                  color: AppColors.hlLavender,
+                  icon: Icons.calendar_today_rounded,
+                  color: const Color(0xFF67B5EC),
                 ),
               ),
               const SizedBox(width: 14),
@@ -149,72 +157,64 @@ class YearlyWrapUpScreen extends ConsumerWidget {
                   context,
                   title: 'Longest Streak',
                   value: '${data.longestStreakDays} days',
-                  icon: Icons.local_fire_department,
-                  color: const Color(0xFFE6A23C),
+                  icon: Icons.local_fire_department_rounded,
+                  color: ClayColors.coral,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
 
           // Reading vs Listening split
-          Container(
+          ClayCard(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.walnut),
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Format Breakdown',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.textLight,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textDark,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                _buildSplitRow('Reading (PDF, EPUB, DOCX)', _formatHoursAndMinutes(data.totalReadingMinutes), AppColors.gold),
+                _buildSplitRow('Reading (PDF, EPUB, DOCX)', _formatHoursAndMinutes(data.totalReadingMinutes), ClayColors.deepPurple),
                 const SizedBox(height: 10),
-                _buildSplitRow('Audiobook Listening', _formatHoursAndMinutes(data.totalAudiobookMinutes), AppColors.hlSage),
+                _buildSplitRow('Audiobook Listening', _formatHoursAndMinutes(data.totalAudiobookMinutes), const Color(0xFF2E9E67)),
                 const SizedBox(height: 10),
-                _buildSplitRow('Text-to-Speech Listening', _formatHoursAndMinutes(data.totalTtsMinutes), AppColors.hlBlue),
+                _buildSplitRow('Text-to-Speech Listening', _formatHoursAndMinutes(data.totalTtsMinutes), const Color(0xFF67B5EC)),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
 
-          // Literary Highlights (Top Genre, Top Author, First Book, Last Book, Longest Book)
-          Container(
+          // Literary Highlights
+          ClayCard(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.walnut),
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Year Highlights',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.textLight,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textDark,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 if (data.favoriteGenre != null)
-                  _buildHighlightTile(Icons.category, 'Top Genre', data.favoriteGenre!),
+                  _buildHighlightTile(Icons.category_rounded, 'Top Genre', data.favoriteGenre!),
                 if (data.topAuthor != null)
-                  _buildHighlightTile(Icons.person, 'Most Read Author', data.topAuthor!),
+                  _buildHighlightTile(Icons.person_rounded, 'Most Read Author', data.topAuthor!),
                 if (data.firstBookFinished != null)
-                  _buildHighlightTile(Icons.flight_takeoff, 'First Book of the Year', data.firstBookFinished!),
+                  _buildHighlightTile(Icons.flight_takeoff_rounded, 'First Book of the Year', data.firstBookFinished!),
                 if (data.lastBookFinished != null)
-                  _buildHighlightTile(Icons.flight_land, 'Latest Completed Book', data.lastBookFinished!),
+                  _buildHighlightTile(Icons.flight_land_rounded, 'Latest Completed Book', data.lastBookFinished!),
                 if (data.longestBookCompleted != null)
-                  _buildHighlightTile(Icons.menu_book, 'Longest Book Finished', data.longestBookCompleted!),
+                  _buildHighlightTile(Icons.menu_book_rounded, 'Longest Book Finished', data.longestBookCompleted!),
               ],
             ),
           ),
@@ -231,13 +231,8 @@ class YearlyWrapUpScreen extends ConsumerWidget {
     required IconData icon,
     required Color color,
   }) {
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -245,16 +240,16 @@ class YearlyWrapUpScreen extends ConsumerWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: TextStyle(
-              color: AppColors.textLight,
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
+            style: GoogleFonts.inter(
+              color: ClayColors.textDark,
+              fontWeight: FontWeight.w800,
+              fontSize: 20,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             title,
-            style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 11),
+            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 11.5),
           ),
         ],
       ),
@@ -269,10 +264,10 @@ class YearlyWrapUpScreen extends ConsumerWidget {
           children: [
             Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
             const SizedBox(width: 8),
-            Text(label, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
+            Text(label, style: GoogleFonts.inter(color: ClayColors.textDark, fontSize: 12.5)),
           ],
         ),
-        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(value, style: GoogleFonts.inter(color: color, fontWeight: FontWeight.w700, fontSize: 13)),
       ],
     );
   }
@@ -286,24 +281,25 @@ class YearlyWrapUpScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFFAF7FE),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFDDD2F5)),
             ),
-            child: Icon(icon, color: AppColors.gold, size: 18),
+            child: Icon(icon, color: ClayColors.deepPurple, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 11)),
+                Text(label, style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 11.5)),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(
-                    color: AppColors.textLight,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textDark,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
                   ),
                 ),
               ],

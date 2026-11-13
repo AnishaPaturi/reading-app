@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/reading_streak.dart';
 
 class ActivityHeatmap extends StatelessWidget {
@@ -22,49 +23,41 @@ class ActivityHeatmap extends StatelessWidget {
     // Calculate weekday offset (Monday = 1, Sunday = 7)
     final startingWeekday = firstDayOfYear.weekday; // 1 to 7
 
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.walnut),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Reading Consistency Heatmap',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textLight,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${streak.totalActiveDaysThisYear} active days in $year (≥ 5 mins active reading/listening)',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textLightSecondary,
-                        ),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reading Consistency Heatmap',
+                      style: GoogleFonts.inter(
+                        color: ClayColors.textDark,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${streak.totalActiveDaysThisYear} active days in $year (≥ 5 mins active reading/listening)',
+                      style: GoogleFonts.inter(
+                        color: ClayColors.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               _buildHeatmapLegend(),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Column(
@@ -92,19 +85,17 @@ class ActivityHeatmap extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Less', style: TextStyle(color: AppColors.textLightSecondary, fontSize: 11)),
+        Text('Less', style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 11)),
         const SizedBox(width: 6),
-        _legendCell(const Color(0xFF22202E)),
+        _legendCell(const Color(0xFFEBE4F8)),
         const SizedBox(width: 4),
-        _legendCell(const Color(0xFF422858)),
+        _legendCell(const Color(0xFFDDD2F5)),
         const SizedBox(width: 4),
-        _legendCell(const Color(0xFF6F3C92)),
+        _legendCell(const Color(0xFF9E8DE5)),
         const SizedBox(width: 4),
-        _legendCell(const Color(0xFF9E54CE)),
-        const SizedBox(width: 4),
-        _legendCell(AppColors.gold),
+        _legendCell(ClayColors.deepPurple),
         const SizedBox(width: 6),
-        const Text('More', style: TextStyle(color: AppColors.textLightSecondary, fontSize: 11)),
+        Text('More', style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 11)),
       ],
     );
   }
@@ -130,7 +121,7 @@ class ActivityHeatmap extends StatelessWidget {
             width: 58,
             child: Text(
               m,
-              style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 10),
+              style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 10, fontWeight: FontWeight.w600),
             ),
           );
         }).toList(),
@@ -148,7 +139,7 @@ class ActivityHeatmap extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: Text(
             d,
-            style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 9),
+            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 9, fontWeight: FontWeight.w600),
           ),
         );
       }).toList(),
@@ -161,11 +152,9 @@ class ActivityHeatmap extends StatelessWidget {
     int startingWeekday,
     Set<String> activeSet,
   ) {
-    // 7 rows (Mon to Sun), ~53 columns
     final List<List<Widget>> columns = [];
     List<Widget> currentColumn = [];
 
-    // Pre-pad first week if year didn't start on Monday
     for (int i = 1; i < startingWeekday; i++) {
       currentColumn.add(_emptyCell());
     }
@@ -184,8 +173,8 @@ class ActivityHeatmap extends StatelessWidget {
             height: 13,
             margin: const EdgeInsets.all(1.5),
             decoration: BoxDecoration(
-              color: isActive ? AppColors.gold : const Color(0xFF22202E),
-              borderRadius: BorderRadius.circular(2.5),
+              color: isActive ? ClayColors.deepPurple : const Color(0xFFEBE4F8),
+              borderRadius: BorderRadius.circular(3),
             ),
           ),
         ),

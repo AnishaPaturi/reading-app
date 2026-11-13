@@ -216,6 +216,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
+      // Clear any prior cached session on the device so Google Play Services
+      // re-prompts or fetches fresh tokens with the serverClientId audience.
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+
       final account = await _googleSignIn.signIn();
       if (account == null) {
         // The user closed the Google account picker.
@@ -224,13 +230,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
 
       final googleAuth = await account.authentication;
-      final idToken = googleAuth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        throw Exception('Google did not return an ID token. Check your OAuth client configuration.');
+      final token = (googleAuth.idToken != null && googleAuth.idToken!.isNotEmpty)
+          ? googleAuth.idToken
+          : googleAuth.accessToken;
+
+      if (token == null || token.isEmpty) {
+        throw Exception('Google did not return an authentication token. Check your Google account settings.');
       }
 
-      // Only the ID token goes to the API. The backend verifies it with Google.
-      final user = await _apiService.loginWithGoogle(idToken: idToken);
+      // Backend verifies either the ID token JWT or access token with Google.
+      final user = await _apiService.loginWithGoogle(idToken: token);
       if (user.token == null || user.token!.isEmpty) {
         throw Exception('The server did not return a Reading Sanctuary session.');
       }
@@ -269,8 +278,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
+const defaultGoogleServerClientId =
+    '91225974915-rddik9ug32ebdlrtt2rrscttp6tjabq5.apps.googleusercontent.com';
+
 final googleSignInProvider = Provider<GoogleSignIn>((ref) {
-  const webClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+  const webClientId = String.fromEnvironment(
+    'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue: defaultGoogleServerClientId,
+  );
   return GoogleSignIn(
     scopes: const ['email', 'profile'],
     serverClientId: webClientId.isEmpty ? null : webClientId,

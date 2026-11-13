@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/reading_streak.dart';
 
 class ReadingStreakCard extends StatelessWidget {
@@ -14,38 +15,27 @@ class ReadingStreakCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasActiveStreak = streak.currentStreakDays > 0;
 
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: hasActiveStreak
-              ? const Color(0xFFE6A23C).withOpacity(0.4)
-              : AppColors.walnut,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: hasActiveStreak
-                  ? const Color(0xFFE6A23C).withOpacity(0.15)
-                  : AppColors.secondary,
+                  ? ClayColors.coral.withValues(alpha: 0.15)
+                  : const Color(0xFFFAF7FE),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: hasActiveStreak
+                    ? ClayColors.coral.withValues(alpha: 0.3)
+                    : const Color(0xFFDDD2F5),
+              ),
             ),
             child: Icon(
-              Icons.local_fire_department,
-              color: hasActiveStreak ? const Color(0xFFE6A23C) : AppColors.textLightSecondary,
-              size: 36,
+              Icons.local_fire_department_rounded,
+              color: hasActiveStreak ? ClayColors.coral : ClayColors.textMuted,
+              size: 34,
             ),
           ),
           const SizedBox(width: 18),
@@ -57,25 +47,26 @@ class ReadingStreakCard extends StatelessWidget {
                   children: [
                     Text(
                       '${streak.currentStreakDays} Day Streak',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: AppColors.textLight,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: GoogleFonts.inter(
+                        color: ClayColors.textDark,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     if (hasActiveStreak)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE6A23C).withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFFE6A23C).withOpacity(0.5)),
+                          color: ClayColors.coral.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: ClayColors.coral.withValues(alpha: 0.4)),
                         ),
-                        child: const Text(
+                        child: Text(
                           'ON FIRE',
-                          style: TextStyle(
-                            color: Color(0xFFE6A23C),
-                            fontWeight: FontWeight.bold,
+                          style: GoogleFonts.inter(
+                            color: ClayColors.coral,
+                            fontWeight: FontWeight.w800,
                             fontSize: 10,
                           ),
                         ),
@@ -87,18 +78,19 @@ class ReadingStreakCard extends StatelessWidget {
                   hasActiveStreak
                       ? 'Personal best: ${streak.longestStreakDays} consecutive reading days'
                       : 'Read at least 5 minutes today to start a streak! Longest: ${streak.longestStreakDays} days',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textLightSecondary,
-                      ),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textMuted,
+                    fontSize: 12.5,
+                  ),
                 ),
                 if (streak.lastActiveDate != null) ...[
                   const SizedBox(height: 4),
                   Text(
                     'Last recorded session: ${streak.lastActiveDate}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textLightSecondary.withOpacity(0.7),
-                          fontSize: 11,
-                        ),
+                    style: GoogleFonts.inter(
+                      color: ClayColors.textMuted,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ],

@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/books_completed.dart';
 
 class MonthlyBooksChart extends StatefulWidget {
@@ -26,20 +27,8 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
       if (m.booksCount > maxCount) maxCount = m.booksCount.toDouble();
     }
 
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.walnut),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,17 +37,25 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
             children: [
               Text(
                 'Books Completed by Month',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.textLight,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: GoogleFonts.inter(
+                  color: ClayColors.textDark,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
               ),
-              Text(
-                '${widget.booksCompleted.totalCompleted} finished in ${widget.booksCompleted.year}',
-                style: const TextStyle(
-                  color: AppColors.hlSage,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2E9E67).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${widget.booksCompleted.totalCompleted} finished in ${widget.booksCompleted.year}',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF2E9E67),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -73,7 +70,7 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (val) => FlLine(
-                    color: AppColors.secondary.withOpacity(0.5),
+                    color: const Color(0xFFDDD2F5).withValues(alpha: 0.6),
                     strokeWidth: 1,
                   ),
                 ),
@@ -87,8 +84,8 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
                         if (val % 1 != 0) return const SizedBox.shrink();
                         return Text(
                           '${val.toInt()}',
-                          style: const TextStyle(
-                            color: AppColors.textLightSecondary,
+                          style: GoogleFonts.inter(
+                            color: ClayColors.textMuted,
                             fontSize: 10,
                           ),
                         );
@@ -110,9 +107,10 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
                             shortName,
-                            style: const TextStyle(
-                              color: AppColors.textLightSecondary,
+                            style: GoogleFonts.inter(
+                              color: ClayColors.textMuted,
                               fontSize: 10,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         );
@@ -127,9 +125,9 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
                     barRods: [
                       BarChartRodData(
                         toY: m.booksCount.toDouble(),
-                        color: m.booksCount > 0 ? AppColors.hlSage : AppColors.secondary,
+                        color: m.booksCount > 0 ? const Color(0xFF2E9E67) : const Color(0xFFDDD2F5),
                         width: 14,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
                       ),
                     ],
                     showingTooltipIndicators: _touchedMonthIndex == i ? [0] : [],
@@ -141,8 +139,8 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
                       final item = months[group.x];
                       return BarTooltipItem(
                         '${item.monthName}: ${item.booksCount} books\n',
-                        const TextStyle(
-                          color: AppColors.textLight,
+                        GoogleFonts.inter(
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -150,7 +148,7 @@ class _MonthlyBooksChartState extends State<MonthlyBooksChart> {
                           return TextSpan(
                             text: '• $t\n',
                             style: const TextStyle(
-                              color: AppColors.textLightSecondary,
+                              color: Color(0xFFDDD2F5),
                               fontSize: 10,
                               fontWeight: FontWeight.normal,
                             ),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../application/analytics_providers.dart';
 import '../../data/models/goal_progress.dart';
 import '../../data/models/reading_goal.dart';
@@ -13,20 +14,8 @@ class ReadingGoalsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final goalsAsync = ref.watch(readingGoalsProvider);
 
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.walnut),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -35,23 +24,28 @@ class ReadingGoalsCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.track_changes, color: AppColors.gold, size: 22),
+                  const Icon(Icons.track_changes_rounded, color: ClayColors.deepPurple, size: 22),
                   const SizedBox(width: 8),
                   Text(
                     'Active Reading Goals',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textLight,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: GoogleFonts.inter(
+                      color: ClayColors.textDark,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
                   ),
                 ],
               ),
               TextButton.icon(
                 onPressed: () => context.push('/statistics/goals'),
-                icon: const Icon(Icons.add_circle_outline, color: AppColors.gold, size: 18),
-                label: const Text(
+                icon: const Icon(Icons.add_circle_outline_rounded, color: ClayColors.deepPurple, size: 18),
+                label: Text(
                   'Manage Goals',
-                  style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.inter(
+                    color: ClayColors.deepPurple,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12.5,
+                  ),
                 ),
               ),
             ],
@@ -72,14 +66,14 @@ class ReadingGoalsCard extends ConsumerWidget {
             loading: () => const Center(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(color: AppColors.gold),
+                child: CircularProgressIndicator(color: ClayColors.deepPurple),
               ),
             ),
             error: (err, _) => Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 'Could not load goals: $err',
-                style: const TextStyle(color: AppColors.hlRose, fontSize: 12),
+                style: GoogleFonts.inter(color: ClayColors.coral, fontSize: 12),
               ),
             ),
           ),
@@ -92,38 +86,42 @@ class ReadingGoalsCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.walnut),
+        color: const Color(0xFFFAF7FE),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFDDD2F5)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.flag_outlined, color: AppColors.textLightSecondary, size: 28),
+          const Icon(Icons.flag_outlined, color: ClayColors.textMuted, size: 28),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'No goals set yet',
-                  style: TextStyle(color: AppColors.textLight, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.inter(color: ClayColors.textDark, fontWeight: FontWeight.w700, fontSize: 14),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Set daily reading minutes or a yearly book target to stay motivated.',
-                  style: TextStyle(color: AppColors.textLightSecondary.withOpacity(0.8), fontSize: 12),
+                  style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 12),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           ElevatedButton(
             onPressed: () => context.push('/statistics/goals'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.gold,
-              foregroundColor: AppColors.walnut,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              backgroundColor: ClayColors.deepPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             ),
-            child: const Text('Set Goal', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(
+              'Set Goal',
+              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12.5),
+            ),
           ),
         ],
       ),
@@ -141,20 +139,20 @@ class _GoalProgressItem extends ConsumerWidget {
     final progressAsync = ref.watch(goalProgressProvider(goal.id));
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: progressAsync.when(
         data: (progress) => _buildProgressView(context, progress),
         loading: () => Container(
           height: 56,
           decoration: BoxDecoration(
-            color: AppColors.secondary,
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFFFAF7FE),
+            borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
           child: const SizedBox(
             width: 18,
             height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.gold),
+            child: CircularProgressIndicator(strokeWidth: 2, color: ClayColors.deepPurple),
           ),
         ),
         error: (_, __) => _buildFallbackView(context),
@@ -169,10 +167,10 @@ class _GoalProgressItem extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.secondary,
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFFAF7FE),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDone ? AppColors.hlSage.withOpacity(0.4) : AppColors.walnut,
+          color: isDone ? const Color(0xFF2E9E67).withValues(alpha: 0.3) : const Color(0xFFDDD2F5),
         ),
       ),
       child: Column(
@@ -183,18 +181,18 @@ class _GoalProgressItem extends ConsumerWidget {
             children: [
               Text(
                 '${goal.periodType.displayName} ${goal.goalType.displayName}',
-                style: const TextStyle(
-                  color: AppColors.textLight,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                style: GoogleFonts.inter(
+                  color: ClayColors.textDark,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13.5,
                 ),
               ),
               Row(
                 children: [
                   Text(
                     '${progress.currentValue} / ${goal.targetValue} ${goal.goalType.unit}',
-                    style: const TextStyle(
-                      color: AppColors.textLightSecondary,
+                    style: GoogleFonts.inter(
+                      color: ClayColors.textMuted,
                       fontWeight: FontWeight.w500,
                       fontSize: 12,
                     ),
@@ -202,10 +200,10 @@ class _GoalProgressItem extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Text(
                     '${progress.percentage.toStringAsFixed(0)}%',
-                    style: TextStyle(
-                      color: isDone ? AppColors.hlSage : AppColors.gold,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                    style: GoogleFonts.inter(
+                      color: isDone ? const Color(0xFF2E9E67) : ClayColors.coral,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12.5,
                     ),
                   ),
                 ],
@@ -218,9 +216,9 @@ class _GoalProgressItem extends ConsumerWidget {
             child: LinearProgressIndicator(
               value: pct,
               minHeight: 7,
-              backgroundColor: const Color(0xFF2B2638),
+              backgroundColor: const Color(0xFFDDD2F5),
               valueColor: AlwaysStoppedAnimation<Color>(
-                isDone ? AppColors.hlSage : AppColors.gold,
+                isDone ? const Color(0xFF2E9E67) : ClayColors.coral,
               ),
             ),
           ),
@@ -228,8 +226,8 @@ class _GoalProgressItem extends ConsumerWidget {
             const SizedBox(height: 6),
             Text(
               progress.message,
-              style: TextStyle(
-                color: isDone ? AppColors.hlSage : AppColors.textLightSecondary,
+              style: GoogleFonts.inter(
+                color: isDone ? const Color(0xFF2E9E67) : ClayColors.textMuted,
                 fontSize: 11,
               ),
             ),
@@ -243,19 +241,20 @@ class _GoalProgressItem extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.secondary,
-        borderRadius: BorderRadius.circular(10),
+        color: const Color(0xFFFAF7FE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDDD2F5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             '${goal.periodType.displayName} ${goal.goalType.displayName}',
-            style: const TextStyle(color: AppColors.textLight, fontSize: 13),
+            style: GoogleFonts.inter(color: ClayColors.textDark, fontSize: 13, fontWeight: FontWeight.w600),
           ),
           Text(
             'Target: ${goal.targetValue} ${goal.goalType.unit}',
-            style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 12),
+            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 12),
           ),
         ],
       ),

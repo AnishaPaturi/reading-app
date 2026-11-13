@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../app/theme/app_colors.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../application/analytics_providers.dart';
 import '../widgets/activity_heatmap.dart';
 import '../widgets/analytics_header.dart';
@@ -30,10 +30,10 @@ class AnalyticsDashboardScreen extends ConsumerWidget {
     final listeningAsync = ref.watch(listeningAnalyticsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.espresso,
+      backgroundColor: ClayColors.background,
       body: RefreshIndicator(
-        color: AppColors.gold,
-        backgroundColor: AppColors.card,
+        color: ClayColors.deepPurple,
+        backgroundColor: Colors.white,
         onRefresh: () async {
           ref.invalidate(analyticsOverviewProvider);
           ref.invalidate(dailyActivityProvider);
@@ -203,14 +203,15 @@ class _LoadingPlaceholder extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.card.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE5DCF4)),
       ),
       child: const Center(
         child: SizedBox(
           width: 24,
           height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.gold),
+          child: CircularProgressIndicator(strokeWidth: 2.5, color: ClayColors.deepPurple),
         ),
       ),
     );
@@ -226,18 +227,18 @@ class _ErrorCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.hlRose.withOpacity(0.3)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ClayColors.coral.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: AppColors.hlRose, size: 20),
+          const Icon(Icons.info_outline, color: ClayColors.coral, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 12),
+              style: const TextStyle(color: ClayColors.textMuted, fontSize: 12),
             ),
           ),
         ],

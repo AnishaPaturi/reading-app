@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../application/analytics_providers.dart';
 
 class AnalyticsHeader extends ConsumerWidget {
@@ -15,15 +16,10 @@ class AnalyticsHeader extends ConsumerWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 600;
+        final isCompact = constraints.maxWidth < 650;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
-            color: AppColors.walnut,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.card.withOpacity(0.8)),
-          ),
+        return ClayCard(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -31,28 +27,48 @@ class AnalyticsHeader extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Column(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.auto_stories, color: AppColors.gold, size: 28),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Reading Sanctuary Analytics',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textLight,
+                        if (context.canPop()) ...[
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_rounded, color: ClayColors.textDark),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => context.pop(),
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.auto_stories_rounded, color: ClayColors.deepPurple, size: 24),
+                                  const SizedBox(width: 10),
+                                  Flexible(
+                                    child: Text(
+                                      'Reading Sanctuary Analytics',
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 18,
+                                        color: ClayColors.textDark,
+                                      ),
+                                    ),
                                   ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Track reading sessions, habit streaks, goals, and literary journeys.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textLightSecondary,
+                                ],
                               ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Track reading sessions, habit streaks, goals, and literary journeys.',
+                                style: GoogleFonts.inter(
+                                  color: ClayColors.textMuted,
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -65,7 +81,7 @@ class AnalyticsHeader extends ConsumerWidget {
                 ],
               ),
               if (isCompact) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 Row(
                   children: [
                     _buildYearDropdown(ref, selectedYear, years),
@@ -83,18 +99,18 @@ class AnalyticsHeader extends ConsumerWidget {
 
   Widget _buildYearDropdown(WidgetRef ref, int selectedYear, List<int> years) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+        color: const Color(0xFFFAF7FE),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFDDD2F5)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int>(
           value: selectedYear,
-          dropdownColor: AppColors.card,
-          icon: const Icon(Icons.arrow_drop_down, color: AppColors.gold),
-          style: const TextStyle(color: AppColors.textLight, fontWeight: FontWeight.w600),
+          dropdownColor: Colors.white,
+          icon: const Icon(Icons.arrow_drop_down_rounded, color: ClayColors.deepPurple),
+          style: GoogleFonts.inter(color: ClayColors.textDark, fontWeight: FontWeight.w700),
           items: years.map((year) {
             return DropdownMenuItem<int>(
               value: year,
@@ -114,15 +130,15 @@ class AnalyticsHeader extends ConsumerWidget {
   Widget _buildWrapUpButton(BuildContext context, int selectedYear) {
     return ElevatedButton.icon(
       onPressed: () => context.push('/statistics/wrap-up?year=$selectedYear'),
-      icon: const Icon(Icons.auto_awesome, color: AppColors.walnut, size: 18),
+      icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 16),
       label: Text(
         '$selectedYear Wrap-Up',
-        style: const TextStyle(color: AppColors.walnut, fontWeight: FontWeight.bold),
+        style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.gold,
+        backgroundColor: ClayColors.deepPurple,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

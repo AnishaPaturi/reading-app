@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/widgets/book_cover.dart';
@@ -31,13 +30,13 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
   late final TextEditingController _notesController;
   bool _isSavingNote = false;
 
-  static const List<(String label, String key)> _predefinedReasons = [
-    ('Pacing Dragged', 'PACING'),
-    ('Not My Vibe', 'NOT_MY_VIBE'),
-    ('Lost Interest', 'LOST_INTEREST'),
-    ('Writing Style', 'WRITING_STYLE'),
-    ('Right Book, Wrong Time', 'WRONG_TIME'),
-    ('Disappointing Plot', 'DISAPPOINTING'),
+  static const List<(String, String)> _predefinedReasons = [
+    ('PACING', 'Pacing Dragged'),
+    ('NOT_MY_VIBE', 'Not My Vibe'),
+    ('LOST_INTEREST', 'Lost Interest'),
+    ('WRITING_STYLE', 'Writing Style'),
+    ('WRONG_TIME', 'Right Book, Wrong Time'),
+    ('DISAPPOINTING', 'Disappointing Plot'),
   ];
 
   @override
@@ -89,10 +88,10 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
 
   @override
   Widget build(BuildContext context) {
-    final themeGold = const Color(0xFFD4AF37); // Champagne gold
-    final lightGold = const Color(0xFFF3E5AB);
-    final mutedGold = const Color(0xFFC5A059);
-    final darkCardBg = const Color(0xFF141216);
+    const themeGold = Color(0xFFD4AF37); // Champagne gold
+    const lightGold = Color(0xFFF3E5AB);
+    const mutedGold = Color(0xFFC5A059);
+    const darkCardBg = Color(0xFF141216);
     final dnfFormattedDate = DateFormat.yMMMd().format(widget.data.dnfDate);
     final pctStopped = (widget.data.readingProgress * 100).round();
 
@@ -329,24 +328,24 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
               for (final reason in _predefinedReasons)
                 ChoiceChip(
                   label: Text(
-                    reason.label,
+                    reason.$2,
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: _selectedReason == reason.key
+                      color: _selectedReason == reason.$1
                           ? const Color(0xFF140D05)
                           : const Color(0xFFC7B8D6),
                     ),
                   ),
-                  selected: _selectedReason == reason.key,
+                  selected: _selectedReason == reason.$1,
                   selectedColor: const Color(0xFFFFB74D),
                   backgroundColor: const Color(0xFF231C28),
                   side: BorderSide(
-                    color: _selectedReason == reason.key
+                    color: _selectedReason == reason.$1
                         ? const Color(0xFFFFB74D)
                         : Colors.white.withValues(alpha: 0.1),
                   ),
-                  onSelected: (_) => _updateReason(reason.key),
+                  onSelected: (_) => _updateReason(reason.$1),
                 ),
             ],
           ),

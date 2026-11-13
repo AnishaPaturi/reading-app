@@ -142,7 +142,7 @@ class _BurnClipper extends CustomClipper<Path> {
     path.lineTo(size.width, 0);
 
     // Jagged burn boundary
-    final segments = 16;
+    const segments = 16;
     final dx = size.width / segments;
     for (int i = segments; i >= 0; i--) {
       final x = i * dx;
@@ -205,7 +205,7 @@ class _MoltenEdgePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final burnLineY = size.height * (1.0 - burnProgress);
-    final segments = 16;
+    const segments = 16;
     final dx = size.width / segments;
 
     final path = Path();
@@ -260,7 +260,7 @@ class _FlameAuraPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final random = math.Random(42);
-    final flameCount = 18;
+    const flameCount = 18;
     final flamePaint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
 
     for (int i = 0; i < flameCount; i++) {

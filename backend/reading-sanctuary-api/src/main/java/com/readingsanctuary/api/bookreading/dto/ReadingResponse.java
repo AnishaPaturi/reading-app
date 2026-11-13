@@ -15,5 +15,8 @@ public record ReadingResponse(
     Double progressPercentage,
     LocalDate startedAt,
     LocalDate completedAt,
-    OffsetDateTime lastReadAt
+    OffsetDateTime lastReadAt,
+    OffsetDateTime dnfAt,
+    String dnfReason,
+    String dnfNotes
 ) {}

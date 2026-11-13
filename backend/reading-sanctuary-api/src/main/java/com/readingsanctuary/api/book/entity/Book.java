@@ -100,6 +100,15 @@ public class Book {
     @Column(name = "last_read_at")
     private OffsetDateTime lastReadAt;
 
+    @Column(name = "dnf_at")
+    private OffsetDateTime dnfAt;
+
+    @Column(name = "dnf_reason", length = 100)
+    private String dnfReason;
+
+    @Column(name = "dnf_notes", columnDefinition = "TEXT")
+    private String dnfNotes;
+
     // Required by JPA
     public Book() {
     }
@@ -280,5 +289,29 @@ public class Book {
 
     public void setLastReadAt(OffsetDateTime lastReadAt) {
         this.lastReadAt = lastReadAt;
+    }
+
+    public OffsetDateTime getDnfAt() {
+        return dnfAt;
+    }
+
+    public void setDnfAt(OffsetDateTime dnfAt) {
+        this.dnfAt = dnfAt;
+    }
+
+    public String getDnfReason() {
+        return dnfReason;
+    }
+
+    public void setDnfReason(String dnfReason) {
+        this.dnfReason = dnfReason;
+    }
+
+    public String getDnfNotes() {
+        return dnfNotes;
+    }
+
+    public void setDnfNotes(String dnfNotes) {
+        this.dnfNotes = dnfNotes;
     }
 }

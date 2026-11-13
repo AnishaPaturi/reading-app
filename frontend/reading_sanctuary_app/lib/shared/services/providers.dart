@@ -12,9 +12,21 @@ class BooksNotifier extends AsyncNotifier<List<Book>> {
   @override
   Future<List<Book>> build() => ref.read(bookRepositoryProvider).getBooks();
 
-  Future<void> setStatus(String id, ReadingStatus status) async {
+  Future<void> setStatus(
+    String id,
+    ReadingStatus status, {
+    DateTime? dnfDate,
+    String? dnfReason,
+    String? dnfNotes,
+  }) async {
     final repo = ref.read(bookRepositoryProvider);
-    await repo.updateStatus(id, status);
+    await repo.updateStatus(
+      id,
+      status,
+      dnfDate: dnfDate,
+      dnfReason: dnfReason,
+      dnfNotes: dnfNotes,
+    );
     state = AsyncData(await repo.getBooks());
   }
 

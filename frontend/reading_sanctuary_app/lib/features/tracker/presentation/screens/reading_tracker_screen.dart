@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../../../shared/services/providers.dart';
+import '../../../dnf/screens/dnf_cinematic_screen.dart';
 import '../../../library/theme/bookshelf_theme.dart';
 import '../../application/quotes_highlights_provider.dart';
 
@@ -75,24 +77,45 @@ class ReadingTrackerScreen extends ConsumerWidget {
 
   Widget _buildBooksList(BuildContext context, List<Book> books) {
     if (books.isEmpty) {
+      final isDnf = statusFilter == ReadingStatus.dnf;
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.menu_book_rounded, size: 54, color: ClayColors.textMuted.withValues(alpha: 0.4)),
-            const SizedBox(height: 12),
-            Text(
-              'No books in this list yet',
-              style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: ClayColors.textMuted),
-            ),
-            const SizedBox(height: 14),
-            ClayPillButton(
-              text: 'Browse Library',
-              color: ClayColors.deepPurple,
-              textColor: Colors.white,
-              onTap: () => context.go('/library'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isDnf ? Icons.local_fire_department_rounded : Icons.menu_book_rounded,
+                size: 54,
+                color: isDnf ? const Color(0xFFFFB74D) : ClayColors.textMuted.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isDnf ? 'No retired books yet' : 'No books in this list yet',
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: ClayColors.textDark),
+              ),
+              if (isDnf) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '“A book abandoned, not forgotten.”\nBooks you decide to part ways with will rest peacefully here.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.cormorantGaramond(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                    color: ClayColors.textMuted,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 18),
+              ClayPillButton(
+                text: 'Browse Library',
+                color: ClayColors.deepPurple,
+                textColor: Colors.white,
+                onTap: () => context.go('/library'),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -105,6 +128,7 @@ class ReadingTrackerScreen extends ConsumerWidget {
         final book = books[index];
         final palette = BookshelfTheme.paletteForId(book.id);
         final pct = (book.progress * 100).round();
+        final isDnf = statusFilter == ReadingStatus.dnf || book.status == ReadingStatus.dnf;
 
         return ClayCard(
           onTap: () => context.push('/book/${book.id}'),
@@ -144,30 +168,93 @@ class ReadingTrackerScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Text(
-                          '$pct% completed',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: ClayColors.coral,
+                    if (isDnf) ...[
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFECB3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Stopped at $pct%',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFB78103),
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${book.pages} pages',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: ClayColors.textMuted,
+                          if (book.dnfDate != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDE7F6),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                DateFormat.MMMd().format(book.dnfDate!),
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF5E35B1),
+                                ),
+                              ),
+                            ),
+                          if (book.dnfReason != null && book.dnfReason!.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFBE9E7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                book.dnfReason!,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFFD84315),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Text(
+                            '$pct% completed',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: ClayColors.coral,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${book.pages} pages',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: ClayColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFFC0B5D8)),
+              if (isDnf)
+                IconButton(
+                  icon: const Icon(Icons.local_fire_department_rounded, size: 22, color: Color(0xFFFF9800)),
+                  tooltip: 'View Retirement Ceremony',
+                  onPressed: () => DnfCinematicScreen.trigger(context, book: book),
+                )
+              else
+                const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFFC0B5D8)),
             ],
           ),
         );

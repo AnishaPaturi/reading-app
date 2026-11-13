@@ -287,6 +287,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
         .where((b) => b.status == ReadingStatus.wantToRead || b.status == ReadingStatus.toRead)
         .toList();
     final completedBooks = allBooks.where((b) => b.status == ReadingStatus.completed).toList();
+    final dnfBooks = allBooks.where((b) => b.status == ReadingStatus.dnf).toList();
 
     // Filter custom shelves
     final filteredShelves = allShelves.where((shelf) {
@@ -295,10 +296,20 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
       return _matchesShelfOrBooks(shelf.name, shelfBooks);
     }).toList();
 
-    final hasAnyMatchingShelf = _matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) ||
-        _matchesShelfOrBooks('Want to Read', wantToReadBooks) ||
-        _matchesShelfOrBooks('Completed', completedBooks) ||
-        filteredShelves.isNotEmpty;
+    final isLibraryEmpty = allBooks.isEmpty && allShelves.isEmpty;
+    final showCurrentlyReading = currentlyReadingBooks.isNotEmpty || (allBooks.isNotEmpty && allShelves.isEmpty);
+    final showWantToRead = wantToReadBooks.isNotEmpty;
+    final showCompleted = completedBooks.isNotEmpty;
+    final showDnf = dnfBooks.isNotEmpty;
+
+    final hasAnyMatchingShelf = !isLibraryEmpty && (
+        (_searchQuery.isNotEmpty
+            ? (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) ||
+               _matchesShelfOrBooks('Want to Read', wantToReadBooks) ||
+               _matchesShelfOrBooks('Completed', completedBooks) ||
+               _matchesShelfOrBooks('Did Not Finish', dnfBooks))
+            : (showCurrentlyReading || showWantToRead || showCompleted || showDnf)) ||
+        filteredShelves.isNotEmpty);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -411,7 +422,8 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                 sliver: SliverList(
                                   delegate: SliverChildListDelegate([
                                     // Shelf: Currently Reading
-                                    if (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks))
+                                    if (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) &&
+                                        (_searchQuery.isNotEmpty || showCurrentlyReading))
                                       BookshelfSection(
                                         title: 'Currently Reading',
                                         bookCount: currentlyReadingBooks.length,
@@ -424,7 +436,8 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                       ),
 
                                     // Shelf: Want to Read
-                                    if (_matchesShelfOrBooks('Want to Read', wantToReadBooks))
+                                    if (_matchesShelfOrBooks('Want to Read', wantToReadBooks) &&
+                                        (_searchQuery.isNotEmpty || showWantToRead))
                                       BookshelfSection(
                                         title: 'Want to Read',
                                         bookCount: wantToReadBooks.length,
@@ -437,7 +450,8 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                       ),
 
                                     // Shelf: Completed
-                                    if (_matchesShelfOrBooks('Completed', completedBooks))
+                                    if (_matchesShelfOrBooks('Completed', completedBooks) &&
+                                        (_searchQuery.isNotEmpty || showCompleted))
                                       BookshelfSection(
                                         title: 'Completed',
                                         bookCount: completedBooks.length,
@@ -447,6 +461,21 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                         decorationType: BookshelfDecorationType.cozyLamp,
                                         onBookTap: _showBookPreview,
                                         onAddBooksTap: () => context.push('/library/add'),
+                                      ),
+
+                                    // Shelf: Did Not Finish (DNF Sanctuary)
+                                    if (_matchesShelfOrBooks('Did Not Finish', dnfBooks) &&
+                                        (_searchQuery.isNotEmpty || showDnf))
+                                      BookshelfSection(
+                                        title: 'Did Not Finish',
+                                        bookCount: dnfBooks.length,
+                                        books: _filterBooks(dnfBooks),
+                                        icon: Icons.local_fire_department_rounded,
+                                        accentColor: const Color(0xFFC5A059),
+                                        decorationType: BookshelfDecorationType.candle,
+                                        onBookTap: _showBookPreview,
+                                        onHeaderTap: () => context.push('/tracker/dnf'),
+                                        onAddBooksTap: () => context.push('/tracker/dnf'),
                                       ),
 
                                     // Custom Bookshelves

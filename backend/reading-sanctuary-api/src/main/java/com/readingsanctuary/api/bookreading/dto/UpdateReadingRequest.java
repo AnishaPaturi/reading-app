@@ -1,6 +1,7 @@
 package com.readingsanctuary.api.bookreading.dto;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 import com.readingsanctuary.api.book.enums.ReadingStatus;
 
@@ -19,6 +20,12 @@ public record UpdateReadingRequest(
 
     LocalDate startedAt,
 
-    LocalDate completedAt
+    LocalDate completedAt,
+
+    OffsetDateTime dnfAt,
+
+    String dnfReason,
+
+    String dnfNotes
 
 ) {}

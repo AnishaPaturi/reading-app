@@ -22,6 +22,7 @@ const sidebarDestinations = [
   NavDest('Library', '/library', Icons.local_library_outlined),
   NavDest('Favourites', '/favorites', Icons.favorite_outline),
   NavDest('Audiobooks', '/reading', Icons.headphones_outlined),
+  NavDest('DNF Shelf', '/tracker/dnf', Icons.local_fire_department_outlined),
   NavDest('Profile', '/profile', Icons.person_outline),
   NavDest('Settings', '/settings', Icons.settings_outlined),
 ];

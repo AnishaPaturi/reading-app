@@ -24,11 +24,13 @@ import '../features/search/presentation/screens/search_screen.dart';
 import '../features/tracker/presentation/screens/reading_tracker_screen.dart';
 import '../shared/models/book.dart';
 import '../features/landing/presentation/screens/landing_screen.dart';
+import '../features/dnf/screens/dnf_cinematic_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/reader/presentation/routes/reader_routes.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
 import '../features/shell/app_shell.dart';
 import '../features/splash/splash_screen.dart';
+import '../shared/services/providers.dart';
 
 Page<void> _page(GoRouterState s, Widget w) => NoTransitionPage(key: s.pageKey, child: w);
 
@@ -40,6 +42,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/landing', builder: (_, __) => const LandingScreen()),
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/signup', builder: (_, __) => const SignUpScreen()),
+      GoRoute(
+        path: '/dnf/:id',
+        pageBuilder: (context, state) {
+          final bookId = state.pathParameters['id']!;
+          final books = ref.watch(booksProvider).valueOrNull ?? [];
+          final matches = books.where((b) => b.id == bookId);
+          if (matches.isEmpty) {
+            return const NoTransitionPage(
+              child: Scaffold(body: Center(child: Text('Book not found'))),
+            );
+          }
+          return NoTransitionPage(
+            child: DnfCinematicScreen(book: matches.first),
+          );
+        },
+      ),
       ...readerRoutes,
       GoRoute(
         path: '/listen/:bookId/:fileId',

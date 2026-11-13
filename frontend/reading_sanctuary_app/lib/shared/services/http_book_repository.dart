@@ -29,6 +29,9 @@ class HttpBookRepository implements BookRepository {
             double progress = 0.0;
             int totalPages = 250;
             int currentPage = 0;
+            DateTime? dnfDate;
+            String? dnfReason;
+            String? dnfNotes;
 
             try {
               final readingRes = await _apiClient.get(
@@ -49,6 +52,13 @@ class HttpBookRepository implements BookRepository {
                 if (readingRes['currentPage'] is int) {
                   currentPage = readingRes['currentPage'] as int;
                 }
+                if (readingRes['dnfAt'] != null) {
+                  dnfDate = DateTime.tryParse(readingRes['dnfAt'].toString());
+                } else if (readingRes['dnfDate'] != null) {
+                  dnfDate = DateTime.tryParse(readingRes['dnfDate'].toString());
+                }
+                dnfReason = readingRes['dnfReason']?.toString();
+                dnfNotes = readingRes['dnfNotes']?.toString();
               }
             } catch (_) {}
 
@@ -71,6 +81,9 @@ class HttpBookRepository implements BookRepository {
               addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
               coverColors: colorList,
               coverImageUrl: coverUrl,
+              dnfDate: dnfDate,
+              dnfReason: dnfReason,
+              dnfNotes: dnfNotes,
             ));
           }
         }
@@ -86,7 +99,14 @@ class HttpBookRepository implements BookRepository {
   }
 
   @override
-  Future<void> updateStatus(String id, ReadingStatus status) async {
+  Future<void> updateStatus(
+    String id,
+    ReadingStatus status, {
+    DateTime? dnfDate,
+    String? dnfReason,
+    String? dnfNotes,
+  }) async {
+    final effectiveDnfDate = status == ReadingStatus.dnf ? (dnfDate ?? DateTime.now()) : null;
     final books = await _loadFromCache();
     final updated = [
       for (final b in books)
@@ -95,6 +115,10 @@ class HttpBookRepository implements BookRepository {
             status: status,
             progress: status == ReadingStatus.completed ? 1.0 : b.progress,
             lastOpenedAt: DateTime.now(),
+            dnfDate: effectiveDnfDate,
+            dnfReason: status == ReadingStatus.dnf ? dnfReason : null,
+            dnfNotes: status == ReadingStatus.dnf ? dnfNotes : null,
+            clearDnf: status != ReadingStatus.dnf,
           )
         else
           b
@@ -102,9 +126,21 @@ class HttpBookRepository implements BookRepository {
     await _saveToCache(updated);
 
     try {
-      await _apiClient.patch('/books/$id/reading', body: {
+      final body = <String, dynamic>{
         'status': _statusToBackend(status),
-      });
+      };
+      if (status == ReadingStatus.dnf) {
+        if (effectiveDnfDate != null) {
+          body['dnfAt'] = effectiveDnfDate.toIso8601String();
+        }
+        if (dnfReason != null && dnfReason.isNotEmpty) {
+          body['dnfReason'] = dnfReason;
+        }
+        if (dnfNotes != null && dnfNotes.isNotEmpty) {
+          body['dnfNotes'] = dnfNotes;
+        }
+      }
+      await _apiClient.patch('/books/$id/reading', body: body);
     } catch (_) {}
   }
 

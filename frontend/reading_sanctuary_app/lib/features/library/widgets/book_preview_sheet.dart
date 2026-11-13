@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/models/book.dart';
 import '../../../shared/services/providers.dart';
+import '../../dnf/screens/dnf_cinematic_screen.dart';
 import '../theme/bookshelf_theme.dart';
 import 'clay_book_spine.dart';
 
@@ -191,6 +192,15 @@ class BookPreviewSheet extends ConsumerWidget {
                       backgroundColor: BookshelfTheme.searchPill,
                       onSelected: (selected) {
                         if (selected) {
+                          if (status == ReadingStatus.dnf) {
+                            Navigator.of(context).pop();
+                            DnfCinematicScreen.trigger(
+                              context,
+                              book: book,
+                              previousStatus: book.status,
+                            );
+                            return;
+                          }
                           ref.read(booksProvider.notifier).setStatus(book.id, status);
                         }
                       },

@@ -119,6 +119,24 @@ public class BookReadingService {
                     "Completion date cannot be before start date");
         }
 
+        if (newStatus == ReadingStatus.DNF) {
+            if (request.dnfAt() != null) {
+                book.setDnfAt(request.dnfAt());
+            } else if (previousStatus != ReadingStatus.DNF || book.getDnfAt() == null) {
+                book.setDnfAt(OffsetDateTime.now());
+            }
+            if (request.dnfReason() != null) {
+                book.setDnfReason(request.dnfReason());
+            }
+            if (request.dnfNotes() != null) {
+                book.setDnfNotes(request.dnfNotes());
+            }
+        } else if (previousStatus == ReadingStatus.DNF) {
+            book.setDnfAt(null);
+            book.setDnfReason(null);
+            book.setDnfNotes(null);
+        }
+
         book.setReadingStatus(newStatus);
         book.setCurrentPage(newCurrentPage);
         book.setTotalPages(newTotalPages);
@@ -210,7 +228,10 @@ public class BookReadingService {
                 percentage,
                 book.getStartedAt(),
                 book.getCompletedAt(),
-                book.getLastReadAt()
+                book.getLastReadAt(),
+                book.getDnfAt(),
+                book.getDnfReason(),
+                book.getDnfNotes()
         );
     }
 }

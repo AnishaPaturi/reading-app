@@ -26,7 +26,7 @@ class ImmediateBookRepository implements BookRepository {
   @override
   Future<List<Book>> getBooks() async => List.unmodifiable(_books);
   @override
-  Future<void> updateStatus(String id, ReadingStatus status) async {}
+  Future<void> updateStatus(String id, ReadingStatus status, {DateTime? dnfDate, String? dnfNotes, String? dnfReason}) async {}
   @override
   Future<void> updateProgress(String id, double progress) async {}
   @override
@@ -56,11 +56,12 @@ void main() {
 
   Widget buildTestableWidget({
     Size size = const Size(400, 850),
+    List<Book> books = const [],
     List<BookshelfModel> initialShelves = const [],
   }) {
     return ProviderScope(
       overrides: [
-        bookRepositoryProvider.overrideWithValue(ImmediateBookRepository()),
+        bookRepositoryProvider.overrideWithValue(ImmediateBookRepository(books)),
         bookshelfListNotifierProvider.overrideWith((ref) => FakeBookshelfNotifier(initialShelves)),
       ],
       child: MaterialApp(
@@ -87,16 +88,16 @@ void main() {
 
     // Verify LibraryStatistics
     expect(find.byType(LibraryStatistics), findsOneWidget);
-    expect(find.text('Total Books'), findsOneWidget);
-    expect(find.text('Bookshelves'), findsOneWidget);
-    expect(find.text('Read This Year'), findsOneWidget);
+    expect(find.text('Books'), findsOneWidget);
+    expect(find.text('Read'), findsOneWidget);
+    expect(find.text('Reading'), findsOneWidget);
 
     // Verify LibraryToolbar
     expect(find.byType(LibraryToolbar), findsOneWidget);
-    expect(find.text('My Bookshelves'), findsOneWidget);
+    expect(find.text('Your Bookshelves'), findsOneWidget);
     expect(find.text('New Shelf'), findsOneWidget);
 
-    // Verify empty library state when no shelves
+    // Verify empty library state when no shelves and no books
     expect(find.byType(EmptyLibraryState), findsOneWidget);
     expect(find.text('Your Book Sanctuary Awaits'), findsOneWidget);
     expect(find.text('Create a Bookshelf'), findsOneWidget);
@@ -141,11 +142,10 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    // Verify shelf cards are present
-    expect(find.byType(BookshelfCard), findsNWidgets(2));
+    // Verify bookshelf sections are present
+    expect(find.byType(BookshelfSection), findsWidgets);
     expect(find.text('Dark Romance Obsession'), findsOneWidget);
     expect(find.text('My TBR Sanctuary'), findsOneWidget);
-    expect(find.text('View shelf'), findsNWidgets(2));
     expect(find.byType(EmptyLibraryState), findsNothing);
   });
 

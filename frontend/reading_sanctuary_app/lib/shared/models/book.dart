@@ -9,6 +9,15 @@ extension ReadingStatusX on ReadingStatus {
         ReadingStatus.toRead => 'Want to Read',
         ReadingStatus.completed => 'Completed',
         ReadingStatus.onHold => 'On Hold',
+        ReadingStatus.dnf => 'Did Not Finish',
+      };
+
+  String get shortLabel => switch (this) {
+        ReadingStatus.currentlyReading => 'Reading',
+        ReadingStatus.wantToRead => 'TBR',
+        ReadingStatus.toRead => 'TBR',
+        ReadingStatus.completed => 'Completed',
+        ReadingStatus.onHold => 'Paused',
         ReadingStatus.dnf => 'DNF',
       };
 }
@@ -128,6 +137,9 @@ class Book {
     this.series,
     this.avgRating,
     this.coverImageUrl,
+    this.dnfDate,
+    this.dnfReason,
+    this.dnfNotes,
   });
 
   final String id;
@@ -148,6 +160,9 @@ class Book {
   final String? series;
   final double? avgRating; // community rating (sample data for now)
   final String? coverImageUrl;
+  final DateTime? dnfDate;
+  final String? dnfReason;
+  final String? dnfNotes;
 
   String? get effectiveCoverUrl {
     if (coverImageUrl != null && coverImageUrl!.trim().isNotEmpty) {
@@ -177,6 +192,9 @@ class Book {
         'series': series,
         'avgRating': avgRating,
         if (coverImageUrl != null) 'coverImageUrl': coverImageUrl,
+        if (dnfDate != null) 'dnfDate': dnfDate!.toIso8601String(),
+        if (dnfReason != null) 'dnfReason': dnfReason,
+        if (dnfNotes != null) 'dnfNotes': dnfNotes,
       };
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -246,6 +264,11 @@ class Book {
           json['cover_image_url']?.toString() ??
           (json['coverStorageKey'] != null ? '/books/${json['id']}/cover' : null) ??
           (json['hasCover'] == true ? '/books/${json['id']}/cover' : null),
+      dnfDate: json['dnfDate'] != null
+          ? DateTime.tryParse(json['dnfDate'].toString())
+          : (json['dnfAt'] != null ? DateTime.tryParse(json['dnfAt'].toString()) : null),
+      dnfReason: json['dnfReason']?.toString(),
+      dnfNotes: json['dnfNotes']?.toString(),
     );
   }
 
@@ -268,6 +291,10 @@ class Book {
     String? series,
     double? avgRating,
     String? coverImageUrl,
+    DateTime? dnfDate,
+    String? dnfReason,
+    String? dnfNotes,
+    bool clearDnf = false,
   }) =>
       Book(
         id: id ?? this.id,
@@ -288,5 +315,8 @@ class Book {
         series: series ?? this.series,
         avgRating: avgRating ?? this.avgRating,
         coverImageUrl: coverImageUrl ?? this.coverImageUrl,
+        dnfDate: clearDnf ? null : (dnfDate ?? this.dnfDate),
+        dnfReason: clearDnf ? null : (dnfReason ?? this.dnfReason),
+        dnfNotes: clearDnf ? null : (dnfNotes ?? this.dnfNotes),
       );
 }

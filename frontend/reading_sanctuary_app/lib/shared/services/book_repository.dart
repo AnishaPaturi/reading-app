@@ -5,7 +5,13 @@ import '../models/book.dart';
 /// HTTP-backed implementation (Spring Boot) without touching the UI.
 abstract class BookRepository {
   Future<List<Book>> getBooks();
-  Future<void> updateStatus(String id, ReadingStatus status);
+  Future<void> updateStatus(
+    String id,
+    ReadingStatus status, {
+    DateTime? dnfDate,
+    String? dnfReason,
+    String? dnfNotes,
+  });
   Future<void> updateProgress(String id, double progress);
   Future<void> addBook(Book book);
 }
@@ -21,13 +27,23 @@ class MockBookRepository implements BookRepository {
   }
 
   @override
-  Future<void> updateStatus(String id, ReadingStatus status) async {
+  Future<void> updateStatus(
+    String id,
+    ReadingStatus status, {
+    DateTime? dnfDate,
+    String? dnfReason,
+    String? dnfNotes,
+  }) async {
     _books = [
       for (final b in _books)
         if (b.id == id)
           b.copyWith(
             status: status,
             progress: status == ReadingStatus.completed ? 1.0 : b.progress,
+            dnfDate: status == ReadingStatus.dnf ? (dnfDate ?? DateTime.now()) : null,
+            dnfReason: status == ReadingStatus.dnf ? dnfReason : null,
+            dnfNotes: status == ReadingStatus.dnf ? dnfNotes : null,
+            clearDnf: status != ReadingStatus.dnf,
           )
         else
           b

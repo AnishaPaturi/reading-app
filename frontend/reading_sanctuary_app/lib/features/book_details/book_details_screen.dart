@@ -8,6 +8,7 @@ import '../../core/widgets/clay_components.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
+import '../dnf/screens/dnf_cinematic_screen.dart';
 import '../offline/presentation/widgets/offline_download_button.dart';
 
 class BookDetailsScreen extends ConsumerStatefulWidget {
@@ -61,6 +62,14 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
         final b = matches.first;
 
         void setStatus(ReadingStatus s) {
+          if (s == ReadingStatus.dnf) {
+            DnfCinematicScreen.trigger(
+              context,
+              book: b,
+              previousStatus: b.status,
+            );
+            return;
+          }
           ref.read(booksProvider.notifier).setStatus(b.id, s);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -506,6 +515,67 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (b.status == ReadingStatus.dnf) ...[
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1614),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.4), width: 1.2),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFF2E1912),
+                                      ),
+                                      child: const Icon(
+                                        Icons.local_fire_department_rounded,
+                                        color: Color(0xFFFF9800),
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Retired to DNF Sanctuary',
+                                            style: GoogleFonts.cormorantGaramond(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFFFFE082),
+                                            ),
+                                          ),
+                                          Text(
+                                            b.dnfDate != null
+                                                ? 'Parted ways on ${DateFormat.yMMMd().format(b.dnfDate!)}'
+                                                : 'A story gracefully retired',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11.5,
+                                              color: const Color(0xFFB0A4BC),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => DnfCinematicScreen.trigger(context, book: b),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: const Color(0xFFFFB74D),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      ),
+                                      child: const Text('View Ceremony'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                             Text(
                               'Reading Status',
                               style: GoogleFonts.inter(

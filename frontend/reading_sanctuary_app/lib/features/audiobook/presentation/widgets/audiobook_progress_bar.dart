@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class AudiobookProgressBar extends StatefulWidget {
   final Duration position;
@@ -35,7 +37,6 @@ class _AudiobookProgressBarState extends State<AudiobookProgressBar> {
     final totalMs = widget.duration.inMilliseconds.toDouble();
     final currentMs = _dragValue ?? widget.position.inMilliseconds.toDouble();
     final clampedMs = totalMs > 0 ? currentMs.clamp(0.0, totalMs) : 0.0;
-    final theme = Theme.of(context);
 
     final remaining = (widget.duration - widget.position);
     final remainingFormatted = remaining > Duration.zero
@@ -47,12 +48,12 @@ class _AudiobookProgressBarState extends State<AudiobookProgressBar> {
       children: [
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
-            trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-            activeTrackColor: theme.colorScheme.primary,
-            inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
-            thumbColor: theme.colorScheme.primary,
+            trackHeight: 5,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+            activeTrackColor: ClayColors.deepPurple,
+            inactiveTrackColor: const Color(0xFFDDD2F5),
+            thumbColor: ClayColors.deepPurple,
           ),
           child: Slider(
             min: 0.0,
@@ -76,7 +77,7 @@ class _AudiobookProgressBarState extends State<AudiobookProgressBar> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -84,14 +85,18 @@ class _AudiobookProgressBarState extends State<AudiobookProgressBar> {
                 _formatDuration(
                   Duration(milliseconds: clampedMs.toInt()),
                 ),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: ClayColors.textMuted,
                 ),
               ),
               Text(
                 totalMs > 0 ? remainingFormatted : '--:--',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: ClayColors.textMuted,
                 ),
               ),
             ],

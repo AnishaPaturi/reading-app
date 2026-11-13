@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class AudiobookControls extends StatelessWidget {
   final bool isPlaying;
@@ -22,15 +23,13 @@ class AudiobookControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Previous chapter
         IconButton(
           iconSize: 28,
+          color: onPreviousChapter != null ? ClayColors.deepPurple : ClayColors.textMuted.withValues(alpha: 0.4),
           icon: const Icon(Icons.skip_previous_rounded),
           tooltip: 'Previous Chapter',
           onPressed: onPreviousChapter,
@@ -40,6 +39,7 @@ class AudiobookControls extends StatelessWidget {
         // Skip backward 15s
         IconButton(
           iconSize: 32,
+          color: ClayColors.deepPurple,
           icon: const Icon(Icons.replay_10_rounded),
           tooltip: 'Rewind 15 seconds',
           onPressed: onSkipBackward,
@@ -50,22 +50,31 @@ class AudiobookControls extends StatelessWidget {
         Container(
           width: 72,
           height: 72,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: primary,
-            boxShadow: [
+            gradient: const LinearGradient(
+              colors: [Color(0xFF8873DA), Color(0xFF6550C7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: const [
               BoxShadow(
-                color: primary.withAlpha(80),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: Colors.white,
+                offset: Offset(-4, -4),
+                blurRadius: 10,
+              ),
+              BoxShadow(
+                color: Color(0x4D432D56),
+                offset: Offset(5, 7),
+                blurRadius: 14,
               ),
             ],
           ),
           child: isLoading
               ? const Center(
                   child: SizedBox(
-                    width: 32,
-                    height: 32,
+                    width: 30,
+                    height: 30,
                     child: CircularProgressIndicator(
                       color: Colors.white,
                       strokeWidth: 3,
@@ -74,7 +83,7 @@ class AudiobookControls extends StatelessWidget {
                 )
               : IconButton(
                   iconSize: 40,
-                  color: theme.colorScheme.onPrimary,
+                  color: Colors.white,
                   icon: Icon(
                     isPlaying
                         ? Icons.pause_rounded
@@ -89,6 +98,7 @@ class AudiobookControls extends StatelessWidget {
         // Skip forward 30s
         IconButton(
           iconSize: 32,
+          color: ClayColors.deepPurple,
           icon: const Icon(Icons.forward_30_rounded),
           tooltip: 'Fast Forward 30 seconds',
           onPressed: onSkipForward,
@@ -98,6 +108,7 @@ class AudiobookControls extends StatelessWidget {
         // Next chapter
         IconButton(
           iconSize: 28,
+          color: onNextChapter != null ? ClayColors.deepPurple : ClayColors.textMuted.withValues(alpha: 0.4),
           icon: const Icon(Icons.skip_next_rounded),
           tooltip: 'Next Chapter',
           onPressed: onNextChapter,

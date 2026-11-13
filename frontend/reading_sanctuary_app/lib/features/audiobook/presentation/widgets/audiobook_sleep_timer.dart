@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class AudiobookSleepTimerSheet extends StatelessWidget {
   final Duration? remainingTime;
@@ -20,21 +22,23 @@ class AudiobookSleepTimerSheet extends StatelessWidget {
   }) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => AudiobookSleepTimerSheet(
-        remainingTime: remainingTime,
-        endOfChapter: endOfChapter,
-        onTimerSelected: onTimerSelected,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: AudiobookSleepTimerSheet(
+          remainingTime: remainingTime,
+          endOfChapter: endOfChapter,
+          onTimerSelected: onTimerSelected,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     final timerOptions = [
       {'label': 'Off', 'duration': null, 'endOfChapter': false},
       {'label': '5 minutes', 'duration': const Duration(minutes: 5), 'endOfChapter': false},
@@ -48,37 +52,49 @@ class AudiobookSleepTimerSheet extends StatelessWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Sleep Timer',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: ClayColors.textDark,
                     ),
                   ),
                   if (remainingTime != null)
-                    Text(
-                      '${remainingTime!.inMinutes}:${(remainingTime!.inSeconds % 60).toString().padLeft(2, '0')} remaining',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFAF7FE),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFDDD2F5)),
+                      ),
+                      child: Text(
+                        '${remainingTime!.inMinutes}:${(remainingTime!.inSeconds % 60).toString().padLeft(2, '0')} remaining',
+                        style: GoogleFonts.inter(
+                          color: ClayColors.deepPurple,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                 ],
               ),
             ),
-            const Divider(),
+            const Divider(color: Color(0xFFEDE5F8), height: 24),
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: timerOptions.length,
                 itemBuilder: (context, index) {
                   final option = timerOptions[index];
@@ -90,18 +106,35 @@ class AudiobookSleepTimerSheet extends StatelessWidget {
                       ? endOfChapter
                       : (dur == null && remainingTime == null && !endOfChapter);
 
-                  return ListTile(
-                    leading: Icon(
-                      isSelected
-                          ? Icons.check_circle_rounded
-                          : Icons.radio_button_unchecked_rounded,
-                      color: isSelected ? theme.colorScheme.primary : null,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: Material(
+                      color: isSelected ? const Color(0xFFFAF7FE) : Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: isSelected ? const BorderSide(color: Color(0xFFDDD2F5)) : BorderSide.none,
+                      ),
+                      child: ListTile(
+                        leading: Icon(
+                          isSelected
+                              ? Icons.check_circle_rounded
+                              : Icons.radio_button_unchecked_rounded,
+                          color: isSelected ? ClayColors.deepPurple : ClayColors.textMuted.withValues(alpha: 0.5),
+                        ),
+                        title: Text(
+                          label,
+                          style: GoogleFonts.inter(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? ClayColors.deepPurple : ClayColors.textDark,
+                            fontSize: 14.5,
+                          ),
+                        ),
+                        onTap: () {
+                          onTimerSelected(dur, endOfChapter: isEoc);
+                          Navigator.pop(context);
+                        },
+                      ),
                     ),
-                    title: Text(label),
-                    onTap: () {
-                      onTimerSelected(dur, endOfChapter: isEoc);
-                      Navigator.pop(context);
-                    },
                   );
                 },
               ),

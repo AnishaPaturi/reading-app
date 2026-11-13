@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'clay_components.dart';
 
 class AppLoadingWidget extends StatelessWidget {
   final String? message;
@@ -14,12 +15,16 @@ class AppLoadingWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(color: AppColors.gold),
+            const CircularProgressIndicator(color: ClayColors.deepPurple),
             if (message != null) ...[
               const SizedBox(height: 16),
               Text(
                 message!,
-                style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 14),
+                style: GoogleFonts.inter(
+                  color: ClayColors.textMuted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -41,7 +46,7 @@ class AppErrorWidget extends StatelessWidget {
     required this.message,
     this.onRetry,
     this.retryLabel = 'Try Again',
-    this.icon = Icons.error_outline,
+    this.icon = Icons.error_outline_rounded,
   });
 
   @override
@@ -52,24 +57,28 @@ class AppErrorWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: const Color(0xFFE05A7A)),
+            Icon(icon, size: 56, color: ClayColors.coral),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textLight,
-                  ),
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: ClayColors.textDark,
+              ),
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 20),
-              FilledButton.icon(
+              ElevatedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh, size: 18),
-                label: Text(retryLabel),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.gold,
-                  foregroundColor: Colors.black,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: Text(retryLabel, style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ClayColors.deepPurple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
               ),
             ],

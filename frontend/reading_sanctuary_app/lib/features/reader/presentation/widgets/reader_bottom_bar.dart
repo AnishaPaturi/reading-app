@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class ReaderBottomBar extends StatelessWidget {
   final int? currentPage;
@@ -20,16 +22,19 @@ class ReaderBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final displayProgress = (progressPercentage).clamp(0.0, 100.0);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.2)),
-        ),
+      decoration: const BoxDecoration(
+        color: ClayColors.background,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x286B599C),
+            blurRadius: 10,
+            offset: Offset(0, -3),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -40,40 +45,52 @@ class ReaderBottomBar extends StatelessWidget {
               children: [
                 if (onPrevious != null)
                   IconButton(
-                    icon: const Icon(Icons.chevron_left),
+                    icon: const Icon(Icons.chevron_left_rounded, color: ClayColors.deepPurple),
                     onPressed: onPrevious,
                     tooltip: 'Previous',
                   ),
                 Expanded(
-                  child: Slider(
-                    value: displayProgress,
-                    min: 0,
-                    max: 100,
-                    onChanged: onSeek,
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 5,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                      activeTrackColor: ClayColors.deepPurple,
+                      inactiveTrackColor: const Color(0xFFDDD2F5),
+                      thumbColor: ClayColors.deepPurple,
+                    ),
+                    child: Slider(
+                      value: displayProgress,
+                      min: 0,
+                      max: 100,
+                      onChanged: onSeek,
+                    ),
                   ),
                 ),
                 if (onNext != null)
                   IconButton(
-                    icon: const Icon(Icons.chevron_right),
+                    icon: const Icon(Icons.chevron_right_rounded, color: ClayColors.deepPurple),
                     onPressed: onNext,
                     tooltip: 'Next',
                   ),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  currentPage != null && totalPages != null
-                      ? 'Page $currentPage of $totalPages'
-                      : 'Progress',
-                  style: theme.textTheme.bodySmall,
-                ),
-                Text(
-                  '${displayProgress.toStringAsFixed(1)}%',
-                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    currentPage != null && totalPages != null
+                        ? 'Page $currentPage of $totalPages'
+                        : 'Progress',
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: ClayColors.textMuted),
+                  ),
+                  Text(
+                    '${displayProgress.toStringAsFixed(1)}%',
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: ClayColors.deepPurple),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class TtsTextDisplay extends StatelessWidget {
   final String text;
@@ -18,99 +20,109 @@ class TtsTextDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
+    return ClayCard(
+      borderRadius: 20,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withAlpha(80),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Chapter $currentChapter',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAF7FE),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFDDD2F5)),
+                ),
+                child: Text(
+                  'Chapter $currentChapter',
+                  style: GoogleFonts.inter(
+                    color: ClayColors.deepPurple,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
                 ),
               ),
               Text(
                 totalChunks > 0
                     ? 'Paragraph ${currentChunk + 1} of $totalChunks'
                     : 'Loading...',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                style: GoogleFonts.inter(
+                  color: ClayColors.textMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           if (text.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 child: Text(
-                  'No text available in this segment',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
+                  'No text available for this chapter',
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textMuted,
+                    fontSize: 14,
                   ),
                 ),
               ),
             )
           else
-            _buildHighlightedText(context, text, spokenWord),
+            _buildHighlightedText(context),
         ],
       ),
     );
   }
 
-  Widget _buildHighlightedText(
-    BuildContext context,
-    String fullText,
-    String? word,
-  ) {
-    final theme = Theme.of(context);
-    final textStyle = theme.textTheme.bodyLarge?.copyWith(
-      height: 1.6,
-      fontSize: 16,
-    );
-
-    if (word == null || word.trim().isEmpty) {
-      return Text(fullText, style: textStyle);
+  Widget _buildHighlightedText(BuildContext context) {
+    if (spokenWord == null || spokenWord!.isEmpty) {
+      return Text(
+        text,
+        style: GoogleFonts.inter(
+          fontSize: 16,
+          height: 1.6,
+          color: ClayColors.textDark,
+        ),
+      );
     }
 
-    final lowerText = fullText.toLowerCase();
-    final lowerWord = word.toLowerCase();
-    final index = lowerText.indexOf(lowerWord);
+    final lowerText = text.toLowerCase();
+    final lowerWord = spokenWord!.toLowerCase().trim();
+    final matchIndex = lowerText.indexOf(lowerWord);
 
-    if (index == -1) {
-      return Text(fullText, style: textStyle);
+    if (matchIndex == -1) {
+      return Text(
+        text,
+        style: GoogleFonts.inter(
+          fontSize: 16,
+          height: 1.6,
+          color: ClayColors.textDark,
+        ),
+      );
     }
 
-    final before = fullText.substring(0, index);
-    final match = fullText.substring(index, index + word.length);
-    final after = fullText.substring(index + word.length);
+    final before = text.substring(0, matchIndex);
+    final match = text.substring(matchIndex, matchIndex + spokenWord!.length);
+    final after = text.substring(matchIndex + spokenWord!.length);
 
     return RichText(
       text: TextSpan(
-        style: textStyle,
+        style: GoogleFonts.inter(
+          fontSize: 16,
+          height: 1.6,
+          color: ClayColors.textDark,
+        ),
         children: [
           TextSpan(text: before),
           TextSpan(
             text: match,
-            style: textStyle?.copyWith(
-              backgroundColor: theme.colorScheme.primaryContainer,
-              color: theme.colorScheme.onPrimaryContainer,
+            style: const TextStyle(
+              backgroundColor: Color(0xFFE8E0FB),
+              color: ClayColors.deepPurple,
               fontWeight: FontWeight.bold,
             ),
           ),

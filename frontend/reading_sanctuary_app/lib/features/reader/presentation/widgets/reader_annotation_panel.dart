@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/reader_annotations.dart';
 
 class ReaderAnnotationPanel extends StatefulWidget {
@@ -46,35 +48,61 @@ class _ReaderAnnotationPanelState extends State<ReaderAnnotationPanel>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add Book Note'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Add Book Note',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 18, color: ClayColors.textDark),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: titleCtrl,
-              decoration: const InputDecoration(labelText: 'Title'),
+              style: GoogleFonts.inter(color: ClayColors.textDark, fontWeight: FontWeight.w600),
+              decoration: InputDecoration(
+                labelText: 'Title',
+                labelStyle: GoogleFonts.inter(color: ClayColors.textMuted),
+                filled: true,
+                fillColor: const Color(0xFFFAF7FE),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFDDD2F5))),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFDDD2F5))),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: contentCtrl,
-              decoration: const InputDecoration(labelText: 'Content'),
               maxLines: 4,
+              style: GoogleFonts.inter(color: ClayColors.textDark),
+              decoration: InputDecoration(
+                labelText: 'Content',
+                labelStyle: GoogleFonts.inter(color: ClayColors.textMuted),
+                filled: true,
+                fillColor: const Color(0xFFFAF7FE),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFDDD2F5))),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFDDD2F5))),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: GoogleFonts.inter(color: ClayColors.textMuted, fontWeight: FontWeight.w600)),
           ),
-          FilledButton(
+          ElevatedButton(
             onPressed: () {
               if (titleCtrl.text.trim().isNotEmpty && contentCtrl.text.trim().isNotEmpty) {
                 widget.onAddNote(titleCtrl.text.trim(), contentCtrl.text.trim());
                 Navigator.of(ctx).pop();
               }
             },
-            child: const Text('Save'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ClayColors.deepPurple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            child: Text('Save', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -84,15 +112,29 @@ class _ReaderAnnotationPanelState extends State<ReaderAnnotationPanel>
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: ClayColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          bottomLeft: Radius.circular(24),
+        ),
+      ),
       child: SafeArea(
         child: Column(
           children: [
-            TabBar(
-              controller: _tabController,
-              tabs: [
-                Tab(text: 'Highlights (${widget.highlights.length})'),
-                Tab(text: 'Notes (${widget.notes.length})'),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: ClayColors.deepPurple,
+                labelColor: ClayColors.deepPurple,
+                unselectedLabelColor: ClayColors.textMuted,
+                labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13.5),
+                tabs: [
+                  Tab(text: 'Highlights (${widget.highlights.length})'),
+                  Tab(text: 'Notes (${widget.notes.length})'),
+                ],
+              ),
             ),
             Expanded(
               child: TabBarView(
@@ -100,37 +142,55 @@ class _ReaderAnnotationPanelState extends State<ReaderAnnotationPanel>
                 children: [
                   // Highlights Tab
                   widget.highlights.isEmpty
-                      ? const Center(child: Text('No highlights yet.'))
+                      ? Center(
+                          child: Text(
+                            'No highlights yet.',
+                            style: GoogleFonts.inter(color: ClayColors.textMuted),
+                          ),
+                        )
                       : ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                           itemCount: widget.highlights.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          separatorBuilder: (_, __) => const SizedBox(height: 6),
                           itemBuilder: (context, index) {
                             final h = widget.highlights[index];
-                            return ListTile(
-                              leading: Container(
-                                width: 12,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: h.color.color,
-                                  borderRadius: BorderRadius.circular(4),
+                            return Material(
+                              color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: const BorderSide(color: Color(0xFFDDD2F5)),
+                              ),
+                              child: ListTile(
+                                leading: Container(
+                                  width: 10,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: h.color.color,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                 ),
+                                title: Text(
+                                  '"${h.selectedText}"',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: ClayColors.textDark,
+                                  ),
+                                ),
+                                subtitle: h.annotationNote != null
+                                    ? Text(h.annotationNote!, style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textMuted))
+                                    : (h.pageNumber != null ? Text('Page ${h.pageNumber}', style: GoogleFonts.inter(fontSize: 11.5, color: ClayColors.textMuted)) : null),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 20, color: ClayColors.coral),
+                                  onPressed: () => widget.onDeleteHighlight(h),
+                                ),
+                                onTap: () {
+                                  Navigator.of(context).pop();
+                                  widget.onSelectHighlight(h);
+                                },
                               ),
-                              title: Text(
-                                '"${h.selectedText}"',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              subtitle: h.annotationNote != null
-                                  ? Text(h.annotationNote!)
-                                  : (h.pageNumber != null ? Text('Page ${h.pageNumber}') : null),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete_outline, size: 20),
-                                onPressed: () => widget.onDeleteHighlight(h),
-                              ),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                widget.onSelectHighlight(h);
-                              },
                             );
                           },
                         ),
@@ -139,32 +199,55 @@ class _ReaderAnnotationPanelState extends State<ReaderAnnotationPanel>
                   Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: OutlinedButton.icon(
+                        padding: const EdgeInsets.all(12.0),
+                        child: ElevatedButton.icon(
                           onPressed: _showAddNoteDialog,
-                          icon: const Icon(Icons.add),
-                          label: const Text('New Note'),
+                          icon: const Icon(Icons.add_rounded, size: 18),
+                          label: Text('New Note', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ClayColors.deepPurple,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                          ),
                         ),
                       ),
-                      const Divider(height: 1),
+                      const Divider(color: Color(0xFFDDD2F5), height: 1),
                       Expanded(
                         child: widget.notes.isEmpty
-                            ? const Center(child: Text('No notes yet.'))
+                            ? Center(
+                                child: Text(
+                                  'No notes yet.',
+                                  style: GoogleFonts.inter(color: ClayColors.textMuted),
+                                ),
+                              )
                             : ListView.separated(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 itemCount: widget.notes.length,
-                                separatorBuilder: (_, __) => const Divider(height: 1),
+                                separatorBuilder: (_, __) => const SizedBox(height: 6),
                                 itemBuilder: (context, index) {
                                   final n = widget.notes[index];
-                                  return ListTile(
-                                    title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text(
-                                      n.content,
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
+                                  return Material(
+                                    color: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      side: const BorderSide(color: Color(0xFFDDD2F5)),
                                     ),
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.delete_outline, size: 20),
-                                      onPressed: () => widget.onDeleteNote(n),
+                                    child: ListTile(
+                                      title: Text(
+                                        n.title,
+                                        style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 14, color: ClayColors.textDark),
+                                      ),
+                                      subtitle: Text(
+                                        n.content,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.inter(fontSize: 12.5, color: ClayColors.textMuted),
+                                      ),
+                                      trailing: IconButton(
+                                        icon: const Icon(Icons.delete_outline_rounded, size: 20, color: ClayColors.coral),
+                                        onPressed: () => widget.onDeleteNote(n),
+                                      ),
                                     ),
                                   );
                                 },

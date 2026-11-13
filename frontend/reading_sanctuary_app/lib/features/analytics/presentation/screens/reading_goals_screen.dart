@@ -343,7 +343,7 @@ class _ReadingGoalsScreenState extends ConsumerState<ReadingGoalsScreen> {
                   Text('Goal Type', style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<GoalType>(
-                    value: selectedType,
+                    initialValue: selectedType,
                     dropdownColor: Colors.white,
                     decoration: InputDecoration(
                       filled: true,
@@ -362,7 +362,7 @@ class _ReadingGoalsScreenState extends ConsumerState<ReadingGoalsScreen> {
                   Text('Period', style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<GoalPeriod>(
-                    value: selectedPeriod,
+                    initialValue: selectedPeriod,
                     dropdownColor: Colors.white,
                     decoration: InputDecoration(
                       filled: true,

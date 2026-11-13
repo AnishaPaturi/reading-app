@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../widgets/clay_components.dart';
 import '../../models/sync_models.dart';
 import '../../providers/sync_providers.dart';
 
@@ -37,141 +38,175 @@ class SyncConflictCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final engine = ref.read(syncEngineProvider.notifier);
 
-    return Card(
-      color: AppColors.card,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFE8613C), width: 1.2),
-      ),
+    return ClayCard(
+      borderRadius: 20,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.merge_type, color: Color(0xFFE8613C), size: 22),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Conflict on ${conflict.entityType}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: AppColors.textLight,
-                    ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFECE8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.merge_type_rounded, color: ClayColors.coral, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Conflict on ${conflict.entityType}',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15.5,
+                    color: ClayColors.textDark,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFECE8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  conflict.reason,
+                  style: GoogleFonts.inter(
+                    color: ClayColors.coral,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            conflict.message,
+            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 13),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8613C).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(6),
+                    color: const Color(0xFFFAF7FE),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFDDD2F5)),
                   ),
-                  child: Text(
-                    conflict.reason,
-                    style: const TextStyle(color: Color(0xFFE8613C), fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              conflict.message,
-              style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 13),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.walnut,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Your Edits (Local)',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.gold)),
-                        const SizedBox(height: 6),
-                        Text(
-                          _formatPayload(conflict.localPayload),
-                          style: const TextStyle(fontSize: 12, color: AppColors.textLight),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your Edits (Local)',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          color: ClayColors.deepPurple,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatPayload(conflict.localPayload),
+                        style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textDark),
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppColors.walnut,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Server Version (v${conflict.serverVersion})',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF4FA3D9))),
-                        const SizedBox(height: 6),
-                        Text(
-                          _formatPayload(conflict.serverPayload),
-                          style: const TextStyle(fontSize: 12, color: AppColors.textLight),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFAF7FE),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFDDD2F5)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Server Version (v${conflict.serverVersion})',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          color: const Color(0xFF4FA3D9),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _formatPayload(conflict.serverPayload),
+                        style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textDark),
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilledButton.tonal(
-                  onPressed: () {
-                    engine.resolveConflict(conflict.clientChangeId, ConflictResolution.keepLocal);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Kept local version and queued update')),
-                    );
-                  },
-                  child: const Text('Keep My Changes'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  engine.resolveConflict(conflict.clientChangeId, ConflictResolution.keepLocal);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Kept local version and queued update')),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ClayColors.deepPurple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 ),
-                OutlinedButton(
-                  onPressed: () {
-                    engine.resolveConflict(conflict.clientChangeId, ConflictResolution.keepServer);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Accepted server version')),
-                    );
-                  },
-                  child: const Text('Keep Server Version'),
+                child: Text('Keep My Changes', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w600)),
+              ),
+              OutlinedButton(
+                onPressed: () {
+                  engine.resolveConflict(conflict.clientChangeId, ConflictResolution.keepServer);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Accepted server version')),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ClayColors.deepPurple,
+                  side: const BorderSide(color: Color(0xFFDDD2F5)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 ),
-                TextButton(
-                  onPressed: () {
-                    engine.resolveConflict(conflict.clientChangeId, ConflictResolution.keepBoth);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Kept both copies')),
-                    );
-                  },
-                  child: const Text('Keep Both'),
+                child: Text('Keep Server Version', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w600)),
+              ),
+              TextButton(
+                onPressed: () {
+                  engine.resolveConflict(conflict.clientChangeId, ConflictResolution.keepBoth);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Kept both copies')),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: ClayColors.textMuted,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
-              ],
-            ),
-          ],
-        ),
+                child: Text('Keep Both', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

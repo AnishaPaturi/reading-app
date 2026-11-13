@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../app/theme/app_colors.dart';
-import '../../app/theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../shared/services/providers.dart';
 import '../authentication/presentation/providers/auth_provider.dart';
 import 'destinations.dart';
@@ -27,11 +26,15 @@ class Sidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
-      width: collapsed ? 76 : 268,
-      color: dark ? AppColors.walnut : AppColors.parchment,
+      width: collapsed ? 76 : 260,
+      decoration: const BoxDecoration(
+        color: Color(0xFF9482E6),
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
       child: SafeArea(
         child: Column(children: [
           Padding(
@@ -39,18 +42,31 @@ class Sidebar extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
               children: [
-                const Icon(Icons.auto_stories, color: AppColors.gold, size: 28),
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 24),
+                ),
                 if (!collapsed) ...[
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text('Reading Sanctuary',
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTheme.serif(Theme.of(context).textTheme.titleLarge)),
+                    child: Text(
+                      'Reading Sanctuary',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16.5,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                   if (showToggle)
                     IconButton(
                       tooltip: 'Collapse sidebar',
-                      icon: const Icon(Icons.chevron_left),
+                      icon: const Icon(Icons.chevron_left_rounded, color: Colors.white),
                       onPressed: () => ref.read(sidebarCollapsedProvider.notifier).toggle(),
                     ),
                 ],
@@ -60,24 +76,27 @@ class Sidebar extends ConsumerWidget {
           if (collapsed && showToggle)
             IconButton(
               tooltip: 'Expand sidebar',
-              icon: const Icon(Icons.chevron_right),
+              icon: const Icon(Icons.chevron_right_rounded, color: Colors.white),
               onPressed: () => ref.read(sidebarCollapsedProvider.notifier).toggle(),
             ),
           Expanded(
-            child: ListView(children: [
-              for (final d in sidebarDestinations)
-                _NavItem(
-                  dest: d,
-                  selected: _selected(location, d.path),
-                  collapsed: collapsed,
-                  onTap: () {
-                    context.go(d.path);
-                    onNavigated?.call();
-                  },
-                ),
-            ]),
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              children: [
+                for (final d in sidebarDestinations)
+                  _NavItem(
+                    dest: d,
+                    selected: _selected(location, d.path),
+                    collapsed: collapsed,
+                    onTap: () {
+                      context.go(d.path);
+                      onNavigated?.call();
+                    },
+                  ),
+              ],
+            ),
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: Colors.white.withValues(alpha: 0.2)),
           _Footer(collapsed: collapsed),
         ]),
       ),
@@ -86,8 +105,12 @@ class Sidebar extends ConsumerWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  const _NavItem(
-      {required this.dest, required this.selected, required this.collapsed, required this.onTap});
+  const _NavItem({
+    required this.dest,
+    required this.selected,
+    required this.collapsed,
+    required this.onTap,
+  });
   final NavDest dest;
   final bool selected;
   final bool collapsed;
@@ -95,7 +118,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.gold : Theme.of(context).colorScheme.onSurface;
+    final color = selected ? Colors.white : Colors.white.withValues(alpha: 0.85);
     return Tooltip(
       message: collapsed ? dest.label : '',
       child: Semantics(
@@ -104,14 +127,17 @@ class _NavItem extends StatelessWidget {
         label: dest.label,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
             height: 44,
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            margin: const EdgeInsets.symmetric(vertical: 2.5),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
-              color: selected ? AppColors.gold.withAlpha(35) : null,
-              borderRadius: BorderRadius.circular(6),
+              color: selected ? Colors.white.withValues(alpha: 0.22) : null,
+              borderRadius: BorderRadius.circular(16),
+              border: selected
+                  ? Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1.2)
+                  : null,
             ),
             child: Row(
               mainAxisAlignment: collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
@@ -120,9 +146,16 @@ class _NavItem extends StatelessWidget {
                 if (!collapsed) ...[
                   const SizedBox(width: 12),
                   Expanded(
-                      child: Text(dest.label,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: color, fontWeight: selected ? FontWeight.w600 : null))),
+                    child: Text(
+                      dest.label,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        color: color,
+                        fontSize: 14,
+                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -139,36 +172,48 @@ class _Footer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = ref.watch(themeProvider) == AppThemeChoice.dark;
-    final themeBtn = IconButton(
-      tooltip: isDark ? 'Switch to Warm Parchment' : 'Switch to Dark Academia',
-      icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
-      onPressed: () => ref.read(themeProvider.notifier).toggle(),
-    );
     final helpBtn = IconButton(
       tooltip: 'Help and support',
-      icon: const Icon(Icons.help_outline),
+      icon: const Icon(Icons.help_outline_rounded, color: Colors.white),
       onPressed: () => context.go('/help'),
     );
     final displayName = ref.watch(userDisplayNameProvider);
-    final avatarLetter = displayName.trim().isNotEmpty ? displayName.trim()[0].toUpperCase() : 'B';
+    final avatarAsset = ref.watch(userAvatarAssetProvider);
+
     final avatar = InkWell(
       onTap: () => context.go('/profile'),
-      child: CircleAvatar(
-          radius: 18,
-          backgroundColor: AppColors.bronze,
-          child: Text(avatarLetter, style: const TextStyle(color: AppColors.ivory))),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+        ),
+        child: ClipOval(
+          child: Image.asset(avatarAsset, fit: BoxFit.cover),
+        ),
+      ),
     );
 
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: collapsed
-          ? Column(children: [avatar, themeBtn, helpBtn])
+          ? Column(children: [avatar, const SizedBox(height: 8), helpBtn])
           : Row(children: [
               avatar,
               const SizedBox(width: 10),
-              Expanded(child: Text(displayName, overflow: TextOverflow.ellipsis)),
-              themeBtn,
+              Expanded(
+                child: Text(
+                  displayName,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    fontSize: 13.5,
+                  ),
+                ),
+              ),
               helpBtn,
             ]),
     );

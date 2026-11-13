@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../widgets/clay_components.dart';
 import '../../models/sync_models.dart';
 import '../../providers/sync_providers.dart';
 
@@ -25,33 +26,33 @@ class SyncStatusIndicator extends ConsumerWidget {
 
     if (conflicts.isNotEmpty) {
       icon = Icons.warning_amber_rounded;
-      color = const Color(0xFFE8613C);
+      color = ClayColors.coral;
       tooltip = '${conflicts.length} sync conflict(s) need resolution';
     } else {
       switch (status) {
         case SyncStatus.synced:
-          icon = Icons.cloud_done_outlined;
-          color = const Color(0xFF5CB89A);
+          icon = Icons.cloud_done_rounded;
+          color = ClayColors.mint;
           tooltip = 'All changes synced';
           break;
         case SyncStatus.syncing:
-          icon = Icons.sync;
-          color = AppColors.gold;
+          icon = Icons.sync_rounded;
+          color = ClayColors.deepPurple;
           tooltip = 'Syncing with cloud...';
           break;
         case SyncStatus.offline:
-          icon = Icons.cloud_off_outlined;
-          color = AppColors.textLightSecondary;
+          icon = Icons.cloud_off_rounded;
+          color = ClayColors.textMuted;
           tooltip = 'Offline - reading and saving locally';
           break;
         case SyncStatus.pendingChanges:
-          icon = Icons.cloud_upload_outlined;
-          color = const Color(0xFFE6A23C);
+          icon = Icons.cloud_upload_rounded;
+          color = ClayColors.amber;
           tooltip = '$pendingCount changes queued for sync';
           break;
         case SyncStatus.error:
-          icon = Icons.sync_problem_outlined;
-          color = const Color(0xFFE05A7A);
+          icon = Icons.sync_problem_rounded;
+          color = ClayColors.coral;
           tooltip = 'Sync issue - tap to retry';
           break;
       }
@@ -83,13 +84,13 @@ class SyncStatusIndicator extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: const Color(0xFFE6A23C),
+                color: ClayColors.amber,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 pendingCount > 99 ? '99+' : '$pendingCount',
-                style: const TextStyle(
-                  color: Colors.black,
+                style: GoogleFonts.inter(
+                  color: Colors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -103,12 +104,12 @@ class SyncStatusIndicator extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8613C),
+                color: ClayColors.coral,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 '${conflicts.length}',
-                style: const TextStyle(
+                style: GoogleFonts.inter(
                   color: Colors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
@@ -123,7 +124,7 @@ class SyncStatusIndicator extends ConsumerWidget {
 
     return InkWell(
       onTap: () => context.push('/sync/settings'),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         child: Row(
@@ -133,7 +134,7 @@ class SyncStatusIndicator extends ConsumerWidget {
             const SizedBox(width: 6),
             Text(
               tooltip,
-              style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w500),
+              style: GoogleFonts.inter(color: color, fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ],
         ),

@@ -2,8 +2,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../app/theme/app_colors.dart';
+import '../../features/library/theme/bookshelf_theme.dart';
 import '../../shared/models/book.dart';
+
+const _claySpines = [
+  Color(0xFF9482E6),
+  Color(0xFF5CB89A),
+  Color(0xFFF7A278),
+  Color(0xFFE8613C),
+  Color(0xFF6B8FD4),
+  Color(0xFFF5C55A),
+  Color(0xFF7A65D8),
+  Color(0xFFE05A7A),
+];
 
 /// Colourful spines on wooden-style shelves with potted plants.
 class BookshelfView extends StatelessWidget {
@@ -33,7 +44,7 @@ class _Shelf extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final plant = _Plant(color: AppColors.spines[(seed * 3 + 5) % AppColors.spines.length]);
+    final plant = _Plant(color: _claySpines[(seed * 3 + 5) % _claySpines.length]);
     return Column(children: [
       SizedBox(
         height: 128,
@@ -46,14 +57,20 @@ class _Shelf extends StatelessWidget {
         ]),
       ),
       Container(
-        height: 8,
+        height: 10,
         decoration: BoxDecoration(
-          color: const Color(0xFF3A2F3F),
-          borderRadius: BorderRadius.circular(2),
-          boxShadow: [BoxShadow(color: Colors.black.withAlpha(90), blurRadius: 6, offset: const Offset(0, 3))],
+          color: BookshelfTheme.shelfBase,
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: const [
+            BoxShadow(
+              color: BookshelfTheme.shelfDropShadow,
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
       ),
-      const SizedBox(height: 14),
+      const SizedBox(height: 16),
     ]);
   }
 }
@@ -65,9 +82,9 @@ class _Spine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final h = book.id.hashCode.abs();
-    final color = AppColors.spines[h % AppColors.spines.length];
-    final width = 22.0 + (h % 3) * 4;
-    final height = 88.0 + (h % 5) * 8;
+    final color = _claySpines[h % _claySpines.length];
+    final width = 24.0 + (h % 3) * 4;
+    final height = 90.0 + (h % 5) * 8;
     return Semantics(
       button: true,
       label: '${book.title} by ${book.author}',
@@ -78,21 +95,32 @@ class _Spine extends StatelessWidget {
           child: Container(
             width: width,
             height: height,
-            margin: const EdgeInsets.only(right: 3),
+            margin: const EdgeInsets.only(right: 4),
             padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
-              border: Border.all(color: Colors.black.withAlpha(50)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  offset: const Offset(1, 2),
+                  blurRadius: 3,
+                ),
+              ],
             ),
             child: RotatedBox(
               quarterTurns: 3,
-              child: Text(book.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                      fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white)),
+              child: Text(
+                book.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ),
@@ -108,13 +136,14 @@ class _Plant extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.local_florist, color: color, size: 30),
+          Icon(Icons.local_florist_rounded, color: color, size: 28),
           Container(
-            width: 26,
+            width: 24,
             height: 18,
-            decoration: const BoxDecoration(
-              color: AppColors.pot,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(5)),
+            decoration: BoxDecoration(
+              color: BookshelfTheme.potBase,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+              border: Border.all(color: BookshelfTheme.potHighlight, width: 1),
             ),
           ),
         ]),

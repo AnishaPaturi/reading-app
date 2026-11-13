@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/audio_track.dart';
 import '../providers/audiobook_provider.dart';
 import '../widgets/audiobook_chapter_list.dart';
@@ -70,12 +72,14 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
     }
 
     final audioState = ref.watch(audiobookProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: ClayColors.background,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32, color: ClayColors.deepPurple),
           tooltip: 'Minimize Player',
           onPressed: () => Navigator.of(context).maybePop(),
         ),
@@ -83,6 +87,11 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
           widget.bookTitle ?? audioState.currentTrack?.title ?? 'Audiobook',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+            color: ClayColors.textDark,
+          ),
         ),
         centerTitle: true,
         actions: [
@@ -90,7 +99,8 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
             icon: Badge(
               isLabelVisible: audioState.sleepTimerRemaining != null ||
                   audioState.sleepTimerEndOfChapter,
-              child: const Icon(Icons.bedtime_outlined),
+              backgroundColor: ClayColors.coral,
+              child: const Icon(Icons.bedtime_outlined, color: ClayColors.deepPurple),
             ),
             tooltip: 'Sleep Timer',
             onPressed: () {
@@ -127,16 +137,24 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.error_outline_rounded,
-                                  size: 48, color: Colors.red),
+                                  size: 48, color: ClayColors.coral),
                               const SizedBox(height: 16),
                               Text(
                                 audioState.errorMessage!,
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium,
+                                style: GoogleFonts.inter(
+                                  color: ClayColors.textDark,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               const SizedBox(height: 16),
-                              FilledButton.tonal(
+                              ElevatedButton(
                                 onPressed: _loadAudioTrack,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: ClayColors.deepPurple,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
                                 child: const Text('Retry'),
                               ),
                             ],
@@ -152,7 +170,7 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
 
                               // Artwork / Cover card
                               _buildArtworkCard(
-                                  context, isLandscape ? 160 : 260),
+                                  context, isLandscape ? 160 : 250),
 
                               const SizedBox(height: 24),
 
@@ -164,8 +182,10 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20,
+                                  color: ClayColors.textDark,
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -174,20 +194,31 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
                                     audioState.currentTrack?.author ??
                                     'Reading Sanctuary',
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: ClayColors.textMuted,
                                 ),
                               ),
 
                               // Current Chapter title if present
                               if (audioState.currentChapter != null) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  audioState.currentChapter!.title,
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFAF7FE),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFDDD2F5)),
+                                  ),
+                                  child: Text(
+                                    audioState.currentChapter!.title,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.inter(
+                                      color: ClayColors.deepPurple,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12.5,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -240,16 +271,32 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
                                     : null,
                               ),
 
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
 
                               // Bottom Actions: Speed & Chapters
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   // Playback Speed
-                                  TextButton.icon(
-                                    icon: const Icon(Icons.speed_rounded, size: 20),
-                                    label: Text('${audioState.playbackSpeed}x'),
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.speed_rounded, size: 18, color: ClayColors.deepPurple),
+                                    label: Text(
+                                      '${audioState.playbackSpeed}x',
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        color: ClayColors.textDark,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        side: const BorderSide(color: Color(0xFFDDD2F5)),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                    ),
                                     onPressed: () {
                                       AudiobookSpeedSelector.show(
                                         context,
@@ -264,12 +311,26 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
                                   ),
 
                                   // Chapter selector (if chapters available)
-                                  TextButton.icon(
-                                    icon: const Icon(Icons.list_rounded, size: 20),
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.list_rounded, size: 18, color: ClayColors.deepPurple),
                                     label: Text(
                                       audioState.chapters.isNotEmpty
                                           ? 'Chapters (${audioState.chapters.length})'
                                           : 'Chapters',
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        color: ClayColors.textDark,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        side: const BorderSide(color: Color(0xFFDDD2F5)),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                     ),
                                     onPressed: () {
                                       AudiobookChapterListSheet.show(
@@ -288,7 +349,7 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
                                 ],
                               ),
 
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
@@ -302,26 +363,22 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
   }
 
   Widget _buildArtworkCard(BuildContext context, double size) {
-    final theme = Theme.of(context);
-
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primaryContainer,
-            theme.colorScheme.secondaryContainer,
-          ],
-        ),
-        boxShadow: [
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withAlpha(50),
+            color: Colors.white,
+            offset: Offset(-8, -8),
+            blurRadius: 16,
+          ),
+          BoxShadow(
+            color: Color(0x336B599C),
+            offset: Offset(8, 10),
             blurRadius: 20,
-            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -329,23 +386,45 @@ class _AudiobookScreenState extends ConsumerState<AudiobookScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.headphones_rounded,
-              size: size * 0.35,
-              color: theme.colorScheme.onPrimaryContainer,
-            ),
-            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              width: size * 0.44,
+              height: size * 0.44,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Color(0xFFB5A7F2), Color(0xFF9482E6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x286550C7),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.headphones_rounded,
+                size: size * 0.25,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withAlpha(160),
+                color: const Color(0xFFFAF7FE),
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFDDD2F5)),
               ),
               child: Text(
                 widget.format?.toUpperCase() ?? 'AUDIO',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
                   letterSpacing: 1.2,
+                  color: ClayColors.deepPurple,
                 ),
               ),
             ),

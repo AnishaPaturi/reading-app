@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/audio_chapter.dart';
 
 class AudiobookChapterListSheet extends StatelessWidget {
@@ -22,18 +24,22 @@ class AudiobookChapterListSheet extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
+        initialChildSize: 0.55,
         minChildSize: 0.3,
-        maxChildSize: 0.85,
+        maxChildSize: 0.88,
         expand: false,
-        builder: (context, scrollController) => AudiobookChapterListSheet(
-          chapters: chapters,
-          currentChapterIndex: currentChapterIndex,
-          onChapterSelected: onChapterSelected,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: AudiobookChapterListSheet(
+            chapters: chapters,
+            currentChapterIndex: currentChapterIndex,
+            onChapterSelected: onChapterSelected,
+          ),
         ),
       ),
     );
@@ -47,8 +53,6 @@ class AudiobookChapterListSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,25 +64,28 @@ class AudiobookChapterListSheet extends StatelessWidget {
               children: [
                 Text(
                   'Chapters (${chapters.length})',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: ClayColors.textDark,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded, color: ClayColors.deepPurple),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          const Divider(color: Color(0xFFEDE5F8), height: 1),
           if (chapters.isEmpty)
             Expanded(
               child: Center(
                 child: Text(
                   'No chapter metadata found for this track',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textMuted,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -86,42 +93,60 @@ class AudiobookChapterListSheet extends StatelessWidget {
           else
             Expanded(
               child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: chapters.length,
-                separatorBuilder: (ctx, i) => const Divider(height: 1),
+                separatorBuilder: (ctx, i) => const SizedBox(height: 4),
                 itemBuilder: (context, index) {
                   final chapter = chapters[index];
                   final isCurrent = index == currentChapterIndex;
 
-                  return ListTile(
-                    selected: isCurrent,
-                    selectedTileColor:
-                        theme.colorScheme.primaryContainer.withAlpha(70),
-                    leading: isCurrent
-                        ? Icon(Icons.equalizer_rounded,
-                            color: theme.colorScheme.primary)
-                        : Text(
-                            '${index + 1}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                  return Material(
+                    color: isCurrent ? const Color(0xFFFAF7FE) : Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: isCurrent ? const BorderSide(color: Color(0xFFDDD2F5)) : BorderSide.none,
+                    ),
+                    child: ListTile(
+                      leading: isCurrent
+                          ? const Icon(Icons.equalizer_rounded, color: ClayColors.deepPurple)
+                          : Container(
+                              width: 28,
+                              height: 28,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDE5F8),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${index + 1}',
+                                style: GoogleFonts.inter(
+                                  color: ClayColors.deepPurple,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
-                          ),
-                    title: Text(
-                      chapter.title,
-                      style: TextStyle(
-                        fontWeight:
-                            isCurrent ? FontWeight.bold : FontWeight.normal,
+                      title: Text(
+                        chapter.title,
+                        style: GoogleFonts.inter(
+                          fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                          color: isCurrent ? ClayColors.deepPurple : ClayColors.textDark,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                    trailing: Text(
-                      _formatDuration(chapter.start),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      trailing: Text(
+                        _formatDuration(chapter.start),
+                        style: GoogleFonts.inter(
+                          color: ClayColors.textMuted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                      onTap: () {
+                        onChapterSelected(index);
+                        Navigator.pop(context);
+                      },
                     ),
-                    onTap: () {
-                      onChapterSelected(index);
-                      Navigator.pop(context);
-                    },
                   );
                 },
               ),

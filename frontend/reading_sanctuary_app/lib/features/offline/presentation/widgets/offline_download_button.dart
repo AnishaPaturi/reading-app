@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../domain/models/download_task.dart';
 import '../../../../core/sync/providers/sync_providers.dart';
 
@@ -44,10 +45,12 @@ class OfflineDownloadButton extends ConsumerWidget {
           );
         },
         icon: const Icon(Icons.download_for_offline_outlined, size: 18),
-        label: const Text('Download for Offline'),
+        label: Text('Download for Offline', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13)),
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textLight,
-          side: const BorderSide(color: AppColors.gold, width: 1),
+          foregroundColor: ClayColors.deepPurple,
+          side: const BorderSide(color: Color(0xFFDDD2F5), width: 1.2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         ),
       );
     }
@@ -62,13 +65,15 @@ class OfflineDownloadButton extends ConsumerWidget {
           child: CircularProgressIndicator(
             value: task.progress > 0 ? task.progress : null,
             strokeWidth: 2,
-            color: AppColors.gold,
+            color: ClayColors.deepPurple,
           ),
         ),
-        label: Text('Downloading $percent%'),
+        label: Text('Downloading $percent%', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13)),
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textLightSecondary,
-          side: const BorderSide(color: AppColors.textLightSecondary, width: 1),
+          foregroundColor: ClayColors.textMuted,
+          side: const BorderSide(color: Color(0xFFDDD2F5), width: 1),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         ),
       );
     }
@@ -89,15 +94,15 @@ class OfflineDownloadButton extends ConsumerWidget {
           PopupMenuItem(
             value: 'info',
             enabled: false,
-            child: Text('Downloaded: $sizeStr', style: const TextStyle(fontSize: 13)),
+            child: Text('Downloaded: $sizeStr', style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textDark)),
           ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'delete',
             child: Row(
               children: [
-                Icon(Icons.delete_outline, color: Color(0xFFE05A7A), size: 18),
-                SizedBox(width: 8),
-                Text('Delete Download', style: TextStyle(color: Color(0xFFE05A7A))),
+                const Icon(Icons.delete_outline_rounded, color: ClayColors.coral, size: 18),
+                const SizedBox(width: 8),
+                Text('Delete Download', style: GoogleFonts.inter(color: ClayColors.coral, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -105,25 +110,25 @@ class OfflineDownloadButton extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF5CB89A).withOpacity(0.15),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFF5CB89A).withOpacity(0.4)),
+            color: const Color(0xFFE8F6F0),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: ClayColors.mint.withValues(alpha: 0.4)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.offline_pin, color: Color(0xFF5CB89A), size: 18),
+              const Icon(Icons.offline_pin_rounded, color: ClayColors.mint, size: 18),
               const SizedBox(width: 6),
               Text(
                 'Offline Ready ($sizeStr)',
-                style: const TextStyle(
-                  color: Color(0xFF5CB89A),
+                style: GoogleFonts.inter(
+                  color: ClayColors.mint,
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(width: 4),
-              const Icon(Icons.arrow_drop_down, color: Color(0xFF5CB89A), size: 16),
+              const Icon(Icons.arrow_drop_down, color: ClayColors.mint, size: 16),
             ],
           ),
         ),
@@ -141,11 +146,13 @@ class OfflineDownloadButton extends ConsumerWidget {
           format: format,
         );
       },
-      icon: const Icon(Icons.refresh, color: Color(0xFFE05A7A), size: 18),
-      label: const Text('Download Failed · Retry'),
+      icon: const Icon(Icons.refresh_rounded, color: ClayColors.coral, size: 18),
+      label: Text('Download Failed · Retry', style: GoogleFonts.inter(color: ClayColors.coral, fontWeight: FontWeight.w600, fontSize: 13)),
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFFE05A7A),
-        side: const BorderSide(color: Color(0xFFE05A7A), width: 1),
+        foregroundColor: ClayColors.coral,
+        side: const BorderSide(color: Color(0xFFFFDDD7), width: 1.2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       ),
     );
   }

@@ -12,7 +12,7 @@ import 'package:reading_sanctuary_app/shared/services/providers.dart';
 
 void main() {
   Widget buildTestableWidget({Size size = const Size(1200, 900)}) {
-    final sampleRepo = MockBookRepository.sample();
+    final sampleRepo = MockBookRepository(MockBookRepository.sample());
     return ProviderScope(
       overrides: [
         bookRepositoryProvider.overrideWithValue(sampleRepo),

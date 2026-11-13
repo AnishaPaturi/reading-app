@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class TtsVoiceSelectorSheet extends StatelessWidget {
   final List<Map<String, String>> voices;
@@ -21,18 +23,22 @@ class TtsVoiceSelectorSheet extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
+        initialChildSize: 0.55,
         minChildSize: 0.3,
-        maxChildSize: 0.85,
+        maxChildSize: 0.88,
         expand: false,
-        builder: (context, scrollController) => TtsVoiceSelectorSheet(
-          voices: voices,
-          selectedVoice: selectedVoice,
-          onVoiceSelected: onVoiceSelected,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: TtsVoiceSelectorSheet(
+            voices: voices,
+            selectedVoice: selectedVoice,
+            onVoiceSelected: onVoiceSelected,
+          ),
         ),
       ),
     );
@@ -40,8 +46,6 @@ class TtsVoiceSelectorSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,25 +57,28 @@ class TtsVoiceSelectorSheet extends StatelessWidget {
               children: [
                 Text(
                   'Available Voices (${voices.length})',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: ClayColors.textDark,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded, color: ClayColors.deepPurple),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          const Divider(color: Color(0xFFEDE5F8), height: 1),
           if (voices.isEmpty)
             Expanded(
               child: Center(
                 child: Text(
                   'No additional device voices found',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textMuted,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -79,8 +86,9 @@ class TtsVoiceSelectorSheet extends StatelessWidget {
           else
             Expanded(
               child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: voices.length,
-                separatorBuilder: (ctx, i) => const Divider(height: 1),
+                separatorBuilder: (ctx, i) => const SizedBox(height: 4),
                 itemBuilder: (context, index) {
                   final voice = voices[index];
                   final name = voice['name'] ?? 'Voice ${index + 1}';
@@ -88,22 +96,38 @@ class TtsVoiceSelectorSheet extends StatelessWidget {
                   final isSelected = selectedVoice != null &&
                       selectedVoice!['name'] == voice['name'];
 
-                  return ListTile(
-                    selected: isSelected,
-                    selectedTileColor:
-                        theme.colorScheme.primaryContainer.withAlpha(70),
-                    leading: Icon(
-                      isSelected
-                          ? Icons.check_circle_rounded
-                          : Icons.record_voice_over_outlined,
-                      color: isSelected ? theme.colorScheme.primary : null,
+                  return Material(
+                    color: isSelected ? const Color(0xFFFAF7FE) : Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: isSelected ? const BorderSide(color: Color(0xFFDDD2F5)) : BorderSide.none,
                     ),
-                    title: Text(name),
-                    subtitle: locale.isNotEmpty ? Text(locale) : null,
-                    onTap: () {
-                      onVoiceSelected(voice);
-                      Navigator.pop(context);
-                    },
+                    child: ListTile(
+                      leading: Icon(
+                        isSelected
+                            ? Icons.check_circle_rounded
+                            : Icons.record_voice_over_outlined,
+                        color: isSelected ? ClayColors.deepPurple : ClayColors.textMuted.withValues(alpha: 0.6),
+                      ),
+                      title: Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? ClayColors.deepPurple : ClayColors.textDark,
+                          fontSize: 14,
+                        ),
+                      ),
+                      subtitle: locale.isNotEmpty
+                          ? Text(
+                              locale,
+                              style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textMuted),
+                            )
+                          : null,
+                      onTap: () {
+                        onVoiceSelected(voice);
+                        Navigator.pop(context);
+                      },
+                    ),
                   );
                 },
               ),

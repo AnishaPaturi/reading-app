@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../shared/models/book.dart';
+import 'clay_components.dart';
 
 class SanctuaryCard extends StatelessWidget {
   const SanctuaryCard({super.key, required this.child, this.padding = const EdgeInsets.all(16)});
@@ -8,13 +9,9 @@ class SanctuaryCard extends StatelessWidget {
   final EdgeInsets padding;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => ClayCard(
+        borderRadius: 20,
         padding: padding,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.gold.withAlpha(70)),
-        ),
         child: child,
       );
 }
@@ -30,10 +27,29 @@ class SectionHeader extends StatelessWidget {
         padding: const EdgeInsets.only(top: 28, bottom: 12),
         child: Row(children: [
           Expanded(
-              child: Semantics(
-                  header: true,
-                  child: Text(title, style: Theme.of(context).textTheme.headlineSmall))),
-          if (actionLabel != null) TextButton(onPressed: onAction, child: Text(actionLabel!)),
+            child: Semantics(
+              header: true,
+              child: Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 19,
+                  color: ClayColors.textDark,
+                ),
+              ),
+            ),
+          ),
+          if (actionLabel != null)
+            TextButton(
+              onPressed: onAction,
+              child: Text(
+                actionLabel!,
+                style: GoogleFonts.inter(
+                  color: ClayColors.deepPurple,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
         ]),
       );
 }
@@ -56,13 +72,29 @@ class EmptyState extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(icon, size: 56, color: AppColors.gold),
+                  Icon(icon, size: 56, color: ClayColors.deepPurple),
                   const SizedBox(height: 16),
-                  Text(message,
-                      textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 17,
+                      color: ClayColors.textDark,
+                    ),
+                  ),
                   if (actionLabel != null) ...[
                     const SizedBox(height: 20),
-                    FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+                    ElevatedButton(
+                      onPressed: onAction,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ClayColors.deepPurple,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: Text(actionLabel!, style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+                    ),
                   ],
                 ]),
               ),
@@ -78,12 +110,12 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(2),
+        borderRadius: BorderRadius.circular(6),
         child: LinearProgressIndicator(
           value: value,
-          minHeight: 4,
-          color: AppColors.gold,
-          backgroundColor: AppColors.gold.withAlpha(50),
+          minHeight: 6,
+          color: ClayColors.deepPurple,
+          backgroundColor: const Color(0xFFDDD2F5),
         ),
       );
 }
@@ -94,13 +126,20 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.gold.withAlpha(160)),
-          borderRadius: BorderRadius.circular(4),
+          color: const Color(0xFFFAF7FE),
+          border: Border.all(color: const Color(0xFFDDD2F5)),
+          borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(status.label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(letterSpacing: .4)),
+        child: Text(
+          status.label,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: ClayColors.deepPurple,
+          ),
+        ),
       );
 }
 
@@ -116,8 +155,11 @@ class RatingStars extends StatelessWidget {
       label: rating == null ? 'Not rated' : 'Rated $r out of 5',
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         for (var i = 1; i <= 5; i++)
-          Icon(r >= i ? Icons.star : (r >= i - .5 ? Icons.star_half : Icons.star_border),
-              size: size, color: AppColors.gold),
+          Icon(
+            r >= i ? Icons.star_rounded : (r >= i - .5 ? Icons.star_half_rounded : Icons.star_outline_rounded),
+            size: size,
+            color: ClayColors.amber,
+          ),
       ]),
     );
   }

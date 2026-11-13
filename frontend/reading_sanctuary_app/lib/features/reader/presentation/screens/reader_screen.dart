@@ -126,49 +126,59 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   void _showHighlightColorPicker(String selectedText, String startLocation, String endLocation, int? pageNumber) {
     showModalBottomSheet(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Highlight Selection', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Text('"$selectedText"', maxLines: 2, overflow: TextOverflow.ellipsis),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: ReaderHighlightColor.values.map((c) {
-                  return InkWell(
-                    onTap: () async {
-                      Navigator.of(ctx).pop();
-                      await ref.read(readerRepositoryProvider).createHighlight(
-                            bookId: widget.bookId,
-                            bookFileId: widget.fileId,
-                            selectedText: selectedText,
-                            locationType: ref.read(readerCurrentPositionProvider)?.locationType ?? 'PDF_PAGE',
-                            startLocation: startLocation,
-                            endLocation: endLocation,
-                            pageNumber: pageNumber,
-                            color: c,
-                          );
-                      ref.invalidate(readerHighlightsProvider(widget.bookId));
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: c.color,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black26),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Highlight Selection',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text('"$selectedText"', maxLines: 2, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: ReaderHighlightColor.values.map((c) {
+                    return InkWell(
+                      onTap: () async {
+                        Navigator.of(ctx).pop();
+                        await ref.read(readerRepositoryProvider).createHighlight(
+                              bookId: widget.bookId,
+                              bookFileId: widget.fileId,
+                              selectedText: selectedText,
+                              locationType: ref.read(readerCurrentPositionProvider)?.locationType ?? 'PDF_PAGE',
+                              startLocation: startLocation,
+                              endLocation: endLocation,
+                              pageNumber: pageNumber,
+                              color: c,
+                            );
+                        ref.invalidate(readerHighlightsProvider(widget.bookId));
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: c.color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.black26),
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -179,6 +189,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (ctx) => Consumer(
         builder: (context, ref, _) {
           final settings = ref.watch(readerSettingsProvider);

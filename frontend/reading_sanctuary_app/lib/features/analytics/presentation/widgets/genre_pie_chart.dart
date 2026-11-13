@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/genre_analytics.dart';
 
 class GenrePieChart extends StatefulWidget {
@@ -19,58 +20,48 @@ class _GenrePieChartState extends State<GenrePieChart> {
   int _touchedIndex = -1;
 
   static const List<Color> _palette = [
-    Color(0xFFC77DDB), // Orchid / Gold
-    Color(0xFF5CB89A), // Mint / Sage
-    Color(0xFF4FA3D9), // Blue
-    Color(0xFFE05A7A), // Rose
-    Color(0xFFE6A23C), // Amber
+    Color(0xFF9482E6), // Lavender
+    Color(0xFF5CB89A), // Mint
+    Color(0xFF67B5EC), // Sky Blue
+    Color(0xFFF37C76), // Coral
+    Color(0xFFF6B952), // Amber
     Color(0xFF7E57C2), // Deep Purple
-    Color(0xFF6C7BDB), // Periwinkle
+    Color(0xFFA796F2), // Soft Violet
   ];
 
   @override
   Widget build(BuildContext context) {
     final topGenres = widget.genreData.topGenres;
 
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.walnut),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Genre Distribution',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textLight,
-                  fontWeight: FontWeight.bold,
-                ),
+            style: GoogleFonts.inter(
+              color: ClayColors.textDark,
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             '${widget.genreData.totalCategorizedBooks} categorized books in library',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textLightSecondary,
-                ),
+            style: GoogleFonts.inter(
+              color: ClayColors.textMuted,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 16),
           if (topGenres.isEmpty)
-            const SizedBox(
+            SizedBox(
               height: 180,
               child: Center(
                 child: Text(
                   'No genre data available yet.',
-                  style: TextStyle(color: AppColors.textLightSecondary),
+                  style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 13),
                 ),
               ),
             )
@@ -132,7 +123,7 @@ class _GenrePieChartState extends State<GenrePieChart> {
               value: item.bookCount.toDouble(),
               title: '${item.percentage.toStringAsFixed(0)}%',
               radius: radius,
-              titleStyle: const TextStyle(
+              titleStyle: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -151,7 +142,7 @@ class _GenrePieChartState extends State<GenrePieChart> {
         final item = genres[i];
         final color = _palette[i % _palette.length];
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
+          padding: const EdgeInsets.symmetric(vertical: 3.5),
           child: Row(
             children: [
               Container(
@@ -165,17 +156,17 @@ class _GenrePieChartState extends State<GenrePieChart> {
                   item.genre,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.textLight,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                  style: GoogleFonts.inter(
+                    color: ClayColors.textDark,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               Text(
                 '${item.bookCount} (${item.percentage.toStringAsFixed(0)}%)',
-                style: const TextStyle(
-                  color: AppColors.textLightSecondary,
+                style: GoogleFonts.inter(
+                  color: ClayColors.textMuted,
                   fontSize: 11,
                 ),
               ),

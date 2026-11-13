@@ -85,6 +85,42 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                           child: Text('Failed to load reading list', style: GoogleFonts.inter()),
                         ),
                         data: (books) {
+                          if (books.isEmpty) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.auto_stories_rounded, size: 54, color: ClayColors.primaryPurple),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No books in your reading list',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: ClayColors.textDark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Add books to your library to track your reading journey.',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    ClayPillButton(
+                                      text: 'Browse Library',
+                                      color: ClayColors.deepPurple,
+                                      textColor: Colors.white,
+                                      onTap: () => context.go('/library'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+
                           final readingBooks = books
                               .where((b) => b.status == ReadingStatus.currentlyReading)
                               .toList();
@@ -93,7 +129,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                               .toList();
 
                           final heroBook = readingBooks.isNotEmpty ? readingBooks.first : books.first;
-                          final otherReading = readingBooks.skip(1).toList();
+                          final otherReading = readingBooks.isNotEmpty ? readingBooks.skip(1).toList() : <Book>[];
 
                           return Scrollbar(
                             controller: _scrollController,
@@ -137,7 +173,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 14),
-                                  _buildReadingList(otherReading.isNotEmpty ? otherReading : books.take(3).toList()),
+                                  _buildReadingList(otherReading),
 
                                   const SizedBox(height: 28),
 
@@ -151,7 +187,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 14),
-                                  _buildRecentlyFinished(completedBooks.isNotEmpty ? completedBooks : books.take(4).toList()),
+                                  _buildRecentlyFinished(completedBooks),
                                 ],
                               ),
                             ),
@@ -292,34 +328,41 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
           const SizedBox(height: 10),
 
           // Pages & Time Left
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  'Pages: ${book.currentPage > 0 ? book.currentPage : 210} / ${book.pages}',
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: ClayColors.textMuted,
+          Builder(builder: (context) {
+            final totalPages = book.pages > 0 ? book.pages : 1;
+            final currentPage = book.currentPage;
+            final pagesRemaining = (totalPages - currentPage).clamp(0, totalPages);
+            final hoursRemaining = (pagesRemaining * 1.5 / 60).toStringAsFixed(1);
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    'Pages: $currentPage / $totalPages',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: ClayColors.textMuted,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  'Time Left: 2.5 hrs',
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: ClayColors.textMuted,
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Time Left: $hoursRemaining hrs',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: ClayColors.textMuted,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -389,6 +432,15 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
   }
 
   Widget _buildReadingList(List<Book> books) {
+    if (books.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'No other books in progress.',
+          style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+        ),
+      );
+    }
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -397,7 +449,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
       itemBuilder: (context, index) {
         final b = books[index];
         final palette = BookshelfTheme.paletteForId(b.id);
-        final pct = (index == 0) ? 42 : (index == 1 ? 12 : 85);
+        final pct = (b.progress * 100).round();
 
         return ClayCard(
           onTap: () => context.push('/book/${b.id}'),
@@ -442,9 +494,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                         value: pct / 100.0,
                         minHeight: 5,
                         backgroundColor: const Color(0xFFEBE0F7),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          index == 1 ? ClayColors.coral : ClayColors.lavenderDark,
-                        ),
+                        valueColor: const AlwaysStoppedAnimation<Color>(ClayColors.coral),
                       ),
                     ),
                   ],
@@ -453,48 +503,16 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
 
               const SizedBox(width: 10),
 
-              // Button or Badge
-              if (index == 0)
-                ClayPillButton(
-                  text: 'Resume',
-                  color: ClayColors.peach,
-                  textColor: const Color(0xFF382352),
-                  height: 32,
-                  fontSize: 12,
-                  onTap: () => context.push('/book/${b.id}'),
-                )
-              else if (index == 1)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: ClayColors.coral,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text(
-                    'Just Started',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: ClayColors.deepPurple,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text(
-                    'Almost Done',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
+              ClayPillButton(
+                text: 'Resume',
+                color: ClayColors.peach,
+                textColor: const Color(0xFF382352),
+                height: 32,
+                fontSize: 12,
+                onTap: () => context.push(
+                  '/reader/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&format=PDF',
                 ),
+              ),
             ],
           ),
         );
@@ -503,6 +521,15 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
   }
 
   Widget _buildRecentlyFinished(List<Book> books) {
+    if (books.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'No completed books yet.',
+          style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+        ),
+      );
+    }
     return SizedBox(
       height: 110,
       child: ListView.separated(

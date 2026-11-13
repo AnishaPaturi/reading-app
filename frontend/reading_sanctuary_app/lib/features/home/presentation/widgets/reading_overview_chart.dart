@@ -9,16 +9,16 @@ class ReadingOverviewChart extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final books = ref.watch(booksProvider).valueOrNull ?? [];
     final totalProgress = books.fold<double>(0.0, (sum, b) => sum + b.progress);
-    final baseDaily = totalProgress > 0 ? (totalProgress * 0.9) : 0.6;
+    final baseDaily = totalProgress > 0 ? (totalProgress * 0.9) : 0.0;
 
     final days = [
-      _DayData('Mon', (baseDaily * 0.9).clamp(0.4, 5.8), const Color(0xFF9E8EE6)),
-      _DayData('Tue', (baseDaily * 1.3).clamp(0.4, 5.8), const Color(0xFFF399A2)),
-      _DayData('Wed', (baseDaily * 1.1).clamp(0.4, 5.8), const Color(0xFFF8A665)),
-      _DayData('Thu', (baseDaily * 1.5).clamp(0.4, 5.8), const Color(0xFFFCD565)),
-      _DayData('Fri', (baseDaily * 1.0).clamp(0.4, 5.8), const Color(0xFF86D29B)),
-      _DayData('Sat', (baseDaily * 1.6).clamp(0.4, 5.8), const Color(0xFF78BAF4)),
-      _DayData('Sun', (baseDaily * 1.2).clamp(0.4, 5.8), const Color(0xFFAA9BE8)),
+      _DayData('Mon', (baseDaily * 0.9).clamp(0.0, 5.8), const Color(0xFF9E8EE6)),
+      _DayData('Tue', (baseDaily * 1.3).clamp(0.0, 5.8), const Color(0xFFF399A2)),
+      _DayData('Wed', (baseDaily * 1.1).clamp(0.0, 5.8), const Color(0xFFF8A665)),
+      _DayData('Thu', (baseDaily * 1.5).clamp(0.0, 5.8), const Color(0xFFFCD565)),
+      _DayData('Fri', (baseDaily * 1.0).clamp(0.0, 5.8), const Color(0xFF86D29B)),
+      _DayData('Sat', (baseDaily * 1.6).clamp(0.0, 5.8), const Color(0xFF78BAF4)),
+      _DayData('Sun', (baseDaily * 1.2).clamp(0.0, 5.8), const Color(0xFFAA9BE8)),
     ];
     return Container(
       padding: const EdgeInsets.all(18),
@@ -124,7 +124,7 @@ class ReadingOverviewChart extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: days.map((d) {
                               // max 6h
-                              final heightFactor = (d.hours / 6.0).clamp(0.05, 1.0);
+                              final heightFactor = d.hours > 0 ? (d.hours / 6.0).clamp(0.05, 1.0) : 0.0;
                               final barHeight = maxHeight * heightFactor;
 
                               return Container(

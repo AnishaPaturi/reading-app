@@ -214,7 +214,43 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
   Widget _buildBooksTab(List<Book> books) {
     // Show top favorites
-    final favBooks = books.take(6).toList();
+    final favBooks = books.where((b) => (b.rating ?? 0) >= 4.0 || b.status == ReadingStatus.completed).toList();
+
+    if (favBooks.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.favorite_border_rounded, size: 54, color: ClayColors.coral),
+              const SizedBox(height: 14),
+              Text(
+                'No favorite books yet',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: ClayColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Books you rate highly or finish will appear here.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+              ),
+              const SizedBox(height: 20),
+              ClayPillButton(
+                text: 'Explore Library',
+                color: ClayColors.deepPurple,
+                textColor: Colors.white,
+                onTap: () => context.go('/library'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
@@ -330,7 +366,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
     final Map<String, int> authorCounts = {};
     for (final b in books) {
       final a = b.author.trim();
-      if (a.isNotEmpty) {
+      if (a.isNotEmpty && a.toLowerCase() != 'unknown author' && a.toLowerCase() != 'community author') {
         authorCounts[a] = (authorCounts[a] ?? 0) + 1;
       }
     }
@@ -338,6 +374,35 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
         .map((e) => {'name': e.key, 'books': e.value})
         .toList()
       ..sort((a, b) => (b['books'] as int).compareTo(a['books'] as int));
+
+    if (authors.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.person_outline_rounded, size: 54, color: ClayColors.primaryPurple),
+              const SizedBox(height: 14),
+              Text(
+                'No favorite authors yet',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: ClayColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Authors from your library will appear here.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
@@ -470,46 +535,35 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
           ),
           const SizedBox(height: 14),
 
-          // Row of cute 3D standing books with hearts & stars
-          SizedBox(
-            height: 104,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              children: [
-                ClayBookMini(
-                  title: 'A Brighter\nYou',
-                  color: ClayColors.coral,
-                  hasHeart: true,
-                  motif: const Icon(Icons.wb_sunny_rounded, color: Colors.white70, size: 14),
-                  onTap: () => context.go('/library'),
-                ),
-                const SizedBox(width: 14),
-                ClayBookMini(
-                  title: 'The Book\nThief',
-                  color: ClayColors.amber,
-                  hasStar: true,
-                  motif: const Icon(Icons.landscape_rounded, color: Colors.white70, size: 14),
-                  onTap: () => context.go('/library'),
-                ),
-                const SizedBox(width: 14),
-                ClayBookMini(
-                  title: 'The Midnight\nLibrary',
-                  color: ClayColors.deepPurple,
-                  hasHeart: true,
-                  motif: const Icon(Icons.nightlight_round, color: Color(0xFFFFD460), size: 14),
-                  onTap: () => context.go('/library'),
-                ),
-                const SizedBox(width: 14),
-                ClayBookMini(
-                  title: 'Hill\nHouse',
-                  color: const Color(0xFF4C3364),
-                  hasStar: true,
-                  onTap: () => context.go('/library'),
-                ),
-              ],
+          if (books.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'No books added for quick access yet.',
+                style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+              ),
+            )
+          else
+            SizedBox(
+              height: 104,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: books.take(4).length,
+                separatorBuilder: (_, __) => const SizedBox(width: 14),
+                itemBuilder: (context, index) {
+                  final b = books[index];
+                  final palette = BookshelfTheme.paletteForId(b.id);
+                  return ClayBookMini(
+                    title: b.title,
+                    color: palette.base,
+                    hasHeart: index % 2 == 0,
+                    hasStar: index % 2 != 0,
+                    onTap: () => context.push('/book/${b.id}'),
+                  );
+                },
+              ),
             ),
-          ),
 
           const SizedBox(height: 24),
 

@@ -52,16 +52,18 @@ class QuotesHighlightsNotifier extends StateNotifier<List<QuoteOrHighlightItem>>
       if (data != null && data.isNotEmpty) {
         final decoded = jsonDecode(data);
         if (decoded is List) {
-          state = decoded
+          final list = decoded
               .map((item) => QuoteOrHighlightItem.fromJson(item as Map<String, dynamic>))
+              .where((item) => !RegExp(r'^[1-5]$').hasMatch(item.id))
               .toList();
+          state = list;
+          await _save();
           return;
         }
       }
     } catch (_) {}
 
-    // Initialize with starter highlights & quotes if none exist
-    state = _initialItems();
+    state = const [];
     _save();
   }
 
@@ -97,49 +99,7 @@ class QuotesHighlightsNotifier extends StateNotifier<List<QuoteOrHighlightItem>>
   }
 
   static List<QuoteOrHighlightItem> _initialItems() {
-    final now = DateTime.now();
-    return [
-      QuoteOrHighlightItem(
-        id: '1',
-        text: '“Between life and death there is a library, and within that library, the shelves go on for ever.”',
-        source: 'The Midnight Library',
-        chapter: 'Chapter 1 · Page 12',
-        isQuote: true,
-        createdAt: now.subtract(const Duration(days: 3)),
-      ),
-      QuoteOrHighlightItem(
-        id: '2',
-        text: '“You do not rise to the level of your goals. You fall to the level of your systems.”',
-        source: 'Atomic Habits',
-        chapter: 'Fundamentals · Page 27',
-        isQuote: true,
-        createdAt: now.subtract(const Duration(days: 5)),
-      ),
-      QuoteOrHighlightItem(
-        id: '3',
-        text: '“Doing well with money has a little to do with how smart you are and a lot to do with how you behave.”',
-        source: 'The Psychology of Money',
-        chapter: 'No One is Crazy · Page 15',
-        isQuote: true,
-        createdAt: now.subtract(const Duration(days: 8)),
-      ),
-      QuoteOrHighlightItem(
-        id: '4',
-        text: 'She stopped talking because words felt like unnecessary baggage.',
-        source: 'The Silent Patient',
-        chapter: 'Part 1 · Page 18',
-        isQuote: false,
-        createdAt: now.subtract(const Duration(days: 2)),
-      ),
-      QuoteOrHighlightItem(
-        id: '5',
-        text: 'Habits are the compound interest of self-improvement.',
-        source: 'Atomic Habits',
-        chapter: 'Chapter 1 · Page 16',
-        isQuote: false,
-        createdAt: now.subtract(const Duration(days: 4)),
-      ),
-    ];
+    return const [];
   }
 }
 

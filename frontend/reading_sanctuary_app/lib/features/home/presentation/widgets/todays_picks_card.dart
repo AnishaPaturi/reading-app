@@ -18,7 +18,7 @@ class TodaysPicksCard extends ConsumerWidget {
     final books = ref.watch(booksProvider).valueOrNull ?? [];
     final totalBooks = books.length;
     final topPicksCount = books.where((b) => (b.rating ?? 0) >= 4.0 || b.progress > 0).length;
-    final displayPicks = topPicksCount > 0 ? topPicksCount : 5;
+    final displayPicks = topPicksCount;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

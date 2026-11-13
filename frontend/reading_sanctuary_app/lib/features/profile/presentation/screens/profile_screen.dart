@@ -521,6 +521,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildAchievements() {
+    final books = ref.watch(booksProvider).valueOrNull ?? [];
+    final completedCount = books.where((b) => b.status == ReadingStatus.completed).length;
+    final activeCount = books.where((b) => b.status == ReadingStatus.currentlyReading || b.progress > 0).length;
+
+    final speedStars = completedCount.clamp(0, 5);
+    final owlStars = activeCount.clamp(0, 5);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -561,13 +568,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Row(
-                      children: [
-                        Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
-                        Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
-                        Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
-                        Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
-                      ],
+                    Row(
+                      children: List.generate(5, (index) {
+                        final isEarned = index < speedStars;
+                        return Icon(
+                          isEarned ? Icons.star_rounded : Icons.star_border_rounded,
+                          color: isEarned ? const Color(0xFFFFD460) : Colors.white38,
+                          size: 16,
+                        );
+                      }),
                     ),
                   ],
                 ),
@@ -600,11 +609,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Row(
-                      children: [
-                        Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
-                        Icon(Icons.star_rounded, color: Color(0xFFFFD460), size: 16),
-                      ],
+                    Row(
+                      children: List.generate(5, (index) {
+                        final isEarned = index < owlStars;
+                        return Icon(
+                          isEarned ? Icons.star_rounded : Icons.star_border_rounded,
+                          color: isEarned ? const Color(0xFFFFD460) : Colors.white38,
+                          size: 16,
+                        );
+                      }),
                     ),
                   ],
                 ),

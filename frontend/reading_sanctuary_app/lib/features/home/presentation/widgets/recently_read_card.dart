@@ -37,15 +37,6 @@ class RecentlyReadCard extends ConsumerWidget {
       )).toList();
     }
 
-    if (items.isEmpty) {
-      final allBooks = ref.watch(booksProvider).valueOrNull ?? [];
-      items = allBooks.take(3).map((b) => RecentlyReadBook(
-        title: b.title,
-        imagePath: 'assets/images/dashboard/book_midnight.png',
-        progress: b.progress > 0 ? b.progress : 0.05,
-      )).toList();
-    }
-
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -76,11 +67,25 @@ class RecentlyReadCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: items.map((b) => Expanded(child: _buildBookItem(context, b))).toList(),
-          ),
+          if (items.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text(
+                  'No recently read books',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF8D82A2),
+                  ),
+                ),
+              ),
+            )
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: items.map((b) => Expanded(child: _buildBookItem(context, b))).toList(),
+            ),
         ],
       ),
     );

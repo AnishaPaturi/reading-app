@@ -200,16 +200,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                         const SizedBox(height: 26),
 
                                         // 4. Author Spotlight
-                                        Text(
-                                          'Author Spotlight',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w800,
-                                            color: ClayColors.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 14),
-                                        _buildAuthorSpotlight(),
+                                        _buildAuthorSpotlight(catalog),
                                       ],
                                     ],
                                   ),
@@ -320,6 +311,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
   Widget _buildTrendingRow(List<Book> catalog) {
     final books = catalog.take(5).toList();
+    if (books.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
       height: 110,
@@ -402,6 +394,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
   Widget _buildRecommendedBanner(List<Book> catalog) {
     final sampleBooks = catalog.take(3).toList();
+    if (sampleBooks.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -467,56 +460,81 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     );
   }
 
-  Widget _buildAuthorSpotlight() {
-    final authors = [
-      {'name': 'Matt Haig', 'color': ClayColors.coral},
-      {'name': 'Karin Habset', 'color': ClayColors.lavender},
-      {'name': 'Hanton Blesner', 'color': ClayColors.mint},
-      {'name': 'Nann Bamers', 'color': ClayColors.peach},
+  Widget _buildAuthorSpotlight(List<Book> catalog) {
+    final authors = catalog
+        .map((b) => b.author.trim())
+        .where((a) => a.isNotEmpty && a.toLowerCase() != 'unknown author' && a.toLowerCase() != 'community author')
+        .toSet()
+        .take(6)
+        .toList();
+
+    if (authors.isEmpty) return const SizedBox.shrink();
+
+    final colors = [
+      ClayColors.coral,
+      ClayColors.lavender,
+      ClayColors.mint,
+      ClayColors.peach,
+      ClayColors.amber,
+      ClayColors.primaryPurple,
     ];
 
-    return SizedBox(
-      height: 94,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: authors.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
-        itemBuilder: (context, index) {
-          final a = authors[index];
-          final col = a['color'] as Color;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Author Spotlight',
+          style: GoogleFonts.inter(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: ClayColors.textDark,
+          ),
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 94,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: authors.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 14),
+            itemBuilder: (context, index) {
+              final a = authors[index];
+              final col = colors[index % colors.length];
 
-          return Column(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: col,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: col.withValues(alpha: 0.4),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
+              return Column(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: col,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: col.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: const Icon(Icons.person_rounded, color: Colors.white, size: 30),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                a['name'] as String,
-                style: GoogleFonts.inter(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: ClayColors.textDark,
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+                    child: const Icon(Icons.person_rounded, color: Colors.white, size: 30),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    a,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: ClayColors.textDark,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

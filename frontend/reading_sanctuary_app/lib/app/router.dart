@@ -7,7 +7,8 @@ import '../features/analytics/presentation/screens/yearly_wrap_up_screen.dart';
 import '../features/audiobook/presentation/screens/audiobook_screen.dart';
 import '../features/authentication/presentation/screens/login_screen.dart';
 import '../features/authentication/presentation/screens/signup_screen.dart';
-import '../features/bookshelf/presentation/bookshelves_screen.dart';
+import '../features/bookshelf/presentation/screens/bookshelves_screen.dart';
+import '../features/bookshelf/presentation/screens/bookshelf_detail_screen.dart';
 import '../features/book_details/book_details_screen.dart';
 import '../features/cloud_storage/presentation/screens/storage_management_screen.dart';
 import '../core/sync/presentation/screens/sync_settings_screen.dart';
@@ -18,7 +19,6 @@ import '../features/journal/presentation/journal_screen.dart';
 import '../features/reading/reading_screen.dart';
 import '../features/library/library_screen.dart';
 import '../features/library/screens/add_book_screen.dart';
-import '../features/notifications/presentation/screens/notifications_screen.dart';
 import '../features/help/presentation/screens/help_screen.dart';
 import '../features/search/presentation/screens/search_screen.dart';
 import '../features/tracker/presentation/screens/reading_tracker_screen.dart';
@@ -109,7 +109,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/storage/manage',
             pageBuilder: (c, s) => _page(s, const StorageManagementScreen()),
           ),
-          GoRoute(path: '/notifications', pageBuilder: (c, s) => _page(s, const NotificationsScreen())),
           GoRoute(path: '/help', pageBuilder: (c, s) => _page(s, const HelpScreen())),
           GoRoute(path: '/search', pageBuilder: (c, s) => _page(s, const SearchScreen())),
           GoRoute(
@@ -142,7 +141,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/bookshelves',
-            pageBuilder: (c, s) => _page(s, const BookshelvesScreen()),
+            pageBuilder: (c, s) => _page(s, const BookshelvesScreen(activeRoute: '/bookshelves')),
+          ),
+          GoRoute(
+            path: '/bookshelf/:id',
+            pageBuilder: (c, s) {
+              final id = s.pathParameters['id'] ?? '';
+              return _page(s, BookshelfDetailScreen(shelfId: id));
+            },
           ),
           GoRoute(
             path: '/highlights',

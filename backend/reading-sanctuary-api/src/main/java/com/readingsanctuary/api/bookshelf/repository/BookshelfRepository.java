@@ -13,6 +13,8 @@ public interface BookshelfRepository
 
     List<Bookshelf> findAllByUser_Id(UUID userId);
 
+    List<Bookshelf> findAllByUser_IdOrderBySortOrderAscCreatedAtAsc(UUID userId);
+
     Optional<Bookshelf> findByIdAndUser_Id(
             UUID shelfId, UUID userId);
 

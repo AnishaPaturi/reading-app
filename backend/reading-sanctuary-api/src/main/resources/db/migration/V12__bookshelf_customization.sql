@@ -1,0 +1,12 @@
+-- =========================================
+-- BOOKSHELF CUSTOMIZATION EXTENSIONS
+-- =========================================
+
+ALTER TABLE bookshelves
+ADD COLUMN IF NOT EXISTS theme_color VARCHAR(30),
+ADD COLUMN IF NOT EXISTS accent_color VARCHAR(30),
+ADD COLUMN IF NOT EXISTS icon VARCHAR(100),
+ADD COLUMN IF NOT EXISTS background_style VARCHAR(50) DEFAULT 'solid',
+ADD COLUMN IF NOT EXISTS layout_style VARCHAR(50) DEFAULT 'shelf',
+ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;

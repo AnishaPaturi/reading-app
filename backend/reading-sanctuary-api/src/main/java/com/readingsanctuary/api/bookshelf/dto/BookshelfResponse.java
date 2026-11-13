@@ -14,6 +14,20 @@ public record BookshelfResponse(
 
     String color,
 
+    String themeColor,
+
+    String accentColor,
+
+    String icon,
+
+    String backgroundStyle,
+
+    String layoutStyle,
+
+    boolean isFavorite,
+
+    int sortOrder,
+
     int bookCount,
 
     List<UUID> bookIds,

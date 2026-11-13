@@ -195,7 +195,8 @@ public class BookFileService {
                 file.getFileFormat(),
                 file.getFileSizeBytes(),
                 file.getChecksum(),
-                file.getUploadedAt()
+                file.getUploadedAt(),
+                file.getDurationSeconds()
         );
     }
 }

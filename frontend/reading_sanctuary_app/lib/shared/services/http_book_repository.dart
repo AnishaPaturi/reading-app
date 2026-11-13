@@ -214,6 +214,7 @@ class HttpBookRepository implements BookRepository {
       case ReadingStatus.dnf:
         return 'DNF';
       case ReadingStatus.wantToRead:
+      case ReadingStatus.toRead:
         return 'WANT_TO_READ';
     }
   }

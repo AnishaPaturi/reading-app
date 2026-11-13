@@ -160,7 +160,8 @@ void main() {
       // Shelves & Settings tab is also scrollable
       await tester.drag(profileScrollView, const Offset(0, -200));
       await tester.pumpAndSettle();
-      expect(find.text('Notifications'), findsOneWidget);
+      expect(find.text('Log Out'), findsOneWidget);
+      expect(find.text('Notifications'), findsNothing);
     });
 
     testWidgets('ProfileScreen toggles between girl and boy animated avatars', (tester) async {

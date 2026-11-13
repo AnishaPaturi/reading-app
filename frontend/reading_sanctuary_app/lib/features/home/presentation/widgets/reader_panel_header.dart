@@ -114,60 +114,6 @@ class ReaderPanelHeader extends ConsumerWidget {
               const SizedBox(width: 4),
             ],
 
-            // Notification Bell with Badge
-            InkWell(
-              onTap: () => context.push('/notifications'),
-              borderRadius: BorderRadius.circular(20),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFAF7F5),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFEBE4DC)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.notifications_rounded,
-                      color: Color(0xFF8C7CD6),
-                      size: 20,
-                    ),
-                  ),
-                  Positioned(
-                    top: -2,
-                    right: -2,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEE7186),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                      child: const Text(
-                        '3',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-
             // User Profile Section in Menu Bar
             PopupMenuButton<String>(
               tooltip: 'Profile options',

@@ -687,10 +687,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           context.push('/statistics/goals');
         }),
         const SizedBox(height: 10),
-        _buildSettingRow(Icons.notifications_none_rounded, 'Notifications', () {
-          context.push('/notifications');
-        }),
-        const SizedBox(height: 10),
         _buildSettingRow(Icons.logout_rounded, 'Log Out', () async {
           await ref.read(authNotifierProvider.notifier).logout();
           if (mounted) {
@@ -761,12 +757,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onPressed: () async {
               final newName = textController.text.trim();
               if (newName.isNotEmpty) {
+                final messenger = ScaffoldMessenger.of(context);
                 Navigator.of(ctx).pop();
-                await ref.read(customDisplayNameProvider.notifier).setName(newName);
                 final ok = await ref.read(authNotifierProvider.notifier).updateDisplayName(newName);
-                if (!mounted) return;
-                if (ok) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                if (ok && mounted) {
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text('Name updated to $newName!'),
                       behavior: SnackBarBehavior.floating,

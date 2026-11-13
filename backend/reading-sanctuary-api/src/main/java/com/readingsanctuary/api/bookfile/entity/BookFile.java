@@ -43,6 +43,9 @@ public class BookFile {
     @Column(name = "cloud_verified_at")
     private OffsetDateTime cloudVerifiedAt;
 
+    @Column(name = "duration_seconds")
+    private Long durationSeconds;
+
     @Column(name = "uploaded_at", nullable = false)
     private OffsetDateTime uploadedAt;
 
@@ -69,6 +72,9 @@ public class BookFile {
     public void setStorageKey(String storageKey) { this.storageKey = storageKey; }
     public void setFileSizeBytes(long fileSizeBytes) { this.fileSizeBytes = fileSizeBytes; }
     public void setChecksum(String checksum) { this.checksum = checksum; }
+
+    public Long getDurationSeconds() { return durationSeconds; }
+    public void setDurationSeconds(Long durationSeconds) { this.durationSeconds = durationSeconds; }
 
     public String getStorageProvider() { return storageProvider; }
     public void setStorageProvider(String storageProvider) { this.storageProvider = storageProvider; }

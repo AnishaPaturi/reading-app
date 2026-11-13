@@ -41,6 +41,20 @@ public class LocalFileStorageService {
         return storageKey;
     }
 
+    public String storeBytes(byte[] bytes, String extension) throws IOException {
+
+        String storageKey = UUID.randomUUID() + "." + extension;
+        Path destination = storageRoot.resolve(storageKey).normalize();
+
+        if (!destination.startsWith(storageRoot)) {
+            throw new IOException("Invalid storage path");
+        }
+
+        Files.write(destination, bytes);
+
+        return storageKey;
+    }
+
     public Resource load(String storageKey) throws IOException {
 
         Path filePath = storageRoot.resolve(storageKey).normalize();

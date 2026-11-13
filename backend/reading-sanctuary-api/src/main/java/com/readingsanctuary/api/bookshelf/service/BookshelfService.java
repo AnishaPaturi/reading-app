@@ -56,6 +56,21 @@ public class BookshelfService {
         shelf.setName(name);
         shelf.setDescription(request.description());
         shelf.setColor(request.color());
+        shelf.setThemeColor(request.themeColor() != null ? request.themeColor() : request.color());
+        shelf.setAccentColor(request.accentColor());
+        shelf.setIcon(request.icon());
+        if (request.backgroundStyle() != null && !request.backgroundStyle().isBlank()) {
+            shelf.setBackgroundStyle(request.backgroundStyle());
+        }
+        if (request.layoutStyle() != null && !request.layoutStyle().isBlank()) {
+            shelf.setLayoutStyle(request.layoutStyle());
+        }
+        if (request.isFavorite() != null) {
+            shelf.setFavorite(request.isFavorite());
+        }
+        if (request.sortOrder() != null) {
+            shelf.setSortOrder(request.sortOrder());
+        }
 
         return toResponse(shelfRepository.save(shelf));
     }
@@ -63,7 +78,7 @@ public class BookshelfService {
     @Transactional(readOnly = true)
     public List<BookshelfResponse> getAll(UUID userId) {
 
-        return shelfRepository.findAllByUser_Id(userId)
+        return shelfRepository.findAllByUser_IdOrderBySortOrderAscCreatedAtAsc(userId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -102,6 +117,34 @@ public class BookshelfService {
 
         if (request.color() != null) {
             shelf.setColor(request.color());
+        }
+
+        if (request.themeColor() != null) {
+            shelf.setThemeColor(request.themeColor());
+        }
+
+        if (request.accentColor() != null) {
+            shelf.setAccentColor(request.accentColor());
+        }
+
+        if (request.icon() != null) {
+            shelf.setIcon(request.icon());
+        }
+
+        if (request.backgroundStyle() != null && !request.backgroundStyle().isBlank()) {
+            shelf.setBackgroundStyle(request.backgroundStyle());
+        }
+
+        if (request.layoutStyle() != null && !request.layoutStyle().isBlank()) {
+            shelf.setLayoutStyle(request.layoutStyle());
+        }
+
+        if (request.isFavorite() != null) {
+            shelf.setFavorite(request.isFavorite());
+        }
+
+        if (request.sortOrder() != null) {
+            shelf.setSortOrder(request.sortOrder());
         }
 
         return toResponse(shelf);
@@ -159,6 +202,13 @@ public class BookshelfService {
                 shelf.getName(),
                 shelf.getDescription(),
                 shelf.getColor(),
+                shelf.getThemeColor(),
+                shelf.getAccentColor(),
+                shelf.getIcon(),
+                shelf.getBackgroundStyle(),
+                shelf.getLayoutStyle(),
+                shelf.isFavorite(),
+                shelf.getSortOrder(),
                 bookIds.size(),
                 bookIds,
                 shelf.getCreatedAt()

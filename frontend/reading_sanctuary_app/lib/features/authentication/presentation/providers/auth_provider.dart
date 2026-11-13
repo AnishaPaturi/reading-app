@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,55 +43,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void clearError() => state = state.copyWith(clearError: true);
 
-  Future<void> _persistDisplayNameLocally(String? name, String? email) async {
-    try {
-      String resolved = '';
-      if (name != null && name.trim().isNotEmpty && name.trim().toLowerCase() != 'reader') {
-        resolved = name.trim();
-      } else if (email != null && email.trim().isNotEmpty) {
-        final prefix = email.contains('@') ? email.split('@').first.trim() : email.trim();
-        if (prefix.isNotEmpty && prefix.toLowerCase() != 'reader') {
-          resolved = prefix[0].toUpperCase() + (prefix.length > 1 ? prefix.substring(1) : '');
-        }
-      }
-      if (resolved.isNotEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('sanctuary_user_display_name', resolved);
-      }
-    } catch (_) {}
-  }
-
   /// Restores session on app startup if a valid stored session is found.
   /// - On mobile: Restores persistent session saved in SharedPreferences.
   /// - On web: Restores session if the browser tab/window session exists.
   Future<bool> restoreSession() async {
     try {
       final session = await _sessionStorage.loadSession();
-      if (session != null) {
-        if (session.token.isNotEmpty) {
-          _tokenNotifier.state = session.token;
-        }
+      if (session != null && session.token.isNotEmpty) {
+        _tokenNotifier.state = session.token;
         state = state.copyWith(user: session.user, isLoading: false);
-        await _persistDisplayNameLocally(session.user.displayName, session.user.email);
-        if (session.token.isNotEmpty) {
-          refreshUserProfile();
-        }
+        // Silently refresh authoritative profile from server
+        refreshUserProfile();
         return true;
-      }
-      final prefs = await SharedPreferences.getInstance();
-      final customName = prefs.getString('sanctuary_user_display_name');
-      if (customName != null && customName.isNotEmpty && customName.toLowerCase() != 'reader') {
-        if (state.user != null) {
-          state = state.copyWith(user: state.user!.copyWith(displayName: customName));
-        } else {
-          state = state.copyWith(
-            user: AuthUser(id: 'local_user', email: '', displayName: customName),
-          );
-        }
       }
     } catch (_) {
       // Gracefully continue without session if loading fails
     }
+    state = const AuthState();
     return false;
   }
 
@@ -119,17 +86,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return false;
   }
 
-  /// Updates user display name and persists to database, session storage, and local preferences.
+  /// Updates user display name and persists to database and session storage.
   Future<bool> updateDisplayName(String displayName) async {
     final trimmed = displayName.trim();
     if (trimmed.isEmpty) return false;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('sanctuary_user_display_name', trimmed);
-    } catch (_) {}
 
     final token = _tokenNotifier.state;
-    if (state.user != null) {
+    if (state.user != null && state.isAuthenticated) {
       final updated = state.user!.copyWith(displayName: trimmed);
       state = state.copyWith(user: updated);
       if (token != null && token.isNotEmpty) {
@@ -139,11 +102,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         } catch (_) {}
       }
       return true;
-    } else {
-      final localUser = AuthUser(id: 'local_user', email: '', displayName: trimmed);
-      state = state.copyWith(user: localUser);
-      return true;
     }
+    return false;
   }
 
   /// Refreshes user profile directly from database (/api/v1/users/me).
@@ -165,7 +125,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
             : current?.gender,
       );
       state = state.copyWith(user: merged);
-      await _persistDisplayNameLocally(merged.displayName, merged.email);
       await _sessionStorage.saveSession(token: token, user: merged);
     } catch (_) {
       // Fallback gracefully to existing session
@@ -175,13 +134,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> login({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final user = await _apiService.login(email: email, password: password);
-      _tokenNotifier.state = user.token;
-      state = state.copyWith(isLoading: false, user: user);
-      await _persistDisplayNameLocally(user.displayName, user.email);
-      if (user.token != null && user.token!.isNotEmpty) {
-        await _sessionStorage.saveSession(token: user.token!, user: user);
+      final authUser = await _apiService.login(email: email, password: password);
+      final token = authUser.token;
+      _tokenNotifier.state = token;
+
+      AuthUser authoritativeUser = authUser;
+      if (token != null && token.isNotEmpty) {
+        try {
+          final profile = await _apiService.fetchUserProfile();
+          authoritativeUser = profile.copyWith(
+            token: token,
+            gender: (profile.gender != null && profile.gender!.isNotEmpty)
+                ? profile.gender
+                : authUser.gender,
+          );
+        } catch (_) {
+          // Fall back to login response if /users/me is unreachable
+        }
+        await _sessionStorage.saveSession(token: token, user: authoritativeUser);
       }
+
+      state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
@@ -189,18 +162,40 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> register({required String email, required String password,
-      String? username, String? gender}) async {
+  Future<bool> register({
+    required String email,
+    required String password,
+    String? username,
+    String? gender,
+  }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final user = await _apiService.register(
-          email: email, password: password, username: username, gender: gender);
-      _tokenNotifier.state = user.token;
-      state = state.copyWith(isLoading: false, user: user);
-      await _persistDisplayNameLocally(user.displayName, user.email);
-      if (user.token != null && user.token!.isNotEmpty) {
-        await _sessionStorage.saveSession(token: user.token!, user: user);
+      final authUser = await _apiService.register(
+        email: email,
+        password: password,
+        username: username,
+        gender: gender,
+      );
+      final token = authUser.token;
+      _tokenNotifier.state = token;
+
+      AuthUser authoritativeUser = authUser;
+      if (token != null && token.isNotEmpty) {
+        try {
+          final profile = await _apiService.fetchUserProfile();
+          authoritativeUser = profile.copyWith(
+            token: token,
+            gender: (profile.gender != null && profile.gender!.isNotEmpty)
+                ? profile.gender
+                : (authUser.gender ?? gender),
+          );
+        } catch (_) {
+          // Fall back to register response if /users/me is unreachable
+        }
+        await _sessionStorage.saveSession(token: token, user: authoritativeUser);
       }
+
+      state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
@@ -239,15 +234,29 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
 
       // Backend verifies either the ID token JWT or access token with Google.
-      final user = await _apiService.loginWithGoogle(idToken: token);
-      if (user.token == null || user.token!.isEmpty) {
+      final authUser = await _apiService.loginWithGoogle(idToken: token);
+      if (authUser.token == null || authUser.token!.isEmpty) {
         throw Exception('The server did not return a Reading Sanctuary session.');
       }
 
-      _tokenNotifier.state = user.token;
-      state = state.copyWith(isLoading: false, user: user);
-      await _persistDisplayNameLocally(user.displayName, user.email);
-      await _sessionStorage.saveSession(token: user.token!, user: user);
+      final sessionToken = authUser.token!;
+      _tokenNotifier.state = sessionToken;
+
+      AuthUser authoritativeUser = authUser;
+      try {
+        final profile = await _apiService.fetchUserProfile();
+        authoritativeUser = profile.copyWith(
+          token: sessionToken,
+          gender: (profile.gender != null && profile.gender!.isNotEmpty)
+              ? profile.gender
+              : authUser.gender,
+        );
+      } catch (_) {
+        // Fall back to Google login auth response if /users/me is unreachable
+      }
+
+      await _sessionStorage.saveSession(token: sessionToken, user: authoritativeUser);
+      state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
@@ -337,77 +346,32 @@ final userBannerAssetProvider = Provider<String>((ref) {
   return 'assets/images/dashboard/dash_banner.png';
 });
 
-class CustomDisplayNameNotifier extends StateNotifier<String?> {
-  static const _key = 'sanctuary_user_display_name';
-
-  CustomDisplayNameNotifier() : super(null) {
-    _load();
-  }
-
-  Future<void> _load() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString(_key);
-      if (saved != null && saved.trim().isNotEmpty && saved.trim().toLowerCase() != 'reader') {
-        state = saved.trim();
-        return;
-      }
-
-      // Check stored session user if custom display name is not directly set
-      final userJson = prefs.getString('sanctuary_auth_user');
-      if (userJson != null && userJson.isNotEmpty) {
-        final decoded = jsonDecode(userJson);
-        if (decoded is Map<String, dynamic>) {
-          final raw = decoded['displayName']?.toString().trim();
-          if (raw != null && raw.isNotEmpty && raw.toLowerCase() != 'reader') {
-            state = raw;
-            await prefs.setString(_key, raw);
-            return;
-          }
-          final email = decoded['email']?.toString().trim() ?? '';
-          final prefix = email.contains('@') ? email.split('@').first : email;
-          if (prefix.isNotEmpty && prefix.toLowerCase() != 'reader') {
-            final formatted = prefix[0].toUpperCase() + (prefix.length > 1 ? prefix.substring(1) : '');
-            state = formatted;
-            await prefs.setString(_key, formatted);
-            return;
-          }
-        }
-      }
-    } catch (_) {}
-  }
-
-  Future<void> setName(String name) async {
-    final trimmed = name.trim();
-    if (trimmed.isEmpty) return;
-    state = trimmed;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_key, trimmed);
-    } catch (_) {}
-  }
-}
-
-final customDisplayNameProvider =
-    StateNotifierProvider<CustomDisplayNameNotifier, String?>((ref) {
-  return CustomDisplayNameNotifier();
-});
-
-/// Resolves the user's friendly display name across the application.
 final userDisplayNameProvider = Provider<String>((ref) {
-  final customName = ref.watch(customDisplayNameProvider);
-  if (customName != null && customName.trim().isNotEmpty && customName.trim().toLowerCase() != 'reader') {
-    return customName.trim();
+  final authState = ref.watch(authNotifierProvider);
+  final user = authState.user;
+
+  // Never display a previous account's name.
+  if (user == null || !authState.isAuthenticated) {
+    return 'Reader';
   }
-  final authUser = ref.watch(authNotifierProvider).user;
-  final rawName = authUser?.displayName?.trim();
-  if (rawName != null && rawName.isNotEmpty && rawName.toLowerCase() != 'reader') {
-    return rawName;
+
+  final name = user.displayName?.trim();
+
+  if (name != null &&
+      name.isNotEmpty &&
+      name.toLowerCase() != 'reader') {
+    return name;
   }
-  final email = authUser?.email ?? '';
-  final emailPrefix = email.contains('@') ? email.split('@').first : email;
-  if (emailPrefix.isNotEmpty && emailPrefix.toLowerCase() != 'reader') {
-    return emailPrefix[0].toUpperCase() + (emailPrefix.length > 1 ? emailPrefix.substring(1) : '');
+
+  final email = user.email.trim();
+
+  if (email.contains('@')) {
+    final prefix = email.split('@').first;
+
+    if (prefix.isNotEmpty) {
+      return prefix[0].toUpperCase() + prefix.substring(1);
+    }
   }
+
   return 'Reader';
 });

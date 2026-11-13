@@ -46,7 +46,6 @@ final Map<String, String> _routeTitles = {
   '/highlights': 'Saved Highlights',
   '/quotes': 'Favorite Quotes',
   '/search': 'Search',
-  '/notifications': 'Notifications',
   '/help': 'Help & Support',
   '/library/add': 'Add Book',
   '/library/add-manual': 'Add Book',
@@ -54,6 +53,7 @@ final Map<String, String> _routeTitles = {
 
 String titleFor(String location) {
   if (location.startsWith('/book/')) return 'Book Details';
+  if (location.startsWith('/bookshelf/')) return 'Bookshelf';
   if (_routeTitles.containsKey(location)) return _routeTitles[location]!;
   for (final d in [...sidebarDestinations, ...primaryDestinations]) {
     if (d.path == location) return d.label;
@@ -67,9 +67,9 @@ const _detailPaths = {
   '/library/add-manual',
   '/journal/new',
   '/search',
-  '/notifications',
   '/sync/settings',
   '/storage/manage',
 };
 
-bool isDetailRoute(String location) => location.startsWith('/book/') || _detailPaths.contains(location);
+bool isDetailRoute(String location) =>
+    location.startsWith('/book/') || location.startsWith('/bookshelf/') || _detailPaths.contains(location);

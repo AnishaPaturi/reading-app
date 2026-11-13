@@ -12,6 +12,25 @@ public record CreateBookshelfRequest(
     String description,
 
     @Size(max = 20)
-    String color
+    String color,
+
+    @Size(max = 30)
+    String themeColor,
+
+    @Size(max = 30)
+    String accentColor,
+
+    @Size(max = 100)
+    String icon,
+
+    @Size(max = 50)
+    String backgroundStyle,
+
+    @Size(max = 50)
+    String layoutStyle,
+
+    Boolean isFavorite,
+
+    Integer sortOrder
 
 ) {}

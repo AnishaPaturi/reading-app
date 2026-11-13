@@ -9,5 +9,16 @@ public record BookFileResponse(
     String fileFormat,
     long fileSizeBytes,
     String checksum,
-    OffsetDateTime uploadedAt
-) {}
+    OffsetDateTime uploadedAt,
+    Long durationSeconds
+) {
+    public BookFileResponse(
+            UUID id,
+            String fileName,
+            String fileFormat,
+            long fileSizeBytes,
+            String checksum,
+            OffsetDateTime uploadedAt) {
+        this(id, fileName, fileFormat, fileSizeBytes, checksum, uploadedAt, null);
+    }
+}

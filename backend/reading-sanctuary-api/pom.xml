@@ -137,6 +137,20 @@
 			<artifactId>google-api-client</artifactId>
 			<version>2.7.2</version>
 		</dependency>
+
+		<!-- Audio metadata extraction -->
+		<dependency>
+			<groupId>net.jthink</groupId>
+			<artifactId>jaudiotagger</artifactId>
+			<version>3.0.1</version>
+		</dependency>
+
+		<!-- PDFBox for PDF metadata and page count -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>3.0.4</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -265,30 +265,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const SizedBox(height: 12),
 
-        Row(
-          children: [
-            Expanded(
-              child: ClayTile(
-                title: 'Notifications',
-                color: ClayColors.mint,
-                icon: Icons.notifications_rounded,
-                onTap: () => context.push('/notifications'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ClayTile(
-                title: 'Theme &\nDisplay',
-                color: ClayColors.lavender,
-                icon: Icons.palette_rounded,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Theme options opened')),
-                  );
-                },
-              ),
-            ),
-          ],
+        ClayTile(
+          title: 'Theme & Display',
+          subtitle: 'Customize appearance and colors',
+          color: ClayColors.lavender,
+          icon: Icons.palette_rounded,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Theme options opened')),
+            );
+          },
         ),
         const SizedBox(height: 12),
 

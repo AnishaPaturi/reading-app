@@ -183,6 +183,44 @@ void main() {
       expect(container.read(authTokenProvider), 'saved-token-123');
       expect(container.read(userGenderProvider), 'boy');
       expect(container.read(userAvatarAssetProvider), 'assets/images/dashboard/avatar_boy.png');
+      expect(container.read(userDisplayNameProvider), 'Sanctuary Reader');
+    });
+
+    test('userDisplayNameProvider falls back to capitalized email prefix if displayName is Reader or empty', () async {
+      const emailUser = AuthUser(
+        id: 'user-789',
+        email: 'arush@sanctuary.app',
+        token: 'token-789',
+        displayName: 'Reader',
+        gender: 'boy',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          authSessionStorageProvider.overrideWithValue(fakeStorage),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await fakeStorage.saveSession(token: emailUser.token!, user: emailUser);
+      await container.read(authNotifierProvider.notifier).restoreSession();
+
+      expect(container.read(userDisplayNameProvider), 'Arush');
+    });
+
+    test('userDisplayNameProvider prioritizes custom name when updated', () async {
+      final container = ProviderContainer(
+        overrides: [
+          authSessionStorageProvider.overrideWithValue(fakeStorage),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await fakeStorage.saveSession(token: sampleUser.token!, user: sampleUser);
+      await container.read(authNotifierProvider.notifier).restoreSession();
+
+      await container.read(customDisplayNameProvider.notifier).setName('Arush Paturi');
+
+      expect(container.read(userDisplayNameProvider), 'Arush Paturi');
     });
   });
 }

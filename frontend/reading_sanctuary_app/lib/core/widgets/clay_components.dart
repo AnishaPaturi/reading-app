@@ -163,6 +163,7 @@ class ClayCard extends StatelessWidget {
   final Widget child;
   final Color? color;
   final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? margin;
   final VoidCallback? onTap;
   final double borderRadius;
   final BoxBorder? border;
@@ -172,6 +173,7 @@ class ClayCard extends StatelessWidget {
     required this.child,
     this.color,
     this.padding = const EdgeInsets.all(16),
+    this.margin,
     this.onTap,
     this.borderRadius = 22,
     this.border,
@@ -184,6 +186,7 @@ class ClayCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        margin: margin,
         padding: padding,
         decoration: BoxDecoration(
           color: baseColor,

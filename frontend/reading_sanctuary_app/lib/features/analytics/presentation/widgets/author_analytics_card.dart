@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/author_analytics.dart';
 
 class AuthorAnalyticsCard extends StatelessWidget {
@@ -14,20 +15,8 @@ class AuthorAnalyticsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final topAuthors = authorData.topAuthors;
 
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.walnut),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -36,27 +25,29 @@ class AuthorAnalyticsCard extends StatelessWidget {
             children: [
               Text(
                 'Top Authors',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.textLight,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: GoogleFonts.inter(
+                  color: ClayColors.textDark,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
               ),
               Text(
                 '${authorData.totalAuthors} total authors',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textLightSecondary,
-                    ),
+                style: GoogleFonts.inter(
+                  color: ClayColors.textMuted,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 14),
           if (topAuthors.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: Text(
                   'No author data available yet.',
-                  style: TextStyle(color: AppColors.textLightSecondary),
+                  style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 13),
                 ),
               ),
             )
@@ -66,19 +57,21 @@ class AuthorAnalyticsCard extends StatelessWidget {
                 final author = topAuthors[i];
                 final isTop3 = i < 3;
                 final badgeColor = i == 0
-                    ? const Color(0xFFE6A23C) // Gold
-                    : (i == 1 ? const Color(0xFFC0C0C0) // Silver
-                        : (i == 2 ? const Color(0xFFCD7F32) // Bronze
-                            : AppColors.textLightSecondary));
+                    ? ClayColors.amber // Gold
+                    : (i == 1
+                        ? const Color(0xFF9E8DE5) // Silver/Lavender
+                        : (i == 2
+                            ? ClayColors.coral // Bronze/Coral
+                            : ClayColors.textMuted));
 
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xFFFAF7FE),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: isTop3 ? badgeColor.withOpacity(0.3) : Colors.transparent,
+                      color: isTop3 ? badgeColor.withValues(alpha: 0.35) : const Color(0xFFDDD2F5),
                     ),
                   ),
                   child: Row(
@@ -88,14 +81,14 @@ class AuthorAnalyticsCard extends StatelessWidget {
                         height: 26,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: badgeColor.withOpacity(0.15),
+                          color: badgeColor.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: Text(
                           '#${i + 1}',
-                          style: TextStyle(
+                          style: GoogleFonts.inter(
                             color: badgeColor,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
                             fontSize: 11,
                           ),
                         ),
@@ -106,26 +99,27 @@ class AuthorAnalyticsCard extends StatelessWidget {
                           author.author,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppColors.textLight,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                          style: GoogleFonts.inter(
+                            color: ClayColors.textDark,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.5,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(6),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFDDD2F5)),
                         ),
                         child: Text(
                           '${author.completedCount} / ${author.bookCount} completed',
-                          style: const TextStyle(
-                            color: AppColors.textLightSecondary,
+                          style: GoogleFonts.inter(
+                            color: ClayColors.textMuted,
                             fontSize: 11,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

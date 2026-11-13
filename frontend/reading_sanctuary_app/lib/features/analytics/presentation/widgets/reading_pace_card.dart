@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../app/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../data/models/reading_pace.dart';
 
 class ReadingPaceCard extends StatelessWidget {
@@ -12,33 +13,22 @@ class ReadingPaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ClayCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.walnut),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.speed, color: AppColors.gold, size: 22),
+              const Icon(Icons.speed_rounded, color: ClayColors.deepPurple, size: 22),
               const SizedBox(width: 8),
               Text(
                 'Reading Pace & Efficiency',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.textLight,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: GoogleFonts.inter(
+                  color: ClayColors.textDark,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
@@ -51,7 +41,7 @@ class ReadingPaceCard extends StatelessWidget {
                   title: 'Daily Pace',
                   value: '${pace.averageMinutesPerDay.toStringAsFixed(1)}m',
                   subtext: 'minutes / day',
-                  color: AppColors.gold,
+                  color: ClayColors.deepPurple,
                 ),
               ),
               const SizedBox(width: 10),
@@ -61,7 +51,7 @@ class ReadingPaceCard extends StatelessWidget {
                   title: 'Page Speed',
                   value: pace.averagePagesPerDay.toStringAsFixed(1),
                   subtext: 'pages / day',
-                  color: AppColors.hlSage,
+                  color: const Color(0xFF2E9E67),
                 ),
               ),
               const SizedBox(width: 10),
@@ -71,7 +61,7 @@ class ReadingPaceCard extends StatelessWidget {
                   title: 'Session Avg',
                   value: '${pace.averageMinutesPerSession.toStringAsFixed(1)}m',
                   subtext: 'per session',
-                  color: AppColors.hlLavender,
+                  color: const Color(0xFF8D64CD),
                 ),
               ),
             ],
@@ -79,22 +69,24 @@ class ReadingPaceCard extends StatelessWidget {
           if (pace.estimatedCompletionDaysCurrentBook != null) ...[
             const SizedBox(height: 14),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.gold.withOpacity(0.2)),
+                color: const Color(0xFFFAF7FE),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFDDD2F5)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.hourglass_top, color: AppColors.gold, size: 16),
+                  const Icon(Icons.hourglass_top_rounded, color: ClayColors.deepPurple, size: 16),
                   const SizedBox(width: 8),
-                  Text(
-                    'At this pace: ~${pace.estimatedCompletionDaysCurrentBook} days to finish current book',
-                    style: const TextStyle(
-                      color: AppColors.textLight,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      'At this pace: ~${pace.estimatedCompletionDaysCurrentBook} days to finish current book',
+                      style: GoogleFonts.inter(
+                        color: ClayColors.textDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -116,31 +108,31 @@ class ReadingPaceCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.secondary,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: const Color(0xFFFAF7FE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFDDD2F5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(color: AppColors.textLightSecondary, fontSize: 11),
+            style: GoogleFonts.inter(color: ClayColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: TextStyle(
+            style: GoogleFonts.inter(
               color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              fontSize: 17,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             subtext,
-            style: TextStyle(
-              color: AppColors.textLightSecondary.withOpacity(0.8),
+            style: GoogleFonts.inter(
+              color: ClayColors.textMuted,
               fontSize: 10,
             ),
           ),

@@ -22,7 +22,7 @@ class YearlyWrapUpScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final int selectedYear = year ?? ref.watch(selectedAnalyticsYearProvider);
     final wrapUpAsync = ref.watch(yearlyWrapUpProvider(selectedYear));
 

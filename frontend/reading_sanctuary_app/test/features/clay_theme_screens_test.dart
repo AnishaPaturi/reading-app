@@ -112,7 +112,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('My Profile'), findsOneWidget);
-      expect(find.text('Mia'), findsOneWidget);
+      expect(find.text('Reader'), findsOneWidget);
       expect(find.text('Book Lover'), findsOneWidget);
       expect(find.textContaining('Books'), findsWidgets);
       expect(find.textContaining('Streak'), findsOneWidget);
@@ -152,6 +152,49 @@ void main() {
       await tester.drag(profileScrollView, const Offset(0, -200));
       await tester.pumpAndSettle();
       expect(find.text('Notifications'), findsOneWidget);
+    });
+
+    testWidgets('ProfileScreen toggles between girl and boy animated avatars', (tester) async {
+      tester.view.physicalSize = const Size(400, 850);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(testWrapper(const ProfileScreen()));
+      await tester.pumpAndSettle();
+
+      // Initially Girl avatar with dynamic reader name
+      expect(find.text('Girl'), findsOneWidget);
+      expect(find.text('Boy'), findsOneWidget);
+      expect(find.text('Reader'), findsOneWidget);
+
+      // Tap 'Boy'
+      await tester.tap(find.text('Boy'));
+      await tester.pumpAndSettle();
+
+      // Verified Boy character active while preserving real user name
+      expect(find.text('Reader'), findsOneWidget);
+      final boyImages = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_boy'),
+      );
+      expect(boyImages, isNotEmpty);
+      final boyBanner = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('dash_banner_boy'),
+      );
+      expect(boyBanner, isNotEmpty);
+
+      // Tap 'Girl' again
+      await tester.tap(find.text('Girl'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reader'), findsOneWidget);
+      final girlImages = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.contains('avatar_mia'),
+      );
+      expect(girlImages, isNotEmpty);
+      final girlBanner = tester.widgetList<Image>(find.byType(Image)).where(
+        (img) => img.image is AssetImage && (img.image as AssetImage).assetName.endsWith('dash_banner.png'),
+      );
+      expect(girlBanner, isNotEmpty);
     });
 
     testWidgets('SettingsScreen renders Account & Privacy, Preferences with Switch, and Help', (tester) async {

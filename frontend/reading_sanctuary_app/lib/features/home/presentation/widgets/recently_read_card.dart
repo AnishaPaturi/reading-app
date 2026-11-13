@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../shared/models/book.dart';
+import '../../../../shared/services/providers.dart';
 
 class RecentlyReadBook {
   final String title;
@@ -13,32 +16,35 @@ class RecentlyReadBook {
   });
 }
 
-class RecentlyReadCard extends StatelessWidget {
+class RecentlyReadCard extends ConsumerWidget {
   final List<RecentlyReadBook>? books;
 
   const RecentlyReadCard({super.key, this.books});
 
-  static const List<RecentlyReadBook> defaultBooks = [
-    RecentlyReadBook(
-      title: 'The Midnight\nLibrary',
-      imagePath: 'assets/images/dashboard/book_midnight.png',
-      progress: 0.72,
-    ),
-    RecentlyReadBook(
-      title: 'Atomic\nHabits',
-      imagePath: 'assets/images/dashboard/book_atomic.png',
-      progress: 0.45,
-    ),
-    RecentlyReadBook(
-      title: 'Little\nWomen',
-      imagePath: 'assets/images/dashboard/book_little_women.png',
-      progress: 0.88,
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    final items = books ?? defaultBooks;
+  Widget build(BuildContext context, WidgetRef ref) {
+    List<RecentlyReadBook> items = books ?? [];
+    if (items.isEmpty) {
+      final allBooks = ref.watch(booksProvider).valueOrNull ?? [];
+      final active = allBooks
+          .where((b) => b.progress > 0 || b.status == ReadingStatus.currentlyReading)
+          .take(3)
+          .toList();
+      items = active.map((b) => RecentlyReadBook(
+        title: b.title,
+        imagePath: 'assets/images/dashboard/book_midnight.png',
+        progress: b.progress,
+      )).toList();
+    }
+
+    if (items.isEmpty) {
+      final allBooks = ref.watch(booksProvider).valueOrNull ?? [];
+      items = allBooks.take(3).map((b) => RecentlyReadBook(
+        title: b.title,
+        imagePath: 'assets/images/dashboard/book_midnight.png',
+        progress: b.progress > 0 ? b.progress : 0.05,
+      )).toList();
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),

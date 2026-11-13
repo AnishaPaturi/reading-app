@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/services/providers.dart';
 
 class GenreItem {
   final String name;
@@ -13,22 +15,62 @@ class GenreItem {
   });
 }
 
-class TopGenresChart extends StatelessWidget {
+class TopGenresChart extends ConsumerWidget {
   final List<GenreItem>? genres;
 
   const TopGenresChart({super.key, this.genres});
 
-  static const List<GenreItem> defaultGenres = [
-    GenreItem(name: 'Fiction', percentage: 45, color: Color(0xFF9482E6)),
-    GenreItem(name: 'Sci-Fi', percentage: 25, color: Color(0xFFF87171)),
-    GenreItem(name: 'Fantasy', percentage: 15, color: Color(0xFFFBBF24)),
-    GenreItem(name: 'Mystery', percentage: 10, color: Color(0xFF4ADE80)),
-    GenreItem(name: 'Other', percentage: 5, color: Color(0xFF60A5FA)),
+  static const List<Color> _palette = [
+    Color(0xFF9482E6),
+    Color(0xFFF87171),
+    Color(0xFFFBBF24),
+    Color(0xFF4ADE80),
+    Color(0xFF60A5FA),
+    Color(0xFFE879F9),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final items = genres ?? defaultGenres;
+  Widget build(BuildContext context, WidgetRef ref) {
+    List<GenreItem> items = genres ?? [];
+    if (items.isEmpty) {
+      final books = ref.watch(booksProvider).valueOrNull ?? [];
+      if (books.isNotEmpty) {
+        final Map<String, int> counts = {};
+        for (final b in books) {
+          final g = b.genre.trim();
+          if (g.isNotEmpty) {
+            counts[g] = (counts[g] ?? 0) + 1;
+          }
+        }
+        final total = books.length;
+        final sortedEntries = counts.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        final topEntries = sortedEntries.take(4).toList();
+        final accounted = topEntries.fold<int>(0, (sum, e) => sum + e.value);
+        final otherCount = total - accounted;
+
+        items = [
+          for (int i = 0; i < topEntries.length; i++)
+            GenreItem(
+              name: topEntries[i].key,
+              percentage: ((topEntries[i].value / total) * 100).roundToDouble(),
+              color: _palette[i % _palette.length],
+            ),
+          if (otherCount > 0)
+            GenreItem(
+              name: 'Other',
+              percentage: ((otherCount / total) * 100).roundToDouble(),
+              color: _palette[topEntries.length % _palette.length],
+            ),
+        ];
+      }
+    }
+
+    if (items.isEmpty) {
+      items = const [
+        GenreItem(name: 'Reading', percentage: 100, color: Color(0xFF9482E6)),
+      ];
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),

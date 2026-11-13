@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/network/network_providers.dart';
 import '../../shared/models/book.dart';
 import 'data/discover_repository.dart';
 
-final discoverRepositoryProvider = Provider<DiscoverRepository>((ref) => MockDiscoverRepository());
+final discoverRepositoryProvider = Provider<DiscoverRepository>((ref) {
+  return HttpDiscoverRepository(apiClient: ref.watch(apiClientProvider));
+});
 final catalogProvider = FutureProvider<List<Book>>((ref) => ref.read(discoverRepositoryProvider).getCatalog());
 
 /// Query matches title, author, genre, series or trope. Selected tropes must ALL match.

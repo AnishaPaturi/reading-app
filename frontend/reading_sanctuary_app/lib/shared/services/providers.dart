@@ -1,8 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/network/network_providers.dart';
 import '../models/book.dart';
 import 'book_repository.dart';
+import 'http_book_repository.dart';
 
-final bookRepositoryProvider = Provider<BookRepository>((ref) => MockBookRepository());
+final bookRepositoryProvider = Provider<BookRepository>((ref) {
+  return HttpBookRepository(apiClient: ref.watch(apiClientProvider));
+});
 
 class BooksNotifier extends AsyncNotifier<List<Book>> {
   @override

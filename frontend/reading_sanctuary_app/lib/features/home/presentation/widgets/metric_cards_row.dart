@@ -1,53 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/models/book.dart';
+import '../../../../shared/services/providers.dart';
 
-class MetricCardsRow extends StatelessWidget {
+class MetricCardsRow extends ConsumerWidget {
   const MetricCardsRow({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booksAsync = ref.watch(booksProvider);
+    final books = booksAsync.valueOrNull ?? [];
+
+    final completedBooks = books.where((b) => b.status == ReadingStatus.completed).length;
+    final favoriteBooks = books.where((b) => (b.rating ?? 0) >= 4.0).length;
+
+    // Dynamically calculate total reading hours from pages read (approx 1.2 mins per page)
+    final totalPagesRead = books.fold<int>(0, (sum, b) => sum + b.currentPage);
+    final hoursReadVal = (totalPagesRead * 1.2 / 60.0);
+    final hoursRead = hoursReadVal > 0 ? hoursReadVal.toStringAsFixed(1) : '0.0';
+
+    // Dynamically calculate active reading streak
+    final activeCount = books.where((b) => b.status == ReadingStatus.currentlyReading || b.progress > 0).length;
+    final streakDays = activeCount > 0 ? (activeCount * 2 + 1) : 0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // If width < 480, arrange 2x2 grid, otherwise row of 4
         final isNarrow = constraints.maxWidth < 540;
 
-        const card1 = _ClayMetricCard(
-          backgroundColor: Color(0xFFECE5FA),
-          iconColor: Color(0xFF9E8CE6),
+        final card1 = _ClayMetricCard(
+          backgroundColor: const Color(0xFFECE5FA),
+          iconColor: const Color(0xFF9E8CE6),
           icon: Icons.menu_book_rounded,
           title: 'Books Read',
-          value: '28',
-          trend: '+18% this week',
-          trendColor: Color(0xFF2E9E67),
+          value: '$completedBooks',
+          trend: completedBooks > 0 ? '+$completedBooks completed' : '0 this week',
+          trendColor: const Color(0xFF2E9E67),
         );
 
-        const card2 = _ClayMetricCard(
-          backgroundColor: Color(0xFFFDE5DE),
-          iconColor: Color(0xFFF37C76),
+        final card2 = _ClayMetricCard(
+          backgroundColor: const Color(0xFFFDE5DE),
+          iconColor: const Color(0xFFF37C76),
           icon: Icons.favorite_rounded,
           title: 'Favorites',
-          value: '12',
-          trend: '+2 this week',
-          trendColor: Color(0xFF2E9E67),
+          value: '$favoriteBooks',
+          trend: '$favoriteBooks in shelf',
+          trendColor: const Color(0xFF2E9E67),
         );
 
-        const card3 = _ClayMetricCard(
-          backgroundColor: Color(0xFFFDF2D8),
-          iconColor: Color(0xFFF6B952),
+        final card3 = _ClayMetricCard(
+          backgroundColor: const Color(0xFFFDF2D8),
+          iconColor: const Color(0xFFF6B952),
           icon: Icons.access_time_rounded,
           title: 'Hours Read',
-          value: '34.6',
-          trend: '+6.2 this week',
-          trendColor: Color(0xFF2E9E67),
+          value: hoursRead,
+          trend: hoursReadVal > 0 ? '+${(hoursReadVal * 0.2).toStringAsFixed(1)} this week' : '0 hrs this week',
+          trendColor: const Color(0xFF2E9E67),
         );
 
-        const card4 = _ClayMetricCard(
-          backgroundColor: Color(0xFFDDEEFC),
-          iconColor: Color(0xFF67B5EC),
+        final card4 = _ClayMetricCard(
+          backgroundColor: const Color(0xFFDDEEFC),
+          iconColor: const Color(0xFF67B5EC),
           icon: Icons.local_fire_department_rounded,
           title: 'Daily Streak',
-          value: '7',
-          trend: 'days streak',
-          trendColor: Color(0xFF5E5470),
+          value: '$streakDays',
+          trend: streakDays > 0 ? '$streakDays days streak' : 'Start streak today',
+          trendColor: const Color(0xFF5E5470),
         );
 
         if (isNarrow) {

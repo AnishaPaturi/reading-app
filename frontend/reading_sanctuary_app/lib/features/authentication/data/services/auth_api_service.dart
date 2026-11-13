@@ -1,81 +1,62 @@
-import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_exception.dart';
 import '../models/auth_user.dart';
 
 class AuthApiService {
   final ApiClient _apiClient;
-
   AuthApiService({required ApiClient apiClient}) : _apiClient = apiClient;
 
-  Future<AuthUser> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final response = await _apiClient.post(
-        '/api/v1/auth/login',
-        body: {
-          'email': email.trim(),
-          'password': password,
-        },
-      );
+  Future<AuthUser> login({required String email, required String password}) async {
+    final response = await _apiClient.post('/auth/login', body: {
+      'email': email.trim(),
+      'password': password.trim(),
+    });
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Invalid response from server', statusCode: 500);
+  }
 
-      if (response is Map<String, dynamic>) {
-        return AuthUser.fromJson(response);
-      }
-      throw const ApiException(message: 'Invalid response from server', statusCode: 500);
-    } on NetworkException catch (e) {
-      debugPrint('AuthApiService: Network error ($e). Demo fallback active if needed.');
-      // If server is not running locally, provide friendly fallback for immediate dev preview
-      if (kDebugMode && (email.contains('@') && password.length >= 6)) {
-        return AuthUser(
-          id: 'demo-user-123',
-          email: email,
-          token: 'demo-mock-jwt-token',
-          displayName: email.split('@').first,
-        );
-      }
-      rethrow;
-    }
+  Future<AuthUser> loginWithGoogle({required String idToken}) async {
+    final response = await _apiClient.post('/auth/google', body: {'idToken': idToken});
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Invalid response from server', statusCode: 500);
   }
 
   Future<AuthUser> register({
-    required String email,
-    required String password,
-    String? username,
+    required String email, required String password, String? username, String? gender,
   }) async {
-    try {
-      final response = await _apiClient.post(
-        '/api/v1/users',
-        body: {
-          'email': email.trim(),
-          'password': password,
-        },
-      );
-
-      // After registration, auto-login or return user
-      if (response is Map<String, dynamic>) {
-        final userId = response['id']?.toString() ?? 'new-user';
-        return AuthUser(
-          id: userId,
-          email: email.trim(),
-          token: response['accessToken']?.toString() ?? 'registered-token',
-          displayName: username ?? email.split('@').first,
-        );
-      }
+    final trimmedEmail = email.trim();
+    final trimmedPassword = password.trim();
+    final response = await _apiClient.post('/users/register', body: {
+      'email': trimmedEmail,
+      'password': trimmedPassword,
+      if (username != null && username.trim().isNotEmpty) 'displayName': username.trim(),
+      if (gender != null && gender.trim().isNotEmpty) 'gender': gender.trim(),
+    });
+    if (response is! Map<String, dynamic>) {
       throw const ApiException(message: 'Failed to create user account', statusCode: 500);
-    } on NetworkException catch (e) {
-      debugPrint('AuthApiService: Network error ($e). Demo fallback active if needed.');
-      if (kDebugMode && (email.contains('@') && password.length >= 6)) {
-        return AuthUser(
-          id: 'demo-user-registered',
-          email: email,
-          token: 'demo-mock-jwt-token',
-          displayName: username ?? email.split('@').first,
-        );
-      }
-      rethrow;
     }
+    final loggedInUser = await login(email: trimmedEmail, password: trimmedPassword);
+    if (gender != null && gender.trim().isNotEmpty) {
+      return loggedInUser.copyWith(gender: gender.trim());
+    }
+    return loggedInUser;
+  }
+
+  Future<AuthUser> fetchUserProfile() async {
+    final response = await _apiClient.get('/users/me');
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Failed to fetch user profile', statusCode: 500);
+  }
+
+  Future<AuthUser> updateProfile({required String displayName}) async {
+    final response = await _apiClient.patch('/users/me', body: {'displayName': displayName.trim()});
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Failed to update profile', statusCode: 500);
+  }
+
+  Future<AuthUser> setGender(String gender) async {
+    final response = await _apiClient.patch('/users/me/gender', body: {'gender': gender});
+    if (response is Map<String, dynamic>) return AuthUser.fromJson(response);
+    throw const ApiException(message: 'Failed to set gender', statusCode: 500);
   }
 }

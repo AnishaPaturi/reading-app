@@ -178,6 +178,34 @@ class ApiClient {
     }
   }
 
+  Future<dynamic> patch(
+    String endpoint, {
+    dynamic body,
+    Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
+    Duration? timeout,
+  }) async {
+    try {
+      final uri = _buildUri(endpoint, queryParameters);
+      final payload = body != null ? (body is String ? body : jsonEncode(body)) : null;
+      final response = await _client
+          .patch(uri, headers: _buildHeaders(extraHeaders: headers), body: payload)
+          .timeout(timeout ?? ApiConfig.timeout);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (response.body.isEmpty) return null;
+        return jsonDecode(response.body);
+      }
+      _handleErrorResponse(response);
+    } on SocketException catch (e) {
+      throw NetworkException('Network connection error: ${e.message}');
+    } on TimeoutException {
+      throw const NetworkException('Request timed out. Please try again.');
+    } on http.ClientException catch (e) {
+      throw NetworkException('Connection error: ${e.message}');
+    }
+  }
+
   Future<dynamic> delete(
     String endpoint, {
     Map<String, dynamic>? queryParameters,

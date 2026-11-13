@@ -327,12 +327,17 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   }
 
   Widget _buildAuthorsTab(List<Book> books) {
-    final authors = [
-      {'name': 'Matt Haig', 'books': 4, 'avatar': 'assets/images/dashboard/avatar_mia.png'},
-      {'name': 'James Clear', 'books': 2, 'avatar': 'assets/images/dashboard/avatar_mia.png'},
-      {'name': 'Markus Zusak', 'books': 3, 'avatar': 'assets/images/dashboard/avatar_mia.png'},
-      {'name': 'Taylor Jenkins Reid', 'books': 5, 'avatar': 'assets/images/dashboard/avatar_mia.png'},
-    ];
+    final Map<String, int> authorCounts = {};
+    for (final b in books) {
+      final a = b.author.trim();
+      if (a.isNotEmpty) {
+        authorCounts[a] = (authorCounts[a] ?? 0) + 1;
+      }
+    }
+    final authors = authorCounts.entries
+        .map((e) => {'name': e.key, 'books': e.value})
+        .toList()
+      ..sort((a, b) => (b['books'] as int).compareTo(a['books'] as int));
 
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),

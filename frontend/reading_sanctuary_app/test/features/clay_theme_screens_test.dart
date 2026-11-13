@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
+import 'package:reading_sanctuary_app/features/discover/data/discover_repository.dart';
 import 'package:reading_sanctuary_app/features/discover/presentation/discover_screen.dart';
 import 'package:reading_sanctuary_app/features/favorites/presentation/screens/favorites_screen.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/discover_banner.dart';
@@ -14,10 +15,17 @@ import 'package:reading_sanctuary_app/features/home/presentation/widgets/top_gen
 import 'package:reading_sanctuary_app/features/profile/presentation/screens/profile_screen.dart';
 import 'package:reading_sanctuary_app/features/reading/reading_screen.dart';
 import 'package:reading_sanctuary_app/features/settings/presentation/screens/settings_screen.dart';
+import 'package:reading_sanctuary_app/shared/services/book_repository.dart';
+import 'package:reading_sanctuary_app/shared/services/providers.dart';
 
 void main() {
   Widget testWrapper(Widget child, {Size size = const Size(400, 850)}) {
+    final sampleRepo = MockBookRepository.sample();
     return ProviderScope(
+      overrides: [
+        bookRepositoryProvider.overrideWithValue(sampleRepo),
+        discoverRepositoryProvider.overrideWithValue(MockDiscoverRepository()),
+      ],
       child: MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(size: size),

@@ -8,7 +8,6 @@ import '../../core/widgets/clay_components.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
-import '../library/theme/bookshelf_theme.dart';
 import '../offline/presentation/widgets/offline_download_button.dart';
 
 class BookDetailsScreen extends ConsumerStatefulWidget {

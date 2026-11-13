@@ -313,6 +313,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
                   _FormatBadge(label: 'EPUB', icon: Icons.book_rounded),
                   _FormatBadge(label: 'MP3', icon: Icons.headphones_rounded),
                   _FormatBadge(label: 'M4B', icon: Icons.audio_file_rounded),
+                  _FormatBadge(label: 'M4A', icon: Icons.audio_file_rounded),
                 ],
               ),
               const SizedBox(height: 18),

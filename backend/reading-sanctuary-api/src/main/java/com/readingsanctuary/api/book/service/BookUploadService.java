@@ -50,7 +50,7 @@ public class BookUploadService {
 
     private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
 
-    private static final Set<String> SUPPORTED_FORMATS = Set.of("pdf", "epub", "mp3", "m4b");
+    private static final Set<String> SUPPORTED_FORMATS = Set.of("pdf", "epub", "mp3", "m4b", "m4a");
     private static final long MAX_FILE_SIZE = 100L * 1024 * 1024; // 100 MB
 
     private final UserRepository userRepository;
@@ -370,7 +370,7 @@ public class BookUploadService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File signature does not match MP3 format");
                     }
                 }
-                case "m4b" -> {
+                case "m4b", "m4a" -> {
                     // MP4 container has 'ftyp' at offset 4
                     if (read >= 8) {
                         boolean isFtyp = header[4] == 'f' && header[5] == 't' && header[6] == 'y' && header[7] == 'p';

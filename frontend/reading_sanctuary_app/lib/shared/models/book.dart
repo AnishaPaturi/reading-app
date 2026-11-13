@@ -29,6 +29,7 @@ enum BookFileFormat {
   epub,
   mp3,
   m4b,
+  m4a,
 }
 
 extension BookFileFormatX on BookFileFormat {
@@ -37,6 +38,7 @@ extension BookFileFormatX on BookFileFormat {
         BookFileFormat.epub => 'epub',
         BookFileFormat.mp3 => 'mp3',
         BookFileFormat.m4b => 'm4b',
+        BookFileFormat.m4a => 'm4a',
       };
 
   String get label => switch (this) {
@@ -44,9 +46,10 @@ extension BookFileFormatX on BookFileFormat {
         BookFileFormat.epub => 'EPUB',
         BookFileFormat.mp3 => 'MP3',
         BookFileFormat.m4b => 'M4B',
+        BookFileFormat.m4a => 'M4A',
       };
 
-  bool get isAudio => this == BookFileFormat.mp3 || this == BookFileFormat.m4b;
+  bool get isAudio => this == BookFileFormat.mp3 || this == BookFileFormat.m4b || this == BookFileFormat.m4a;
 }
 
 class BookFile {
@@ -83,6 +86,7 @@ class BookFile {
       if (str.contains('epub')) return BookFileFormat.epub;
       if (str.contains('mp3')) return BookFileFormat.mp3;
       if (str.contains('m4b')) return BookFileFormat.m4b;
+      if (str.contains('m4a')) return BookFileFormat.m4a;
       return BookFileFormat.epub;
     }
 

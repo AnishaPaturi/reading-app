@@ -155,11 +155,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final current = state.user;
       final merged = fetched.copyWith(
         token: token,
+        displayName: (fetched.displayName != null &&
+                fetched.displayName!.trim().isNotEmpty &&
+                fetched.displayName!.trim().toLowerCase() != 'reader')
+            ? fetched.displayName
+            : current?.displayName,
         gender: (fetched.gender != null && fetched.gender!.isNotEmpty)
             ? fetched.gender
             : current?.gender,
       );
       state = state.copyWith(user: merged);
+      await _persistDisplayNameLocally(merged.displayName, merged.email);
       await _sessionStorage.saveSession(token: token, user: merged);
     } catch (_) {
       // Fallback gracefully to existing session
@@ -172,6 +178,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final user = await _apiService.login(email: email, password: password);
       _tokenNotifier.state = user.token;
       state = state.copyWith(isLoading: false, user: user);
+      await _persistDisplayNameLocally(user.displayName, user.email);
       if (user.token != null && user.token!.isNotEmpty) {
         await _sessionStorage.saveSession(token: user.token!, user: user);
       }
@@ -190,6 +197,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           email: email, password: password, username: username, gender: gender);
       _tokenNotifier.state = user.token;
       state = state.copyWith(isLoading: false, user: user);
+      await _persistDisplayNameLocally(user.displayName, user.email);
       if (user.token != null && user.token!.isNotEmpty) {
         await _sessionStorage.saveSession(token: user.token!, user: user);
       }
@@ -229,6 +237,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       _tokenNotifier.state = user.token;
       state = state.copyWith(isLoading: false, user: user);
+      await _persistDisplayNameLocally(user.displayName, user.email);
       await _sessionStorage.saveSession(token: user.token!, user: user);
       return true;
     } catch (e) {
@@ -244,6 +253,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Local logout must still complete if Google sign-out is unavailable.
     }
     await _sessionStorage.clearSession();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('sanctuary_user_display_name');
+    } catch (_) {}
     _tokenNotifier.state = null;
     state = const AuthState();
   }

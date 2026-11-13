@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/authentication/data/services/session_storage.dart';
 import '../../features/reader/presentation/providers/reader_provider.dart';
 import 'api_client.dart';
 import 'api_config.dart';

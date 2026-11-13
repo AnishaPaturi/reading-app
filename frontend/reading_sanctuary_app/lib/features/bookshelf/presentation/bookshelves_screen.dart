@@ -105,10 +105,6 @@ class BookshelvesNotifier extends StateNotifier<List<CustomShelf>> {
     state = state.where((s) => s.id != id).toList();
     await _save();
   }
-
-  static List<CustomShelf> _initialShelves() {
-    return const [];
-  }
 }
 
 final bookshelvesProvider = StateNotifierProvider<BookshelvesNotifier, List<CustomShelf>>((ref) {

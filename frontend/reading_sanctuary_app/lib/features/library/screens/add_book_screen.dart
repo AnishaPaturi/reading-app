@@ -150,7 +150,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
                   controller: _titleController,
                   textCapitalization: TextCapitalization.words,
                   style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w600, color: ClayColors.textDark),
-                  decoration: _inputDecoration('e.g. The Midnight Library', Icons.title_rounded),
+                  decoration: _inputDecoration('Enter book title', Icons.title_rounded),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Please enter a book title' : null,
                 ),
                 const SizedBox(height: 16),
@@ -161,7 +161,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
                   controller: _authorController,
                   textCapitalization: TextCapitalization.words,
                   style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w600, color: ClayColors.textDark),
-                  decoration: _inputDecoration('e.g. Matt Haig', Icons.person_outline_rounded),
+                  decoration: _inputDecoration('Enter author name', Icons.person_outline_rounded),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Please enter the author name' : null,
                 ),
                 const SizedBox(height: 16),
@@ -230,7 +230,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
                           TextFormField(
                             controller: _pagesController,
                             keyboardType: TextInputType.number,
-                            decoration: _inputDecoration('300', Icons.menu_book_rounded),
+                            decoration: _inputDecoration('Total pages', Icons.menu_book_rounded),
                             validator: (v) {
                               final num = int.tryParse(v?.trim() ?? '');
                               if (num == null || num <= 0) return 'Invalid';

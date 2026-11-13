@@ -60,15 +60,18 @@ class BookshelvesNotifier extends StateNotifier<List<CustomShelf>> {
       if (data != null && data.isNotEmpty) {
         final decoded = jsonDecode(data);
         if (decoded is List) {
-          state = decoded
+          final list = decoded
               .map((item) => CustomShelf.fromJson(item as Map<String, dynamic>))
+              .where((item) => !RegExp(r'^shelf-\d+$').hasMatch(item.id))
               .toList();
+          state = list;
+          await _save();
           return;
         }
       }
     } catch (_) {}
 
-    state = _initialShelves();
+    state = const [];
     _save();
   }
 
@@ -104,32 +107,7 @@ class BookshelvesNotifier extends StateNotifier<List<CustomShelf>> {
   }
 
   static List<CustomShelf> _initialShelves() {
-    return const [
-      CustomShelf(
-        id: 'shelf-1',
-        name: 'Must Read 2026',
-        description: 'Top priorities for this year’s reading journey',
-        bookIds: ['book-1', 'book-3'],
-        iconCodePoint: 0xe098, // auto_stories
-        colorValue: 0xFF9482E6,
-      ),
-      CustomShelf(
-        id: 'shelf-2',
-        name: 'Mindset & Growth',
-        description: 'Habits, psychology, productivity, and philosophy',
-        bookIds: ['book-2', 'book-4'],
-        iconCodePoint: 0xe51f, // psychology
-        colorValue: 0xFF2E9E67,
-      ),
-      CustomShelf(
-        id: 'shelf-3',
-        name: 'Weekend Escapes',
-        description: 'Immersive thrillers, fantasy, and fiction for relaxed days',
-        bookIds: ['book-1'],
-        iconCodePoint: 0xe6e8, // weekend
-        colorValue: 0xFFE08E79,
-      ),
-    ];
+    return const [];
   }
 }
 

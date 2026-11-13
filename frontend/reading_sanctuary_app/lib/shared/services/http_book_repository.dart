@@ -231,8 +231,4 @@ class HttpBookRepository implements BookRepository {
     ];
     return palettes[hash % palettes.length];
   }
-
-  static List<Book> _initialDynamicLibrary() {
-    return const [];
-  }
 }

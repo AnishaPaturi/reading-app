@@ -158,7 +158,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           Icon(Icons.search_off_rounded, size: 54, color: ClayColors.textMuted.withValues(alpha: 0.4)),
                           const SizedBox(height: 12),
                           Text(
-                            'No books match your search',
+                            allBooks.isEmpty
+                                ? 'No books in your library yet'
+                                : 'No books match your search',
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,

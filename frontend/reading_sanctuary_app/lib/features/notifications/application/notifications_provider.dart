@@ -88,44 +88,15 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
       final savedJson = prefs.getString(_prefKey);
       if (savedJson != null && savedJson.isNotEmpty) {
         final List<dynamic> list = jsonDecode(savedJson) as List<dynamic>;
-        state = list.map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
+        state = list
+            .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
+            .where((n) => n.id != '1' && n.id != '2' && n.id != '3')
+            .toList();
         return;
       }
     } catch (_) {}
 
-    // Initial default notifications if none stored
-    state = [
-      AppNotification(
-        id: '1',
-        title: 'Welcome to your Reading Sanctuary',
-        message: 'Explore curated books, track your reading sessions, and customize your bookshelf.',
-        timeAgo: 'Just now',
-        iconCodePoint: Icons.auto_stories_rounded.codePoint,
-        colorValue: 0xFF8C7CD6,
-        isRead: false,
-        createdAt: DateTime.now(),
-      ),
-      AppNotification(
-        id: '2',
-        title: 'Reading Goal Milestone',
-        message: 'Your reading goals and streaks are ready. Begin reading to track your pace.',
-        timeAgo: '1h ago',
-        iconCodePoint: Icons.emoji_events_rounded.codePoint,
-        colorValue: 0xFFFBBF24,
-        isRead: false,
-        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
-      ),
-      AppNotification(
-        id: '3',
-        title: 'New Books Available',
-        message: 'Browse the Discover tab to find trending titles tailored to your preferences.',
-        timeAgo: '3h ago',
-        iconCodePoint: Icons.bookmark_added_rounded.codePoint,
-        colorValue: 0xFF10B981,
-        isRead: true,
-        createdAt: DateTime.now().subtract(const Duration(hours: 3)),
-      ),
-    ];
+    state = const [];
     _saveToPrefs();
   }
 

@@ -314,7 +314,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                           const ClayFlowerPot(scale: 1.1),
                           const SizedBox(height: 18),
                           Text(
-                            'No books match your search.',
+                            totalBooks == 0
+                                ? 'Your library is empty'
+                                : 'No books match your search.',
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -322,20 +324,33 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: () {
-                              _controller.clear();
-                              ref.read(libraryQueryProvider.notifier).state = '';
-                              ref.read(libraryStatusFilterProvider.notifier).state = {};
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: BookshelfTheme.purpleAccent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
+                          if (totalBooks == 0)
+                            ElevatedButton.icon(
+                              onPressed: () => context.push('/library/add'),
+                              icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                              label: const Text('Add Book', style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: BookshelfTheme.purpleAccent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
                               ),
+                            )
+                          else
+                            ElevatedButton(
+                              onPressed: () {
+                                _controller.clear();
+                                ref.read(libraryQueryProvider.notifier).state = '';
+                                ref.read(libraryStatusFilterProvider.notifier).state = {};
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: BookshelfTheme.purpleAccent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                              child: const Text('Clear Filters', style: TextStyle(color: Colors.white)),
                             ),
-                            child: const Text('Clear Filters', style: TextStyle(color: Colors.white)),
-                          ),
                         ],
                       ),
                     ),

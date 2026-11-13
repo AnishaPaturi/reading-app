@@ -110,10 +110,6 @@ class JournalNotifier extends StateNotifier<List<JournalEntry>> {
     state = state.where((e) => e.id != id).toList();
     await _save();
   }
-
-  static List<JournalEntry> _initialEntries() {
-    return const [];
-  }
 }
 
 final journalProvider = StateNotifierProvider<JournalNotifier, List<JournalEntry>>((ref) {

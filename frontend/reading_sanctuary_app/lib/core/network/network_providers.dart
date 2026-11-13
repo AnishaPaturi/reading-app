@@ -6,11 +6,10 @@ import 'api_config.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(
-    tokenProvider: () => ref.watch(authTokenProvider),
+    tokenProvider: () => ref.read(authTokenProvider),
     onUnauthorized: () {
-      // Clear token and session to return user to login flow without infinite loops
+      // Invalidate memory token on 401 without purging cached user profile
       ref.read(authTokenProvider.notifier).state = null;
-      ref.read(authSessionStorageProvider).clearSession();
     },
     baseUrl: ApiConfig.baseUrl,
   );

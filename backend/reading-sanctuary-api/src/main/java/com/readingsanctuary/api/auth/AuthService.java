@@ -21,7 +21,7 @@ import com.readingsanctuary.api.user.repository.UserRepository;
 
 @Service
 public class AuthService {
-    private static final long TOKEN_EXPIRATION_MINUTES = 15;
+    private static final long TOKEN_EXPIRATION_MINUTES = 60 * 24 * 30; // 30 days for mobile app session
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtEncoder jwtEncoder;

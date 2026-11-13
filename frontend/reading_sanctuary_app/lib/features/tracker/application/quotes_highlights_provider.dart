@@ -97,10 +97,6 @@ class QuotesHighlightsNotifier extends StateNotifier<List<QuoteOrHighlightItem>>
     state = state.where((item) => item.id != id).toList();
     await _save();
   }
-
-  static List<QuoteOrHighlightItem> _initialItems() {
-    return const [];
-  }
 }
 
 final quotesHighlightsProvider =

@@ -96,6 +96,42 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                   genre: _selectedGenre,
                                 );
 
+                                if (catalog.isEmpty) {
+                                  return Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(32.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const ClayFlowerPot(scale: 1.1),
+                                          const SizedBox(height: 18),
+                                          Text(
+                                            'No books in discovery catalog',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                              color: ClayColors.textDark,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'When books are added to your sanctuary, they will appear here.',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+                                          ),
+                                          const SizedBox(height: 20),
+                                          ClayPillButton(
+                                            text: 'Add Book to Library',
+                                            color: ClayColors.deepPurple,
+                                            textColor: Colors.white,
+                                            onTap: () => context.push('/library/add'),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }
+
                                 return SingleChildScrollView(
                                   physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                                   padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),

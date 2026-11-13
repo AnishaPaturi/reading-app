@@ -18,7 +18,7 @@ class HttpBookRepository implements BookRepository {
     try {
       final response = await _apiClient.get(
         '/books',
-        timeout: const Duration(milliseconds: 150),
+        timeout: const Duration(seconds: 5),
       );
       if (response is List) {
         final serverBooks = <Book>[];
@@ -33,7 +33,7 @@ class HttpBookRepository implements BookRepository {
             try {
               final readingRes = await _apiClient.get(
                 '/books/$bookId/reading',
-                timeout: const Duration(milliseconds: 100),
+                timeout: const Duration(seconds: 2),
               );
               if (readingRes is Map<String, dynamic>) {
                 final statusStr = readingRes['status']?.toString();
@@ -69,27 +69,11 @@ class HttpBookRepository implements BookRepository {
           }
         }
 
-        if (serverBooks.isNotEmpty) {
-          // Merge server books with any locally created books that haven't synced
-          final mergedMap = <String, Book>{};
-          for (final b in cachedBooks) {
-            mergedMap[b.id] = b;
-          }
-          for (final b in serverBooks) {
-            mergedMap[b.id] = b;
-          }
-          final mergedList = mergedMap.values.toList();
-          await _saveToCache(mergedList);
-          return mergedList;
-        }
+        await _saveToCache(serverBooks);
+        return serverBooks;
       }
     } catch (_) {
       // Offline fallback: continue to return cached books
-    }
-
-    if (cachedBooks.isEmpty) {
-      cachedBooks = _initialDynamicLibrary();
-      await _saveToCache(cachedBooks);
     }
 
     return cachedBooks;
@@ -177,12 +161,18 @@ class HttpBookRepository implements BookRepository {
 
   Future<List<Book>> _loadFromCache() async {
     try {
-      final prefs = await SharedPreferences.getInstance().timeout(const Duration(milliseconds: 100));
+      final prefs = await SharedPreferences.getInstance().timeout(const Duration(milliseconds: 500));
       final jsonStr = prefs.getString(_storageKey);
       if (jsonStr != null && jsonStr.isNotEmpty) {
         final decoded = jsonDecode(jsonStr);
         if (decoded is List) {
-          return decoded.map((item) => Book.fromJson(item as Map<String, dynamic>)).toList();
+          final list = decoded.map((item) => Book.fromJson(item as Map<String, dynamic>)).toList();
+          // Filter out legacy sample/placeholder books (IDs starting with 'b' like 'b1'..'b12')
+          final cleaned = list.where((b) => !RegExp(r'^b\d+$').hasMatch(b.id)).toList();
+          if (cleaned.length != list.length) {
+            await _saveToCache(cleaned);
+          }
+          return cleaned;
         }
       }
     } catch (_) {}
@@ -243,6 +233,6 @@ class HttpBookRepository implements BookRepository {
   }
 
   static List<Book> _initialDynamicLibrary() {
-    return MockBookRepository.sample();
+    return const [];
   }
 }

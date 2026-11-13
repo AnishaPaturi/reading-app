@@ -11,7 +11,7 @@ abstract class BookRepository {
 }
 
 class MockBookRepository implements BookRepository {
-  MockBookRepository() : _books = sample();
+  MockBookRepository([List<Book>? books]) : _books = books ?? sample();
   List<Book> _books;
 
   @override

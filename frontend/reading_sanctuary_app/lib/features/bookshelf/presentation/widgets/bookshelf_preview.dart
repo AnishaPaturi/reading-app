@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../utils/bookshelf_layouts.dart';
 import '../../utils/bookshelf_themes.dart';
@@ -34,15 +35,15 @@ class BookshelfPreview extends StatelessWidget {
           children: [
             Text(
               'LIVE PREVIEW',
-              style: GoogleFonts.cinzel(
+              style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1.5,
-                color: const Color(0xFF8C7CD6),
+                letterSpacing: 1.2,
+                color: ClayColors.primaryPurple,
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.remove_red_eye_rounded, size: 14, color: Color(0xFF8C7CD6)),
+            const Icon(Icons.remove_red_eye_rounded, size: 14, color: ClayColors.primaryPurple),
           ],
         ),
         const SizedBox(height: 8),

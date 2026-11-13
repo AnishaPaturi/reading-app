@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../utils/bookshelf_layouts.dart';
 
 class BookshelfLayoutSelector extends StatelessWidget {
@@ -26,13 +27,13 @@ class BookshelfLayoutSelector extends StatelessWidget {
           style: GoogleFonts.cormorantGaramond(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D234A),
+            color: ClayColors.textDark,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'How books are arranged on this shelf',
-          style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF7A6E82)),
+          style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textMuted),
         ),
         const SizedBox(height: 10),
 
@@ -48,16 +49,16 @@ class BookshelfLayoutSelector extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF2C221E) : Colors.white,
+                      color: isSelected ? ClayColors.primaryPurple : Colors.white,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFFE2D6C8),
+                        color: isSelected ? ClayColors.softLilac : ClayColors.clayBorder,
                         width: isSelected ? 1.8 : 1,
                       ),
                       boxShadow: [
                         if (isSelected)
                           BoxShadow(
-                            color: const Color(0xFFD4AF37).withValues(alpha: 0.25),
+                            color: ClayColors.primaryPurple.withValues(alpha: 0.25),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -68,7 +69,7 @@ class BookshelfLayoutSelector extends StatelessWidget {
                         Icon(
                           layout.icon,
                           size: 20,
-                          color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFF7A6E82),
+                          color: isSelected ? Colors.white : ClayColors.textMuted,
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -77,7 +78,7 @@ class BookshelfLayoutSelector extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? Colors.white : const Color(0xFF2D234A),
+                            color: isSelected ? Colors.white : ClayColors.textDark,
                           ),
                         ),
                       ],
@@ -96,7 +97,7 @@ class BookshelfLayoutSelector extends StatelessWidget {
           style: GoogleFonts.cormorantGaramond(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D234A),
+            color: ClayColors.textDark,
           ),
         ),
         const SizedBox(height: 10),
@@ -110,23 +111,23 @@ class BookshelfLayoutSelector extends StatelessWidget {
               avatar: Icon(
                 bg.icon,
                 size: 16,
-                color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFF7A6E82),
+                color: isSelected ? Colors.white : ClayColors.textMuted,
               ),
               label: Text(
                 bg.label,
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? Colors.white : const Color(0xFF2D234A),
+                  color: isSelected ? Colors.white : ClayColors.textDark,
                 ),
               ),
               selected: isSelected,
-              selectedColor: const Color(0xFF2C221E),
+              selectedColor: ClayColors.primaryPurple,
               backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
                 side: BorderSide(
-                  color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFFE2D6C8),
+                  color: isSelected ? ClayColors.softLilac : ClayColors.clayBorder,
                   width: isSelected ? 1.5 : 1,
                 ),
               ),

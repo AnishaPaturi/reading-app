@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import '../models/selected_book_file.dart';
 
 class BookFilePickerService {
   static const supportedExtensions = [
@@ -8,7 +9,7 @@ class BookFilePickerService {
     'm4b',
   ];
 
-  Future<PlatformFile?> pickBookFile() async {
+  Future<SelectedBookFile?> pickBookFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: supportedExtensions,
@@ -27,6 +28,6 @@ class BookFilePickerService {
       throw Exception('Unsupported book format: ${extension ?? 'unknown'}. Supported formats: PDF, EPUB, MP3, M4B.');
     }
 
-    return file;
+    return SelectedBookFile.fromPlatformFile(file);
   }
 }

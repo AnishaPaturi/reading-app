@@ -25,7 +25,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedIds = Set<String>.from(widget.shelf.bookIds);
+    _selectedIds = widget.shelf.bookIds.toSet();
   }
 
   @override
@@ -47,7 +47,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
-        color: Color(0xFFFBF8F4),
+        color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -58,7 +58,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
             height: 4,
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFD4C8BC),
+              color: ClayColors.lightLilac,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -77,7 +77,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                       style: GoogleFonts.cormorantGaramond(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2D234A),
+                        color: ClayColors.textDark,
                       ),
                     ),
                     Text(
@@ -85,13 +85,13 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF8C7CD6),
+                        color: ClayColors.primaryPurple,
                       ),
                     ),
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF2D234A)),
+                  icon: const Icon(Icons.close_rounded, color: ClayColors.textDark),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -104,18 +104,18 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
             child: Container(
               height: 42,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color(0xFFF4F0FB),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE2D6C8)),
+                border: Border.all(color: ClayColors.clayBorder),
               ),
               child: TextField(
                 controller: _searchController,
                 onChanged: (v) => setState(() => _query = v.trim()),
-                style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF2D234A)),
+                style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textDark),
                 decoration: InputDecoration(
                   hintText: 'Search by title or author...',
-                  hintStyle: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF9E8FA5)),
-                  prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Color(0xFF8C7CD6)),
+                  hintStyle: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+                  prefixIcon: const Icon(Icons.search_rounded, size: 18, color: ClayColors.primaryPurple),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
                 ),
@@ -123,7 +123,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
             ),
           ),
 
-          const Divider(height: 20, thickness: 1, color: Color(0xFFEADBCE)),
+          const Divider(height: 20, thickness: 1, color: ClayColors.clayBorder),
 
           // Book List
           Expanded(
@@ -144,8 +144,8 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                       return CheckboxListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        activeColor: const Color(0xFF2C221E),
-                        checkColor: const Color(0xFFD4AF37),
+                        activeColor: ClayColors.primaryPurple,
+                        checkColor: Colors.white,
                         value: isSelected,
                         onChanged: (checked) {
                           setState(() {
@@ -171,7 +171,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                           style: GoogleFonts.cormorantGaramond(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF2D234A),
+                            color: ClayColors.textDark,
                           ),
                         ),
                         subtitle: Text(
@@ -193,10 +193,10 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: const Border(top: BorderSide(color: Color(0xFFEADBCE))),
+              border: const Border(top: BorderSide(color: ClayColors.clayBorder)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: ClayColors.deepPurple.withValues(alpha: 0.04),
                   blurRadius: 10,
                   offset: const Offset(0, -3),
                 ),
@@ -210,7 +210,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2D234A),
+                      color: ClayColors.textDark,
                     ),
                   ),
                 ),
@@ -245,20 +245,19 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2C221E),
-                    foregroundColor: const Color(0xFFD4AF37),
+                    backgroundColor: ClayColors.primaryPurple,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+                      side: const BorderSide(color: ClayColors.softLilac, width: 1),
                     ),
                   ),
                   child: Text(
                     'Save to Shelf',
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
                     ),
                   ),
                 ),

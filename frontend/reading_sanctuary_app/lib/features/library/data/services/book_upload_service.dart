@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_config.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/models/book.dart';
 import '../models/book_metadata.dart';
+import '../models/selected_book_file.dart';
 
 class BookUploadService {
   final ApiClient _apiClient;
@@ -20,7 +20,7 @@ class BookUploadService {
 
   /// Stage 1: Upload a book file (PDF, EPUB, MP3, M4B) and scan metadata.
   Future<BookMetadata> uploadBook(
-    PlatformFile file, {
+    SelectedBookFile file, {
     void Function(int sent, int total)? onProgress,
   }) async {
     final uri = Uri.parse('${_apiClient.baseUrl}/books/upload');
@@ -33,13 +33,13 @@ class BookUploadService {
     request.headers['Accept'] = 'application/json';
 
     http.MultipartFile multipartFile;
-    if (file.bytes != null && file.bytes!.isNotEmpty) {
+    if (file.hasBytes) {
       multipartFile = http.MultipartFile.fromBytes(
         'file',
         file.bytes!,
         filename: file.name,
       );
-    } else if (file.path != null && file.path!.isNotEmpty) {
+    } else if (file.hasPath) {
       multipartFile = await http.MultipartFile.fromPath(
         'file',
         file.path!,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../utils/bookshelf_themes.dart';
 
 class BookshelfThemePicker extends StatelessWidget {
@@ -22,13 +23,13 @@ class BookshelfThemePicker extends StatelessWidget {
           style: GoogleFonts.cormorantGaramond(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D234A),
+            color: ClayColors.textDark,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'Choose the colors, mood, and material of this shelf',
-          style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF7A6E82)),
+          style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textMuted),
         ),
         const SizedBox(height: 12),
 

@@ -1,9 +1,9 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../../../shared/models/book.dart';
 import '../../../../shared/services/providers.dart';
 import '../../data/models/book_metadata.dart';
+import '../../data/models/selected_book_file.dart';
 import '../../data/services/book_file_picker_service.dart';
 import '../../data/services/book_upload_service.dart';
 
@@ -20,7 +20,7 @@ enum BookUploadStatus {
 
 class BookUploadState {
   final BookUploadStatus status;
-  final PlatformFile? selectedFile;
+  final SelectedBookFile? selectedFile;
   final double uploadProgress;
   final String? uploadId;
   final BookMetadata? metadata;
@@ -39,7 +39,7 @@ class BookUploadState {
 
   BookUploadState copyWith({
     BookUploadStatus? status,
-    PlatformFile? selectedFile,
+    SelectedBookFile? selectedFile,
     double? uploadProgress,
     String? uploadId,
     BookMetadata? metadata,

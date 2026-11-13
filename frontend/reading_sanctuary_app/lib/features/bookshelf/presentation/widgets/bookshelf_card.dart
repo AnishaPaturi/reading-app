@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../data/models/bookshelf_model.dart';
 import '../../utils/bookshelf_layouts.dart';
@@ -29,42 +30,30 @@ class BookshelfCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = BookshelfThemes.findById(shelf.themeColor);
-    final primaryColor = BookshelfThemes.parseHex(shelf.themeColor, fallback: theme.primaryColor);
     final accentColor = BookshelfThemes.parseHex(shelf.accentColor, fallback: theme.accentColor);
     final layout = BookshelfLayoutStyle.fromKey(shelf.layoutStyle);
-    final bgStyle = BookshelfBackgroundStyle.fromKey(shelf.backgroundStyle);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: primaryColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: accentColor.withValues(alpha: 0.35),
+          color: ClayColors.clayBorder,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 12,
+            color: ClayColors.deepPurple.withValues(alpha: 0.05),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: accentColor.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: ClayColors.primaryPurple.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
           ),
         ],
-        gradient: bgStyle == BookshelfBackgroundStyle.gradient
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  primaryColor,
-                  theme.cardColor,
-                ],
-              )
-            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,10 +67,10 @@ class BookshelfCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.2),
+                    color: accentColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: accentColor.withValues(alpha: 0.5),
+                      color: accentColor.withValues(alpha: 0.4),
                       width: 1.2,
                     ),
                   ),
@@ -106,7 +95,7 @@ class BookshelfCard extends StatelessWidget {
                               style: GoogleFonts.cormorantGaramond(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
-                                color: theme.textColor,
+                                color: ClayColors.textDark,
                                 letterSpacing: -0.3,
                               ),
                             ),
@@ -125,7 +114,7 @@ class BookshelfCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
-                          color: theme.textColor.withValues(alpha: 0.75),
+                          color: ClayColors.textMuted,
                         ),
                       ),
                     ],
@@ -134,7 +123,7 @@ class BookshelfCard extends StatelessWidget {
 
                 // Options Menu
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert_rounded, color: theme.textColor.withValues(alpha: 0.8)),
+                  icon: const Icon(Icons.more_vert_rounded, color: ClayColors.textMuted),
                   color: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   onSelected: (val) {
@@ -148,9 +137,9 @@ class BookshelfCard extends StatelessWidget {
                       value: 'view',
                       child: Row(
                         children: [
-                          const Icon(Icons.visibility_rounded, size: 18, color: Color(0xFF2D234A)),
+                          const Icon(Icons.visibility_rounded, size: 18, color: ClayColors.primaryPurple),
                           const SizedBox(width: 10),
-                          Text('View Shelf', style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF2D234A))),
+                          Text('View Shelf', style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textDark)),
                         ],
                       ),
                     ),
@@ -158,9 +147,9 @@ class BookshelfCard extends StatelessWidget {
                       value: 'add',
                       child: Row(
                         children: [
-                          const Icon(Icons.library_add_rounded, size: 18, color: Color(0xFF2D234A)),
+                          const Icon(Icons.library_add_rounded, size: 18, color: ClayColors.primaryPurple),
                           const SizedBox(width: 10),
-                          Text('Add Books', style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF2D234A))),
+                          Text('Add Books', style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textDark)),
                         ],
                       ),
                     ),
@@ -168,9 +157,9 @@ class BookshelfCard extends StatelessWidget {
                       value: 'edit',
                       child: Row(
                         children: [
-                          const Icon(Icons.edit_rounded, size: 18, color: Color(0xFF2D234A)),
+                          const Icon(Icons.edit_rounded, size: 18, color: ClayColors.primaryPurple),
                           const SizedBox(width: 10),
-                          Text('Customize Shelf', style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF2D234A))),
+                          Text('Customize Shelf', style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textDark)),
                         ],
                       ),
                     ),
@@ -215,7 +204,7 @@ class BookshelfCard extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onAddBooksTap,
                   style: TextButton.styleFrom(
-                    foregroundColor: theme.textColor.withValues(alpha: 0.9),
+                    foregroundColor: ClayColors.primaryPurple,
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   ),
                   icon: const Icon(Icons.add_rounded, size: 16),
@@ -236,11 +225,11 @@ class BookshelfCard extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
-                            color: accentColor,
+                            color: ClayColors.primaryPurple,
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_rounded, size: 14, color: accentColor),
+                        const Icon(Icons.arrow_forward_rounded, size: 14, color: ClayColors.primaryPurple),
                       ],
                     ),
                   ),

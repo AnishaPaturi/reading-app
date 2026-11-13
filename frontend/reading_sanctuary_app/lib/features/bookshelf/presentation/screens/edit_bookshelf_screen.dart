@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/services/providers.dart';
 import '../../data/models/bookshelf_model.dart';
 import '../providers/bookshelf_provider.dart';
@@ -33,17 +34,14 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
   late bool _isFavorite;
   bool _isSaving = false;
 
-  final List<Map<String, dynamic>> _iconChoices = [
+  final List<Map<String, dynamic>> _iconChoices = const [
     {'key': 'shelves', 'icon': Icons.shelves, 'label': 'Shelves'},
-    {'key': 'auto_stories', 'icon': Icons.auto_stories_rounded, 'label': 'Book'},
+    {'key': 'book', 'icon': Icons.auto_stories_rounded, 'label': 'Book'},
     {'key': 'favorite', 'icon': Icons.favorite_rounded, 'label': 'Heart'},
     {'key': 'star', 'icon': Icons.star_rounded, 'label': 'Star'},
-    {'key': 'fire', 'icon': Icons.local_fire_department_rounded, 'label': 'Spicy'},
-    {'key': 'crown', 'icon': Icons.emoji_events_rounded, 'label': 'Trophy'},
-    {'key': 'psychology', 'icon': Icons.psychology_rounded, 'label': 'Mind'},
+    {'key': 'bookmark', 'icon': Icons.bookmark_rounded, 'label': 'Ribbon'},
+    {'key': 'fire', 'icon': Icons.local_fire_department_rounded, 'label': 'Fire'},
     {'key': 'magic', 'icon': Icons.auto_awesome_rounded, 'label': 'Magic'},
-    {'key': 'coffee', 'icon': Icons.coffee_rounded, 'label': 'Cozy'},
-    {'key': 'moon', 'icon': Icons.nightlight_round, 'label': 'Night'},
   ];
 
   @override
@@ -53,10 +51,16 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
     _nameController = TextEditingController(text: shelf?.name ?? '');
     _descController = TextEditingController(text: shelf?.description ?? '');
 
-    final matchedTheme = shelf != null ? BookshelfThemes.findById(shelf.themeColor) : BookshelfThemes.darkAcademia;
+    _themeColor = shelf?.themeColor ?? '#2C221E';
+    _accentColor = shelf?.accentColor ?? '#D4AF37';
+
+    // Find closest theme matching hex or default to dark_academia
+    final matchedTheme = BookshelfThemes.all.firstWhere(
+      (t) => BookshelfThemes.toHex(t.primaryColor).toUpperCase() == _themeColor.toUpperCase(),
+      orElse: () => BookshelfThemes.darkAcademia,
+    );
     _themeId = matchedTheme.id;
-    _themeColor = shelf?.themeColor ?? BookshelfThemes.toHex(matchedTheme.primaryColor);
-    _accentColor = shelf?.accentColor ?? BookshelfThemes.toHex(matchedTheme.accentColor);
+
     _iconKey = shelf?.icon ?? 'shelves';
     _layoutStyle = BookshelfLayoutStyle.fromKey(shelf?.layoutStyle);
     _backgroundStyle = BookshelfBackgroundStyle.fromKey(shelf?.backgroundStyle);
@@ -71,11 +75,10 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
   }
 
   IconData _resolveCurrentIcon() {
-    final match = _iconChoices.firstWhere(
-      (m) => m['key'] == _iconKey,
-      orElse: () => _iconChoices.first,
-    );
-    return match['icon'] as IconData;
+    for (final c in _iconChoices) {
+      if (c['key'] == _iconKey) return c['icon'] as IconData;
+    }
+    return Icons.shelves;
   }
 
   @override
@@ -85,12 +88,12 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
     final previewTheme = BookshelfThemes.findById(_themeId);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBF8F4),
+      backgroundColor: const Color(0xFFF4F0FB),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFBF8F4),
+        backgroundColor: const Color(0xFFF4F0FB),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF2D234A)),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: ClayColors.textDark),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -98,7 +101,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
           style: GoogleFonts.cormorantGaramond(
             fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D234A),
+            color: ClayColors.textDark,
           ),
         ),
         actions: [
@@ -106,7 +109,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
             tooltip: _isFavorite ? 'Remove from favorites' : 'Mark as favorite',
             icon: Icon(
               _isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-              color: const Color(0xFFD4AF37),
+              color: ClayColors.amberDark,
               size: 24,
             ),
             onPressed: () => setState(() => _isFavorite = !_isFavorite),
@@ -139,7 +142,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF2D234A),
+                color: ClayColors.textDark,
               ),
             ),
             const SizedBox(height: 6),
@@ -150,24 +153,24 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
                 if (v == null || v.trim().isEmpty) return 'Please enter a shelf name';
                 return null;
               },
-              style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF2D234A)),
+              style: GoogleFonts.inter(fontSize: 14, color: ClayColors.textDark),
               decoration: InputDecoration(
                 hintText: 'e.g., Dark Romance, 2026 Reads, Comfort Corner',
-                hintStyle: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF9E8FA5)),
+                hintStyle: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFFE2D6C8)),
+                  borderSide: const BorderSide(color: ClayColors.clayBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFFE2D6C8)),
+                  borderSide: const BorderSide(color: ClayColors.clayBorder),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFF8C7CD6), width: 1.5),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  borderSide: BorderSide(color: ClayColors.primaryPurple, width: 1.5),
                 ),
               ),
             ),
@@ -180,7 +183,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF2D234A),
+                color: ClayColors.textDark,
               ),
             ),
             const SizedBox(height: 6),
@@ -188,24 +191,24 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
               controller: _descController,
               onChanged: (_) => setState(() {}),
               maxLines: 2,
-              style: GoogleFonts.inter(fontSize: 13.5, color: const Color(0xFF2D234A)),
+              style: GoogleFonts.inter(fontSize: 13.5, color: ClayColors.textDark),
               decoration: InputDecoration(
                 hintText: 'A short note about the books on this shelf...',
-                hintStyle: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF9E8FA5)),
+                hintStyle: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFFE2D6C8)),
+                  borderSide: const BorderSide(color: ClayColors.clayBorder),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFFE2D6C8)),
+                  borderSide: const BorderSide(color: ClayColors.clayBorder),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFF8C7CD6), width: 1.5),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  borderSide: BorderSide(color: ClayColors.primaryPurple, width: 1.5),
                 ),
               ),
             ),
@@ -218,7 +221,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF2D234A),
+                color: ClayColors.textDark,
               ),
             ),
             const SizedBox(height: 10),
@@ -239,16 +242,16 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF2C221E) : Colors.white,
+                        color: isSelected ? ClayColors.primaryPurple : Colors.white,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFFE2D6C8),
+                          color: isSelected ? ClayColors.softLilac : ClayColors.clayBorder,
                           width: isSelected ? 1.8 : 1,
                         ),
                       ),
                       child: Icon(
                         choice['icon'] as IconData,
-                        color: isSelected ? const Color(0xFFD4AF37) : const Color(0xFF7A6E82),
+                        color: isSelected ? Colors.white : ClayColors.textMuted,
                         size: 22,
                       ),
                     ),
@@ -287,12 +290,12 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
             ElevatedButton(
               onPressed: _isSaving ? null : _saveShelf,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2C221E),
-                foregroundColor: const Color(0xFFD4AF37),
+                backgroundColor: ClayColors.primaryPurple,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
-                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1.2),
+                  side: const BorderSide(color: ClayColors.softLilac, width: 1.2),
                 ),
                 elevation: 3,
               ),
@@ -300,14 +303,13 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFD4AF37)),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : Text(
                       isEditing ? 'Save Customization' : 'Create Bookshelf',
-                      style: GoogleFonts.cinzel(
+                      style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 1.2,
                       ),
                     ),
             ),

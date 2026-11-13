@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class EmptyLibraryState extends StatelessWidget {
   final VoidCallback onCreateTap;
@@ -17,12 +18,12 @@ class EmptyLibraryState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
       margin: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.85),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFEADBCE), width: 1.5),
+        border: Border.all(color: ClayColors.clayBorder, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: ClayColors.deepPurple.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -36,12 +37,12 @@ class EmptyLibraryState extends StatelessWidget {
             height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF2C221E).withValues(alpha: 0.06),
-              border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.4), width: 1.5),
+              color: ClayColors.lightLilac.withValues(alpha: 0.4),
+              border: Border.all(color: ClayColors.softLilac, width: 1.5),
             ),
             child: const Icon(
               Icons.shelves,
-              color: Color(0xFF8C7CD6),
+              color: ClayColors.primaryPurple,
               size: 36,
             ),
           ),
@@ -51,7 +52,7 @@ class EmptyLibraryState extends StatelessWidget {
             style: GoogleFonts.cormorantGaramond(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF2D234A),
+              color: ClayColors.textDark,
             ),
           ),
           const SizedBox(height: 6),
@@ -62,7 +63,7 @@ class EmptyLibraryState extends StatelessWidget {
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 13,
-              color: const Color(0xFF7A6E82),
+              color: ClayColors.textMuted,
               height: 1.4,
             ),
           ),
@@ -70,22 +71,21 @@ class EmptyLibraryState extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onCreateTap,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2C221E),
-              foregroundColor: const Color(0xFFD4AF37),
+              backgroundColor: ClayColors.primaryPurple,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+                side: const BorderSide(color: ClayColors.softLilac, width: 1),
               ),
               elevation: 2,
             ),
             icon: const Icon(Icons.add_rounded, size: 20),
             label: Text(
               'Create a Bookshelf',
-              style: GoogleFonts.cinzel(
+              style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1,
               ),
             ),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../../library/widgets/book_preview_sheet.dart';
 import '../../data/models/bookshelf_model.dart';
@@ -71,17 +72,17 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
           style: GoogleFonts.cormorantGaramond(
             fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D234A),
+            color: ClayColors.textDark,
           ),
         ),
         content: Text(
           'Are you sure you want to delete "${shelf.name}"? The books will remain safely in your library.',
-          style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF7A6E82)),
+          style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancel', style: GoogleFonts.inter(color: const Color(0xFF7A6E82))),
+            child: Text('Cancel', style: GoogleFonts.inter(color: ClayColors.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -96,7 +97,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Deleted "${shelf.name}"'),
-                    backgroundColor: const Color(0xFF2D234A),
+                    backgroundColor: ClayColors.textDark,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -154,7 +155,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
     final displayedBooks = _filterAndSort(shelfBooks);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBF8F4),
+      backgroundColor: const Color(0xFFF4F0FB),
       body: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         slivers: [
@@ -282,16 +283,16 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFE2D6C8)),
+                            border: Border.all(color: ClayColors.clayBorder),
                           ),
                           child: TextField(
                             controller: _searchController,
                             onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                            style: GoogleFonts.inter(fontSize: 12.5, color: const Color(0xFF2D234A)),
+                            style: GoogleFonts.inter(fontSize: 12.5, color: ClayColors.textDark),
                             decoration: InputDecoration(
                               hintText: 'Search books on this shelf...',
-                              hintStyle: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF9E8FA5)),
-                              prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Color(0xFF8C7CD6)),
+                              hintStyle: GoogleFonts.inter(fontSize: 12, color: ClayColors.textMuted),
+                              prefixIcon: const Icon(Icons.search_rounded, size: 18, color: ClayColors.primaryPurple),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(Icons.close_rounded, size: 16),
@@ -316,7 +317,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFE2D6C8)),
+                          border: Border.all(color: ClayColors.clayBorder),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -325,7 +326,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                               icon: Icon(
                                 Icons.shelves,
                                 size: 18,
-                                color: currentLayout == BookshelfLayoutStyle.shelf ? const Color(0xFF8C7CD6) : const Color(0xFF9E8FA5),
+                                color: currentLayout == BookshelfLayoutStyle.shelf ? ClayColors.primaryPurple : ClayColors.softLilac,
                               ),
                               onPressed: () => setState(() => _overrideLayout = BookshelfLayoutStyle.shelf),
                               tooltip: 'Classic Shelf',
@@ -334,7 +335,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                               icon: Icon(
                                 Icons.grid_view_rounded,
                                 size: 18,
-                                color: currentLayout == BookshelfLayoutStyle.gallery ? const Color(0xFF8C7CD6) : const Color(0xFF9E8FA5),
+                                color: currentLayout == BookshelfLayoutStyle.gallery ? ClayColors.primaryPurple : ClayColors.softLilac,
                               ),
                               onPressed: () => setState(() => _overrideLayout = BookshelfLayoutStyle.gallery),
                               tooltip: 'Cover Gallery',
@@ -343,7 +344,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                               icon: Icon(
                                 Icons.view_headline_rounded,
                                 size: 18,
-                                color: currentLayout == BookshelfLayoutStyle.compact ? const Color(0xFF8C7CD6) : const Color(0xFF9E8FA5),
+                                color: currentLayout == BookshelfLayoutStyle.compact ? ClayColors.primaryPurple : ClayColors.softLilac,
                               ),
                               onPressed: () => setState(() => _overrideLayout = BookshelfLayoutStyle.compact),
                               tooltip: 'Compact List',
@@ -365,7 +366,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF7A6E82),
+                          color: ClayColors.textMuted,
                         ),
                       ),
                       PopupMenuButton<ShelfSortOrder>(
@@ -375,14 +376,14 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         child: Row(
                           children: [
-                            const Icon(Icons.sort_rounded, size: 16, color: Color(0xFF8C7CD6)),
+                            const Icon(Icons.sort_rounded, size: 16, color: ClayColors.primaryPurple),
                             const SizedBox(width: 4),
                             Text(
                               _sortOrder.label,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF8C7CD6),
+                                color: ClayColors.primaryPurple,
                               ),
                             ),
                           ],
@@ -391,7 +392,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                             .map(
                               (s) => PopupMenuItem(
                                 value: s,
-                                child: Text(s.label, style: GoogleFonts.inter(fontSize: 13)),
+                                child: Text(s.label, style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textDark)),
                               ),
                             )
                             .toList(),
@@ -420,16 +421,19 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                             style: GoogleFonts.cormorantGaramond(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF2D234A),
+                              color: ClayColors.textDark,
                             ),
                           ),
                           const SizedBox(height: 8),
                           ElevatedButton.icon(
                             onPressed: () => _openAddBooks(shelf),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2C221E),
-                              foregroundColor: const Color(0xFFD4AF37),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              backgroundColor: ClayColors.primaryPurple,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                side: const BorderSide(color: ClayColors.softLilac),
+                              ),
                             ),
                             icon: const Icon(Icons.add_rounded, size: 18),
                             label: const Text('Add Books'),
@@ -440,12 +444,12 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                   : Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: primaryColor,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: accentColor.withValues(alpha: 0.35)),
+                        border: Border.all(color: ClayColors.clayBorder, width: 1.5),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
+                            color: ClayColors.deepPurple.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -464,7 +468,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                           messenger.showSnackBar(
                             SnackBar(
                               content: Text('Removed "${b.title}" from shelf'),
-                              backgroundColor: const Color(0xFF2D234A),
+                              backgroundColor: ClayColors.textDark,
                               behavior: SnackBarBehavior.floating,
                             ),
                           );

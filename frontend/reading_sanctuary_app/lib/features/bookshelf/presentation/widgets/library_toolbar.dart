@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class LibraryToolbar extends StatelessWidget {
   final TextEditingController searchController;
@@ -35,7 +36,7 @@ class LibraryToolbar extends StatelessWidget {
                     style: GoogleFonts.cormorantGaramond(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF2D234A),
+                      color: ClayColors.textDark,
                     ),
                   ),
                   Text(
@@ -43,7 +44,7 @@ class LibraryToolbar extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: const Color(0xFF7A6E82),
+                      color: ClayColors.textMuted,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -54,22 +55,21 @@ class LibraryToolbar extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onCreateShelfTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2C221E),
-                foregroundColor: const Color(0xFFD4AF37),
+                backgroundColor: ClayColors.primaryPurple,
+                foregroundColor: Colors.white,
                 elevation: 2,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: Color(0xFFD4AF37), width: 1),
+                  side: const BorderSide(color: ClayColors.softLilac, width: 1),
                 ),
               ),
               icon: const Icon(Icons.add_rounded, size: 18),
               label: Text(
                 'New Shelf',
-                style: GoogleFonts.cinzel(
-                  fontSize: 12,
+                style: GoogleFonts.inter(
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
                 ),
               ),
             ),
@@ -81,12 +81,12 @@ class LibraryToolbar extends StatelessWidget {
         Container(
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.95),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEADBCE)),
+            border: Border.all(color: ClayColors.clayBorder),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: ClayColors.deepPurple.withValues(alpha: 0.04),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -95,14 +95,14 @@ class LibraryToolbar extends StatelessWidget {
           child: TextField(
             controller: searchController,
             onChanged: onSearchChanged,
-            style: GoogleFonts.inter(fontSize: 13.5, color: const Color(0xFF2D234A)),
+            style: GoogleFonts.inter(fontSize: 13.5, color: ClayColors.textDark),
             decoration: InputDecoration(
               hintText: 'Search shelves or titles...',
-              hintStyle: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF9E8FA5)),
-              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF8C7CD6), size: 20),
+              hintStyle: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
+              prefixIcon: const Icon(Icons.search_rounded, color: ClayColors.primaryPurple, size: 20),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF7A6E82)),
+                      icon: const Icon(Icons.close_rounded, size: 18, color: ClayColors.textMuted),
                       onPressed: onClearSearch,
                     )
                   : null,

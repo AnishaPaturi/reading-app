@@ -86,17 +86,17 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
           style: GoogleFonts.cormorantGaramond(
             fontSize: 22,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF2D234A),
+            color: ClayColors.textDark,
           ),
         ),
         content: Text(
           'Are you sure you want to delete "${shelf.name}"? Books will remain safe in your library.',
-          style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF7A6E82)),
+          style: GoogleFonts.inter(fontSize: 13, color: ClayColors.textMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancel', style: GoogleFonts.inter(color: const Color(0xFF7A6E82))),
+            child: Text('Cancel', style: GoogleFonts.inter(color: ClayColors.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -110,7 +110,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Deleted "${shelf.name}"'),
-                    backgroundColor: const Color(0xFF2D234A),
+                    backgroundColor: ClayColors.textDark,
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -145,7 +145,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
 
         return Scaffold(
           key: _scaffoldKey,
-          backgroundColor: const Color(0xFFFAF7F2),
+          backgroundColor: const Color(0xFFF4F0FB),
           drawer: isWide
               ? null
               : Drawer(
@@ -302,15 +302,15 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.8),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFD4AF37).withValues(alpha: 0.45),
+            color: ClayColors.clayBorder,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: ClayColors.deepPurple.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -321,12 +321,12 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF2C221E).withValues(alpha: 0.08),
+                color: ClayColors.lightLilac.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.add_circle_outline_rounded,
-                color: Color(0xFF8C7CD6),
+                color: ClayColors.primaryPurple,
                 size: 24,
               ),
             ),
@@ -340,14 +340,14 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                     style: GoogleFonts.cormorantGaramond(
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF2D234A),
+                      color: ClayColors.textDark,
                     ),
                   ),
                   Text(
                     'Make another little corner for your books',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: const Color(0xFF7A6E82),
+                      color: ClayColors.textMuted,
                     ),
                   ),
                 ],
@@ -356,7 +356,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
             const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 14,
-              color: Color(0xFF8C7CD6),
+              color: ClayColors.primaryPurple,
             ),
           ],
         ),

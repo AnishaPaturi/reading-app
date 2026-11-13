@@ -127,6 +127,7 @@ class Book {
     this.tropes = const [],
     this.series,
     this.avgRating,
+    this.coverImageUrl,
   });
 
   final String id;
@@ -146,6 +147,14 @@ class Book {
   final List<String> tropes;
   final String? series;
   final double? avgRating; // community rating (sample data for now)
+  final String? coverImageUrl;
+
+  String? get effectiveCoverUrl {
+    if (coverImageUrl != null && coverImageUrl!.trim().isNotEmpty) {
+      return coverImageUrl!.trim();
+    }
+    return null;
+  }
 
   int get currentPage => (pages * progress).round();
 
@@ -163,10 +172,11 @@ class Book {
         'addedAt': addedAt.toIso8601String(),
         'lastOpenedAt': lastOpenedAt?.toIso8601String(),
         'rating': rating,
-        'coverColors': coverColors.map((c) => c.value).toList(),
+        'coverColors': coverColors.map((c) => c.toARGB32()).toList(),
         'tropes': tropes,
         'series': series,
         'avgRating': avgRating,
+        if (coverImageUrl != null) 'coverImageUrl': coverImageUrl,
       };
 
   factory Book.fromJson(Map<String, dynamic> json) {
@@ -231,6 +241,11 @@ class Book {
       tropes: json['tropes'] is List ? (json['tropes'] as List).map((t) => t.toString()).toList() : const [],
       series: json['series']?.toString(),
       avgRating: json['avgRating'] != null ? (json['avgRating'] as num).toDouble() : null,
+      coverImageUrl: json['coverImageUrl']?.toString() ??
+          json['coverUrl']?.toString() ??
+          json['cover_image_url']?.toString() ??
+          (json['coverStorageKey'] != null ? '/books/${json['id']}/cover' : null) ??
+          (json['hasCover'] == true ? '/books/${json['id']}/cover' : null),
     );
   }
 
@@ -252,6 +267,7 @@ class Book {
     List<String>? tropes,
     String? series,
     double? avgRating,
+    String? coverImageUrl,
   }) =>
       Book(
         id: id ?? this.id,
@@ -271,5 +287,6 @@ class Book {
         tropes: tropes ?? this.tropes,
         series: series ?? this.series,
         avgRating: avgRating ?? this.avgRating,
+        coverImageUrl: coverImageUrl ?? this.coverImageUrl,
       );
 }

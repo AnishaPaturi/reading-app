@@ -24,8 +24,8 @@ class BookCoverGrid extends StatelessWidget {
     this.maxDisplay,
     int? totalCount,
     this.onMoreTap,
-    this.shelfWoodColor = const Color(0xFFC7A78A),
-    this.accentColor = const Color(0xFFD4AF37),
+    this.shelfWoodColor = const Color(0xFFDDD2F5),
+    this.accentColor = const Color(0xFF6B45B3),
   }) : totalCount = totalCount ?? books.length;
 
   @override
@@ -82,33 +82,37 @@ class BookCoverGrid extends StatelessWidget {
             },
           ),
         ),
-        // Wooden 3D Shelf Plank
+        // 3D Soft Lilac Shelf Plank
         Container(
-          height: 12,
+          height: 14,
           margin: const EdgeInsets.only(top: 2),
           decoration: BoxDecoration(
-            color: shelfWoodColor,
-            borderRadius: BorderRadius.circular(4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.35),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.2),
-                blurRadius: 1,
-                offset: const Offset(0, -1),
-              ),
-            ],
-            gradient: LinearGradient(
+            borderRadius: BorderRadius.circular(7),
+            gradient: const LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                shelfWoodColor.withValues(alpha: 0.95),
-                shelfWoodColor.withValues(alpha: 0.65),
+                Color(0xFFE9E0FA),
+                Color(0xFFDDD2F5),
+                Color(0xFFC7B2F0),
               ],
             ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.8),
+              width: 0.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6C5791).withValues(alpha: 0.18),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.7),
+                blurRadius: 2,
+                offset: const Offset(0, -1),
+              ),
+            ],
           ),
         ),
       ],

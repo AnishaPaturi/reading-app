@@ -7,7 +7,7 @@ import 'package:reading_sanctuary_app/features/bookshelf/data/models/bookshelf_m
 import 'package:reading_sanctuary_app/features/bookshelf/data/repositories/bookshelf_repository.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/data/services/bookshelf_api_service.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/providers/bookshelf_provider.dart';
-import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/bookshelf_card.dart';
+import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/bookshelf_section.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/empty_library_state.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/library_header.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/library_statistics.dart';

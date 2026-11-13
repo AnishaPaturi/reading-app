@@ -11,7 +11,8 @@ import '../../../library/widgets/book_preview_sheet.dart';
 import '../../data/models/bookshelf_model.dart';
 import '../providers/bookshelf_provider.dart';
 import '../widgets/add_books_sheet.dart';
-import '../widgets/bookshelf_card.dart';
+import '../widgets/bookshelf_decoration.dart';
+import '../widgets/bookshelf_section.dart';
 import '../widgets/empty_library_state.dart';
 import '../widgets/library_header.dart';
 import '../widgets/library_statistics.dart';
@@ -123,21 +124,181 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
     );
   }
 
+  void _openManageShelvesSheet(List<BookshelfModel> shelves) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(ctx).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: Color(0xFFF9F6FE),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag Handle
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: ClayColors.softLilac,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Manage Bookshelves',
+                    style: GoogleFonts.cormorantGaramond(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: ClayColors.textDark,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _openCreateShelf();
+                    },
+                    icon: const Icon(Icons.add, size: 18, color: ClayColors.primaryPurple),
+                    label: Text(
+                      'New Shelf',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: ClayColors.primaryPurple,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: shelves.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No custom bookshelves yet',
+                          style: GoogleFonts.inter(color: ClayColors.textMuted),
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: shelves.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (_, index) {
+                          final shelf = shelves[index];
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: ClayColors.clayBorder),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: ClayColors.lightLilac.withValues(alpha: 0.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(shelf.resolveIcon(), size: 20, color: ClayColors.primaryPurple),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        shelf.name,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: ClayColors.textDark,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${shelf.bookCount} books',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11.5,
+                                          color: ClayColors.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined, size: 18, color: ClayColors.textMuted),
+                                  onPressed: () {
+                                    Navigator.of(ctx).pop();
+                                    _openEditShelf(shelf);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFC94A4A)),
+                                  onPressed: () {
+                                    Navigator.of(ctx).pop();
+                                    _confirmDeleteShelf(shelf);
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<Book> _filterBooks(List<Book> books) {
+    if (_searchQuery.isEmpty) return books;
+    final q = _searchQuery.toLowerCase();
+    return books.where((b) {
+      return b.title.toLowerCase().contains(q) || b.author.toLowerCase().contains(q);
+    }).toList();
+  }
+
+  bool _matchesShelfOrBooks(String shelfName, List<Book> books) {
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase();
+    if (shelfName.toLowerCase().contains(q)) return true;
+    return books.any((b) => b.title.toLowerCase().contains(q) || b.author.toLowerCase().contains(q));
+  }
+
   @override
   Widget build(BuildContext context) {
     final allShelves = ref.watch(bookshelfListProvider);
     final booksAsync = ref.watch(booksProvider);
     final allBooks = booksAsync.valueOrNull ?? [];
 
-    final completedCount = allBooks.where((b) => b.status == ReadingStatus.completed).length;
+    final currentlyReadingBooks = allBooks.where((b) => b.status == ReadingStatus.currentlyReading).toList();
+    final wantToReadBooks = allBooks
+        .where((b) => b.status == ReadingStatus.wantToRead || b.status == ReadingStatus.toRead)
+        .toList();
+    final completedBooks = allBooks.where((b) => b.status == ReadingStatus.completed).toList();
 
-    // Filter shelves by query if search active
+    // Filter custom shelves
     final filteredShelves = allShelves.where((shelf) {
-      if (_searchQuery.isEmpty) return true;
-      final q = _searchQuery.toLowerCase();
-      return shelf.name.toLowerCase().contains(q) ||
-          (shelf.description?.toLowerCase().contains(q) ?? false);
+      final idsSet = shelf.bookIds.toSet();
+      final shelfBooks = allBooks.where((b) => idsSet.contains(b.id)).toList();
+      return _matchesShelfOrBooks(shelf.name, shelfBooks);
     }).toList();
+
+    final hasAnyMatchingShelf = _matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) ||
+        _matchesShelfOrBooks('Want to Read', wantToReadBooks) ||
+        _matchesShelfOrBooks('Completed', completedBooks) ||
+        filteredShelves.isNotEmpty;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -172,7 +333,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                             parent: BouncingScrollPhysics(),
                           ),
                           slivers: [
-                            // 1. Library Header
+                            // 1. Library Header ("My Library - A little world of stories")
                             SliverPadding(
                               padding: EdgeInsets.fromLTRB(
                                 isWide ? 32 : 18,
@@ -182,13 +343,15 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                               ),
                               sliver: SliverToBoxAdapter(
                                 child: LibraryHeader(
+                                  title: 'My Library',
+                                  subtitle: 'A little world of stories',
                                   showMenuButton: !isWide,
                                   onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
                                 ),
                               ),
                             ),
 
-                            // 2. Library Statistics (Total books, bookshelves, read this year)
+                            // 2. Library Statistics (Total Books, Read, Reading)
                             SliverPadding(
                               padding: EdgeInsets.fromLTRB(
                                 isWide ? 32 : 18,
@@ -199,36 +362,40 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                               sliver: SliverToBoxAdapter(
                                 child: LibraryStatistics(
                                   totalBooks: allBooks.length,
+                                  readCount: completedBooks.length,
+                                  readingCount: currentlyReadingBooks.length,
                                   totalShelves: allShelves.length,
-                                  readThisYear: completedCount,
                                 ),
                               ),
                             ),
 
-                            // 3. Library Toolbar (Search + New Shelf Button)
+                            // 3. Library Toolbar (Search + "Your Bookshelves" + Manage + New Shelf)
                             SliverPadding(
                               padding: EdgeInsets.fromLTRB(
                                 isWide ? 32 : 18,
                                 4,
                                 isWide ? 32 : 18,
-                                16,
+                                12,
                               ),
                               sliver: SliverToBoxAdapter(
                                 child: LibraryToolbar(
                                   searchController: _searchController,
+                                  title: 'Your Bookshelves',
+                                  subtitle: 'Curated corners for your collection',
                                   onSearchChanged: (v) => setState(() => _searchQuery = v.trim()),
                                   onClearSearch: () {
                                     _searchController.clear();
                                     setState(() => _searchQuery = '');
                                   },
+                                  onManageTap: () => _openManageShelvesSheet(allShelves),
                                   onCreateShelfTap: _openCreateShelf,
                                   onAddBookTap: () => context.push('/library/add'),
                                 ),
                               ),
                             ),
 
-                            // 4. Bookshelves List or Empty State
-                            if (filteredShelves.isEmpty)
+                            // 4. Bookshelf Sections: Built-in + Custom Shelves
+                            if (!hasAnyMatchingShelf)
                               SliverPadding(
                                 padding: EdgeInsets.symmetric(horizontal: isWide ? 32 : 18),
                                 sliver: SliverToBoxAdapter(
@@ -242,28 +409,69 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                               SliverPadding(
                                 padding: EdgeInsets.symmetric(horizontal: isWide ? 32 : 18),
                                 sliver: SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                    (context, index) {
-                                      final shelf = filteredShelves[index];
-                                      final idsSet = shelf.bookIds.toSet();
-                                      final shelfBooks = allBooks.where((b) => idsSet.contains(b.id)).toList();
-
-                                      return BookshelfCard(
-                                        shelf: shelf,
-                                        books: shelfBooks,
-                                        onViewShelfTap: () => _openShelfDetail(shelf),
-                                        onEditTap: () => _openEditShelf(shelf),
-                                        onAddBooksTap: () => _openAddBooks(shelf),
-                                        onDeleteTap: () => _confirmDeleteShelf(shelf),
+                                  delegate: SliverChildListDelegate([
+                                    // Shelf: Currently Reading
+                                    if (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks))
+                                      BookshelfSection(
+                                        title: 'Currently Reading',
+                                        bookCount: currentlyReadingBooks.length,
+                                        books: _filterBooks(currentlyReadingBooks),
+                                        icon: Icons.auto_stories_rounded,
+                                        accentColor: ClayColors.primaryPurple,
+                                        decorationType: BookshelfDecorationType.pottedPlant,
                                         onBookTap: _showBookPreview,
-                                      );
-                                    },
-                                    childCount: filteredShelves.length,
-                                  ),
+                                        onAddBooksTap: () => context.push('/library/add'),
+                                      ),
+
+                                    // Shelf: Want to Read
+                                    if (_matchesShelfOrBooks('Want to Read', wantToReadBooks))
+                                      BookshelfSection(
+                                        title: 'Want to Read',
+                                        bookCount: wantToReadBooks.length,
+                                        books: _filterBooks(wantToReadBooks),
+                                        icon: Icons.bookmark_rounded,
+                                        accentColor: ClayColors.amberDark,
+                                        decorationType: BookshelfDecorationType.stackedBooks,
+                                        onBookTap: _showBookPreview,
+                                        onAddBooksTap: () => context.push('/library/add'),
+                                      ),
+
+                                    // Shelf: Completed
+                                    if (_matchesShelfOrBooks('Completed', completedBooks))
+                                      BookshelfSection(
+                                        title: 'Completed',
+                                        bookCount: completedBooks.length,
+                                        books: _filterBooks(completedBooks),
+                                        icon: Icons.emoji_events_rounded,
+                                        accentColor: ClayColors.mintDark,
+                                        decorationType: BookshelfDecorationType.cozyLamp,
+                                        onBookTap: _showBookPreview,
+                                        onAddBooksTap: () => context.push('/library/add'),
+                                      ),
+
+                                    // Custom Bookshelves
+                                    for (var i = 0; i < filteredShelves.length; i++) ...[
+                                      () {
+                                        final shelf = filteredShelves[i];
+                                        final idsSet = shelf.bookIds.toSet();
+                                        final shelfBooks = allBooks.where((b) => idsSet.contains(b.id)).toList();
+                                        final filteredShelfBooks = _filterBooks(shelfBooks);
+
+                                        return BookshelfSection.fromModel(
+                                          shelf: shelf,
+                                          books: filteredShelfBooks,
+                                          decorationSeed: i + 3,
+                                          onBookTap: _showBookPreview,
+                                          onHeaderTap: () => _openShelfDetail(shelf),
+                                          onAddBooksTap: () => _openAddBooks(shelf),
+                                        );
+                                      }(),
+                                    ],
+                                  ]),
                                 ),
                               ),
 
-                            // 5. Bottom Create Shelf Banner Button
+                            // 5. Bottom Create Shelf Banner Card
                             SliverPadding(
                               padding: EdgeInsets.fromLTRB(
                                 isWide ? 32 : 18,

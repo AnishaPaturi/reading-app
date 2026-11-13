@@ -5,11 +5,15 @@ import '../../../../core/widgets/clay_components.dart';
 class LibraryHeader extends StatelessWidget {
   final VoidCallback? onMenuTap;
   final bool showMenuButton;
+  final String title;
+  final String subtitle;
 
   const LibraryHeader({
     super.key,
     this.onMenuTap,
     this.showMenuButton = false,
+    this.title = 'My Library',
+    this.subtitle = 'A little world of stories',
   });
 
   @override
@@ -67,7 +71,7 @@ class LibraryHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'My Library',
+                  title,
                   style: GoogleFonts.cormorantGaramond(
                     fontSize: 32,
                     fontWeight: FontWeight.w700,
@@ -77,7 +81,7 @@ class LibraryHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Your reading collection, arranged your way.',
+                  subtitle,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: ClayColors.textMuted,

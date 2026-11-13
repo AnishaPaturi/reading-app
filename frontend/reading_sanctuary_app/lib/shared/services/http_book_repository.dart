@@ -53,6 +53,11 @@ class HttpBookRepository implements BookRepository {
             } catch (_) {}
 
             final colorList = _generateCoverColors(bookId);
+            final String? coverUrl = item['coverUrl']?.toString() ??
+                item['coverImageUrl']?.toString() ??
+                (item['coverStorageKey'] != null ? '/books/$bookId/cover' : null) ??
+                (item['hasCover'] == true ? '/books/$bookId/cover' : null);
+
             serverBooks.add(Book(
               id: bookId,
               title: item['title']?.toString() ?? 'Untitled',
@@ -65,6 +70,7 @@ class HttpBookRepository implements BookRepository {
               formats: const [BookFormat.ebook, BookFormat.audiobook],
               addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
               coverColors: colorList,
+              coverImageUrl: coverUrl,
             ));
           }
         }

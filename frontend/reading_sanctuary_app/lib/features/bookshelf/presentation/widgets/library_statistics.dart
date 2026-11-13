@@ -4,15 +4,19 @@ import '../../../../core/widgets/clay_components.dart';
 
 class LibraryStatistics extends StatelessWidget {
   final int totalBooks;
-  final int totalShelves;
-  final int readThisYear;
+  final int readCount;
+  final int readingCount;
+  final int? totalShelves;
 
   const LibraryStatistics({
     super.key,
     required this.totalBooks,
-    required this.totalShelves,
-    required this.readThisYear,
-  });
+    int? readCount,
+    int? readingCount,
+    this.totalShelves,
+    int? readThisYear,
+  })  : readCount = readCount ?? readThisYear ?? 0,
+        readingCount = readingCount ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -24,25 +28,25 @@ class LibraryStatistics extends StatelessWidget {
           children: [
             _buildStatCard(
               title: totalBooks.toString(),
-              subtitle: 'Total Books',
+              subtitle: 'Books',
               icon: Icons.auto_stories_rounded,
               color: ClayColors.primaryPurple,
               width: itemWidth,
             ),
             const SizedBox(width: 10),
             _buildStatCard(
-              title: totalShelves.toString(),
-              subtitle: 'Bookshelves',
-              icon: Icons.shelves,
-              color: ClayColors.amberDark,
+              title: readCount.toString(),
+              subtitle: 'Read',
+              icon: Icons.check_circle_outline_rounded,
+              color: ClayColors.mintDark,
               width: itemWidth,
             ),
             const SizedBox(width: 10),
             _buildStatCard(
-              title: readThisYear.toString(),
-              subtitle: 'Read This Year',
-              icon: Icons.emoji_events_rounded,
-              color: ClayColors.mintDark,
+              title: readingCount.toString(),
+              subtitle: 'Reading',
+              icon: Icons.timelapse_rounded,
+              color: ClayColors.amberDark,
               width: itemWidth,
             ),
           ],

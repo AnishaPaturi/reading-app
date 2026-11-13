@@ -7,7 +7,10 @@ class LibraryToolbar extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
   final VoidCallback onCreateShelfTap;
+  final VoidCallback? onManageTap;
   final VoidCallback? onAddBookTap;
+  final String title;
+  final String subtitle;
 
   const LibraryToolbar({
     super.key,
@@ -15,7 +18,10 @@ class LibraryToolbar extends StatelessWidget {
     required this.onSearchChanged,
     required this.onClearSearch,
     required this.onCreateShelfTap,
+    this.onManageTap,
     this.onAddBookTap,
+    this.title = 'Your Bookshelves',
+    this.subtitle = 'Curated corners for your collection',
   });
 
   @override
@@ -32,7 +38,7 @@ class LibraryToolbar extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'My Bookshelves',
+                    title,
                     style: GoogleFonts.cormorantGaramond(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -40,7 +46,7 @@ class LibraryToolbar extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Curated corners for your collection',
+                    subtitle,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
                       fontSize: 12,
@@ -52,6 +58,31 @@ class LibraryToolbar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+
+            // Manage button (if provided)
+            if (onManageTap != null) ...[
+              OutlinedButton.icon(
+                onPressed: onManageTap,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ClayColors.primaryPurple,
+                  side: const BorderSide(color: ClayColors.softLilac, width: 1.2),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.tune_rounded, size: 16),
+                label: Text(
+                  'Manage',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+
             ElevatedButton.icon(
               onPressed: onCreateShelfTap,
               style: ElevatedButton.styleFrom(

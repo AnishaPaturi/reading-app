@@ -7,10 +7,16 @@ import 'package:reading_sanctuary_app/features/home/home_screen.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/hero_reading_banner.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_panel_header.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
+import 'package:reading_sanctuary_app/shared/services/book_repository.dart';
+import 'package:reading_sanctuary_app/shared/services/providers.dart';
 
 void main() {
   Widget buildTestableWidget({Size size = const Size(1200, 900)}) {
+    final sampleRepo = MockBookRepository.sample();
     return ProviderScope(
+      overrides: [
+        bookRepositoryProvider.overrideWithValue(sampleRepo),
+      ],
       child: MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(size: size),

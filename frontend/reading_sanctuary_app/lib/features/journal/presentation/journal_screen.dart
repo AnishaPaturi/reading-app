@@ -63,15 +63,18 @@ class JournalNotifier extends StateNotifier<List<JournalEntry>> {
       if (data != null && data.isNotEmpty) {
         final decoded = jsonDecode(data);
         if (decoded is List) {
-          state = decoded
+          final list = decoded
               .map((item) => JournalEntry.fromJson(item as Map<String, dynamic>))
+              .where((item) => item.id != '1' && item.id != '2')
               .toList();
+          state = list;
+          await _save();
           return;
         }
       }
     } catch (_) {}
 
-    state = _initialEntries();
+    state = const [];
     _save();
   }
 
@@ -109,27 +112,7 @@ class JournalNotifier extends StateNotifier<List<JournalEntry>> {
   }
 
   static List<JournalEntry> _initialEntries() {
-    final now = DateTime.now();
-    return [
-      JournalEntry(
-        id: '1',
-        title: 'Reflections on Systems over Goals',
-        bookTitle: 'Atomic Habits',
-        content: 'Clear makes a compelling case that true change comes not from giant leaps, but from standardizing tiny 1% gains every day. The concept of identity-based habits resonated deeply with my reading routine.',
-        date: now.subtract(const Duration(days: 3)),
-        rating: 5.0,
-        mood: 'Insightful',
-      ),
-      JournalEntry(
-        id: '2',
-        title: 'The Infinite Possibilities of Life',
-        bookTitle: 'The Midnight Library',
-        content: 'Loved the metaphor of Nora visiting lives she never lived. Made me reflect on regret and appreciating the present moments of life rather than constantly looking backward.',
-        date: now.subtract(const Duration(days: 7)),
-        rating: 4.5,
-        mood: 'Emotional',
-      ),
-    ];
+    return const [];
   }
 }
 

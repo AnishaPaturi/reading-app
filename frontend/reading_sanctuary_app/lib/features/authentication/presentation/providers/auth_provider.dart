@@ -44,21 +44,44 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void clearError() => state = state.copyWith(clearError: true);
 
+  Future<void> _persistDisplayNameLocally(String? name, String? email) async {
+    try {
+      String resolved = '';
+      if (name != null && name.trim().isNotEmpty && name.trim().toLowerCase() != 'reader') {
+        resolved = name.trim();
+      } else if (email != null && email.trim().isNotEmpty) {
+        final prefix = email.contains('@') ? email.split('@').first.trim() : email.trim();
+        if (prefix.isNotEmpty && prefix.toLowerCase() != 'reader') {
+          resolved = prefix[0].toUpperCase() + (prefix.length > 1 ? prefix.substring(1) : '');
+        }
+      }
+      if (resolved.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('sanctuary_user_display_name', resolved);
+      }
+    } catch (_) {}
+  }
+
   /// Restores session on app startup if a valid stored session is found.
   /// - On mobile: Restores persistent session saved in SharedPreferences.
   /// - On web: Restores session if the browser tab/window session exists.
   Future<bool> restoreSession() async {
     try {
       final session = await _sessionStorage.loadSession();
-      if (session != null && session.token.isNotEmpty) {
-        _tokenNotifier.state = session.token;
+      if (session != null) {
+        if (session.token.isNotEmpty) {
+          _tokenNotifier.state = session.token;
+        }
         state = state.copyWith(user: session.user, isLoading: false);
-        // Silently refresh profile in the background from database
-        refreshUserProfile();
+        await _persistDisplayNameLocally(session.user.displayName, session.user.email);
+        if (session.token.isNotEmpty) {
+          refreshUserProfile();
+        }
+        return true;
       }
       final prefs = await SharedPreferences.getInstance();
       final customName = prefs.getString('sanctuary_user_display_name');
-      if (customName != null && customName.isNotEmpty) {
+      if (customName != null && customName.isNotEmpty && customName.toLowerCase() != 'reader') {
         if (state.user != null) {
           state = state.copyWith(user: state.user!.copyWith(displayName: customName));
         } else {
@@ -67,7 +90,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
           );
         }
       }
-      if (session != null && session.token.isNotEmpty) return true;
     } catch (_) {
       // Gracefully continue without session if loading fails
     }

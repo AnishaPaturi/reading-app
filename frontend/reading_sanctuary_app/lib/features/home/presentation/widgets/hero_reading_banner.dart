@@ -67,7 +67,7 @@ class HeroReadingBanner extends ConsumerWidget {
               // Dynamic Greeting & Subtitle (Start Reading button removed)
               Positioned(
                 left: constraints.maxWidth * 0.40,
-                right: constraints.maxWidth * 0.18,
+                right: constraints.maxWidth * 0.10,
                 top: 0,
                 bottom: constraints.maxWidth * 0.04,
                 child: Align(
@@ -80,16 +80,19 @@ class HeroReadingBanner extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Flexible(
-                            child: Text(
-                              '$greeting, $userName!',
-                              style: TextStyle(
-                                color: const Color(0xFF2D234A),
-                                fontSize: titleFontSize,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.3,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                '$greeting, $userName!',
+                                style: TextStyle(
+                                  color: const Color(0xFF2D234A),
+                                  fontSize: titleFontSize,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.3,
+                                ),
+                                maxLines: 1,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 6),

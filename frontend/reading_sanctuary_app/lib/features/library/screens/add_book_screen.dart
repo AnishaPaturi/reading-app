@@ -7,11 +7,21 @@ import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../../../shared/services/providers.dart';
 import '../../authentication/presentation/widgets/clay_button.dart';
+import '../../bookshelf/presentation/providers/bookshelf_provider.dart';
 import '../data/models/book_metadata.dart';
 import '../presentation/providers/book_upload_provider.dart';
 
 class AddBookScreen extends ConsumerStatefulWidget {
-  const AddBookScreen({super.key});
+  final String? targetShelfId;
+  final bool autoPick;
+  final bool isManual;
+
+  const AddBookScreen({
+    super.key,
+    this.targetShelfId,
+    this.autoPick = false,
+    this.isManual = false,
+  });
 
   @override
   ConsumerState<AddBookScreen> createState() => _AddBookScreenState();
@@ -54,6 +64,19 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
     'Finance',
     'Audiobook',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _manualMode = widget.isManual;
+    if (widget.autoPick && !widget.isManual) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(bookUploadProvider.notifier).pickAndScanBook();
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -130,6 +153,12 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
     );
 
     if (confirmedBook != null && mounted) {
+      if (widget.targetShelfId != null && widget.targetShelfId!.isNotEmpty) {
+        await ref.read(bookshelfListNotifierProvider.notifier).addBookToShelf(
+          widget.targetShelfId!,
+          confirmedBook.id,
+        );
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('"${confirmedBook.title}" added to your bookshelf!'),
@@ -169,6 +198,13 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
 
     try {
       await ref.read(booksProvider.notifier).addBook(newBook);
+
+      if (widget.targetShelfId != null && widget.targetShelfId!.isNotEmpty) {
+        await ref.read(bookshelfListNotifierProvider.notifier).addBookToShelf(
+          widget.targetShelfId!,
+          newBook.id,
+        );
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

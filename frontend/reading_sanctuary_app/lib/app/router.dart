@@ -83,8 +83,39 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/home', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/dashboard', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/library', pageBuilder: (c, s) => _page(s, const LibraryScreen())),
-          GoRoute(path: '/library/add', pageBuilder: (c, s) => _page(s, const AddBookScreen())),
-          GoRoute(path: '/library/add-manual', pageBuilder: (c, s) => _page(s, const AddBookScreen())),
+          GoRoute(
+            path: '/library/add',
+            pageBuilder: (c, s) => _page(
+              s,
+              AddBookScreen(
+                targetShelfId: s.uri.queryParameters['shelfId'],
+                autoPick: s.uri.queryParameters['autoPick'] == 'true',
+                isManual: false,
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/library/add-manual',
+            pageBuilder: (c, s) => _page(
+              s,
+              AddBookScreen(
+                targetShelfId: s.uri.queryParameters['shelfId'],
+                autoPick: false,
+                isManual: true,
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/add-book',
+            pageBuilder: (c, s) => _page(
+              s,
+              AddBookScreen(
+                targetShelfId: s.uri.queryParameters['shelfId'],
+                autoPick: s.uri.queryParameters['autoPick'] == 'true',
+                isManual: false,
+              ),
+            ),
+          ),
           GoRoute(path: '/favorites', pageBuilder: (c, s) => _page(s, const FavoritesScreen())),
           GoRoute(path: '/discover', pageBuilder: (c, s) => _page(s, const DiscoverScreen())),
           GoRoute(path: '/reading', pageBuilder: (c, s) => _page(s, const ReadingScreen())),

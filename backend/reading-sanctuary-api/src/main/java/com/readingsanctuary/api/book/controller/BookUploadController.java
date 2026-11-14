@@ -32,7 +32,9 @@ public class BookUploadController {
     }
 
     /**
-     * Stage 1: Upload a book file (PDF, EPUB, MP3, M4B) and scan its metadata.
+     * Upload a book file (PDF, EPUB, M4A, MP3, M4B) and either:
+     * - Direct upload & save (if title is provided), or
+     * - Stage 1 metadata scan (if title is omitted).
      * Derives user identity strictly from the authenticated JWT principal.
      */
     @PostMapping(
@@ -40,11 +42,28 @@ public class BookUploadController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<BookUploadResponse> uploadBook(
+    public ResponseEntity<?> uploadBook(
             @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "author", required = false) String author,
+            @RequestParam(value = "readingStatus", required = false) String readingStatus,
+            @RequestParam(value = "shelfId", required = false) String shelfId,
             @AuthenticationPrincipal Jwt jwt) {
 
         UUID userId = UUID.fromString(jwt.getSubject());
+
+        if (title != null && !title.isBlank()) {
+            UUID parsedShelfId = null;
+            if (shelfId != null && !shelfId.isBlank()) {
+                try {
+                    parsedShelfId = UUID.fromString(shelfId);
+                } catch (IllegalArgumentException ignored) {}
+            }
+            BookResponse response = bookUploadService.directUploadAndSave(
+                    file, title, author, readingStatus, parsedShelfId, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        }
+
         BookUploadResponse response = bookUploadService.uploadAndExtract(file, userId);
         return ResponseEntity.ok(response);
     }

@@ -4,11 +4,13 @@ import '../../../../core/widgets/clay_components.dart';
 
 class EmptyLibraryState extends StatelessWidget {
   final VoidCallback onCreateTap;
+  final VoidCallback? onImportTap;
   final bool isSearch;
 
   const EmptyLibraryState({
     super.key,
     required this.onCreateTap,
+    this.onImportTap,
     this.isSearch = false,
   });
 
@@ -68,26 +70,56 @@ class EmptyLibraryState extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: onCreateTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ClayColors.primaryPurple,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: ClayColors.softLilac, width: 1),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            alignment: WrapAlignment.center,
+            children: [
+              if (onImportTap != null && !isSearch) ...[
+                ElevatedButton.icon(
+                  onPressed: onImportTap,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ClayColors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: ClayColors.softLilac, width: 1),
+                    ),
+                    elevation: 2,
+                  ),
+                  icon: const Icon(Icons.add_to_photos_rounded, size: 18),
+                  label: Text(
+                    'Import from Device',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+              ElevatedButton.icon(
+                onPressed: onCreateTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: onImportTap != null && !isSearch ? Colors.white : ClayColors.primaryPurple,
+                  foregroundColor: onImportTap != null && !isSearch ? ClayColors.primaryPurple : Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: ClayColors.softLilac, width: 1),
+                  ),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.add_rounded, size: 20),
+                label: Text(
+                  'Create a Bookshelf',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-              elevation: 2,
-            ),
-            icon: const Icon(Icons.add_rounded, size: 20),
-            label: Text(
-              'Create a Bookshelf',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            ],
           ),
         ],
       ),

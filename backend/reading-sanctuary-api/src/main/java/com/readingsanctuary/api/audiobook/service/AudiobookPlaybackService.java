@@ -144,9 +144,9 @@ public class AudiobookPlaybackService {
 
     private void validateAudioFormat(BookFile file) {
         String format = file.getFileFormat();
-        if (format == null || (!format.equalsIgnoreCase("MP3") && !format.equalsIgnoreCase("M4B"))) {
+        if (format == null || (!format.equalsIgnoreCase("MP3") && !format.equalsIgnoreCase("M4B") && !format.equalsIgnoreCase("M4A"))) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "File is not a supported audio format (MP3, M4B)");
+                    HttpStatus.BAD_REQUEST, "File is not a supported audio format (MP3, M4B, M4A)");
         }
     }
 

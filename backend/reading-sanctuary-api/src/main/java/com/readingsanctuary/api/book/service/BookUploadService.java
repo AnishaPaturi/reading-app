@@ -64,6 +64,9 @@ public class BookUploadService {
     private final LocalFileStorageService localStorageService;
     private final SyncChangePublisher changePublisher;
 
+    @Autowired(required = false)
+    private com.readingsanctuary.api.bookshelf.service.BookshelfService bookshelfService;
+
     @Autowired
     public BookUploadService(
             UserRepository userRepository,
@@ -122,7 +125,7 @@ public class BookUploadService {
         if (!SUPPORTED_FORMATS.contains(extension)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Unsupported book format: ." + extension + ". Supported formats are PDF, EPUB, MP3, and M4B."
+                    "Unsupported book format: ." + extension + ". Supported formats are PDF, EPUB, M4A, MP3, and M4B."
             );
         }
 
@@ -180,6 +183,156 @@ public class BookUploadService {
                     saved.getLanguage(),
                     saved.getCoverBase64()
             );
+
+        } catch (IOException | NoSuchAlgorithmException e) {
+            if (pendingKey != null) {
+                storageService.delete(pendingKey);
+            }
+            log.error("Failed to process uploaded book file: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process uploaded book file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Direct Upload & Save: Immediately persists book, file, and associates with shelf if provided.
+     */
+    @Transactional
+    public BookResponse directUploadAndSave(
+            MultipartFile file,
+            String title,
+            String author,
+            String readingStatus,
+            UUID shelfId,
+            UUID userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is required and cannot be empty");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "File size exceeds the 100 MB limit");
+        }
+
+        String originalName = file.getOriginalFilename();
+        if (originalName == null || originalName.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid file name");
+        }
+
+        String safeName = originalName.replace("\\", "/");
+        safeName = safeName.substring(safeName.lastIndexOf('/') + 1);
+
+        int dot = safeName.lastIndexOf('.');
+        if (dot <= 0 || dot >= safeName.length() - 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valid file extension is required");
+        }
+
+        String extension = safeName.substring(dot + 1).toLowerCase(Locale.ROOT);
+        if (!SUPPORTED_FORMATS.contains(extension)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Unsupported book format: ." + extension + ". Supported formats are PDF, EPUB, M4A, MP3, and M4B."
+            );
+        }
+
+        validateFileSignature(file, extension);
+
+        String pendingKey = null;
+        try {
+            String checksum = calculateChecksum(file);
+
+            // Store file into pending storage
+            pendingKey = storageService.storePending(file, extension);
+            Path filePath = storageService.getPath(pendingKey);
+
+            // Extract metadata using specialized extractor
+            ExtractedBookMetadata metadata = extractionService.extractMetadata(
+                    filePath.toFile(),
+                    safeName,
+                    extension
+            );
+
+            // Promote file directly to permanent storage
+            String permanentKey = storageService.promoteToPermanent(pendingKey);
+            pendingKey = null;
+
+            Book book = new Book();
+            book.setCreatedBy(user);
+            String finalTitle = (title != null && !title.isBlank()) ? title.trim() : metadata.title();
+            if (finalTitle == null || finalTitle.isBlank()) {
+                finalTitle = safeName;
+            }
+            book.setTitle(finalTitle);
+            book.setDescription(metadata.description());
+            book.setLanguage(metadata.language() != null ? metadata.language() : "en");
+            book.setIsbn(metadata.isbn());
+            if (metadata.pages() != null && metadata.pages() > 0) {
+                book.setTotalPages(metadata.pages());
+            }
+            book.setReadingStatus(mapReadingStatus(readingStatus));
+
+            // Link author if present
+            String finalAuthor = (author != null && !author.isBlank()) ? author.trim() : metadata.author();
+            if (finalAuthor != null && !finalAuthor.isBlank()) {
+                book.setPublisher(finalAuthor);
+                Author authorEntity = authorRepository.findByNameIgnoreCase(finalAuthor)
+                        .orElseGet(() -> {
+                            Author a = new Author();
+                            a.setName(finalAuthor);
+                            return authorRepository.save(a);
+                        });
+                book.getAuthors().add(authorEntity);
+            }
+
+            // Link genre if present
+            if (metadata.genre() != null && !metadata.genre().isBlank()) {
+                String genreName = metadata.genre().trim();
+                Genre genre = genreRepository.findByNameIgnoreCase(genreName)
+                        .orElseGet(() -> {
+                            Genre g = new Genre();
+                            g.setName(genreName);
+                            return genreRepository.save(g);
+                        });
+                book.getGenres().add(genre);
+            }
+
+            // Process cover if extracted
+            if (metadata.coverBase64() != null && !metadata.coverBase64().isBlank()) {
+                saveExtractedCover(book, metadata.coverBase64());
+            }
+
+            book = bookRepository.save(book);
+
+            // Create BookFile attachment record
+            BookFile bookFile = new BookFile();
+            bookFile.setBook(book);
+            bookFile.setFileName(safeName);
+            bookFile.setFileFormat(extension.toUpperCase(Locale.ROOT));
+            bookFile.setStorageKey(permanentKey);
+            bookFile.setFileSizeBytes(file.getSize());
+            bookFile.setChecksum(checksum);
+            bookFile.setDurationSeconds(metadata.durationSeconds() != null ? Long.valueOf(metadata.durationSeconds()) : null);
+            bookFile.setStorageProvider("LOCAL");
+            bookFile.setStorageStatus("LOCAL");
+
+            fileRepository.save(bookFile);
+
+            // Associate with requested shelf if provided
+            if (shelfId != null && bookshelfService != null) {
+                try {
+                    bookshelfService.addBook(userId, shelfId, book.getId());
+                } catch (Exception ex) {
+                    log.warn("Could not associate imported book with shelf {}: {}", shelfId, ex.getMessage());
+                }
+            }
+
+            if (changePublisher != null) {
+                changePublisher.publishCreate(userId, "BOOK", book.getId().toString(), 1L, toBookResponse(book));
+            }
+
+            return toBookResponse(book);
 
         } catch (IOException | NoSuchAlgorithmException e) {
             if (pendingKey != null) {

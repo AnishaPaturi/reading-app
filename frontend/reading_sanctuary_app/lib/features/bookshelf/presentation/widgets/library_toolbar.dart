@@ -83,6 +83,31 @@ class LibraryToolbar extends StatelessWidget {
               const SizedBox(width: 8),
             ],
 
+            if (onAddBookTap != null) ...[
+              ElevatedButton.icon(
+                onPressed: onAddBookTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ClayColors.deepPurple,
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: ClayColors.softLilac, width: 1),
+                  ),
+                ),
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: Text(
+                  'Add Book',
+                  style: GoogleFonts.inter(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+
             ElevatedButton.icon(
               onPressed: onCreateShelfTap,
               style: ElevatedButton.styleFrom(

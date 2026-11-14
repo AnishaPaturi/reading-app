@@ -67,7 +67,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
     );
   }
 
-  void _openAddBooks(BookshelfModel shelf) {
+  void _openAddBooks([BookshelfModel? shelf]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -400,7 +400,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                   },
                                   onManageTap: () => _openManageShelvesSheet(allShelves),
                                   onCreateShelfTap: _openCreateShelf,
-                                  onAddBookTap: () => context.push('/library/add'),
+                                  onAddBookTap: () => _openAddBooks(null),
                                 ),
                               ),
                             ),
@@ -412,6 +412,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                 sliver: SliverToBoxAdapter(
                                   child: EmptyLibraryState(
                                     onCreateTap: _openCreateShelf,
+                                    onImportTap: () => _openAddBooks(null),
                                     isSearch: _searchQuery.isNotEmpty,
                                   ),
                                 ),

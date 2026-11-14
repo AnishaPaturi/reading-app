@@ -32,7 +32,7 @@ public class ActivitySessionService {
 
     public static final int MAX_CREDITED_INTERVAL_SECONDS = 60;
     private static final Set<String> READING_FORMATS = Set.of("pdf", "epub", "docx");
-    private static final Set<String> AUDIOBOOK_FORMATS = Set.of("mp3", "m4b");
+    private static final Set<String> AUDIOBOOK_FORMATS = Set.of("mp3", "m4b", "m4a");
     private static final Set<String> TTS_FORMATS = Set.of("pdf", "epub", "docx");
 
     private final ReadingActivitySessionRepository sessionRepository;

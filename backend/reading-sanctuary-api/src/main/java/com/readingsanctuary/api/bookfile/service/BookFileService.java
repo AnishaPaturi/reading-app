@@ -26,7 +26,7 @@ import com.readingsanctuary.api.bookfile.repository.BookFileRepository;
 public class BookFileService {
 
     private static final Set<String> ALLOWED_FORMATS =
-            Set.of("pdf", "epub", "docx", "mp3", "m4b");
+            Set.of("pdf", "epub", "docx", "mp3", "m4b", "m4a");
 
     private final BookRepository bookRepository;
     private final BookFileRepository fileRepository;

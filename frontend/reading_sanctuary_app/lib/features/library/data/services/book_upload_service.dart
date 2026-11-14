@@ -45,8 +45,16 @@ class BookUploadService {
         file.path!,
         filename: file.name,
       );
+    } else if (file.hasStream) {
+      // Use stream for large files (withReadStream: true)
+      multipartFile = http.MultipartFile(
+        'file',
+        file.readStream!,
+        file.size,
+        filename: file.name,
+      );
     } else {
-      throw Exception('Selected file has no readable data or path.');
+      throw Exception('Selected file has no readable data, path, or stream.');
     }
 
     request.files.add(multipartFile);

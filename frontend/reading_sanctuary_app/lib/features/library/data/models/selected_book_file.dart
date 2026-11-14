@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 
@@ -7,6 +8,7 @@ class SelectedBookFile {
   final int size;
   final String? path;
   final Uint8List? bytes;
+  final Stream<List<int>>? readStream;
 
   const SelectedBookFile({
     required this.name,
@@ -14,10 +16,12 @@ class SelectedBookFile {
     required this.size,
     this.path,
     this.bytes,
+    this.readStream,
   });
 
   bool get hasPath => path != null && path!.isNotEmpty;
   bool get hasBytes => bytes != null && bytes!.isNotEmpty;
+  bool get hasStream => readStream != null;
 
   String get formattedSize {
     if (size < 1024) return '$size B';
@@ -32,6 +36,7 @@ class SelectedBookFile {
       size: file.size,
       path: file.path,
       bytes: file.bytes,
+      readStream: file.readStream,
     );
   }
 }

@@ -5,9 +5,9 @@ abstract final class ApiConfig {
 
   static String get baseUrl {
     if (_envBaseUrl.isNotEmpty) {
-      if (_envBaseUrl.endsWith('/api/v1')) return _envBaseUrl;
-      if (_envBaseUrl.endsWith('/')) return '${_envBaseUrl}api/v1';
-      return '$_envBaseUrl/api/v1';
+      final sanitized = _envBaseUrl.replaceAll(RegExp(r'/+$'), '');
+      if (sanitized.endsWith('/api/v1')) return sanitized;
+      return '$sanitized/api/v1';
     }
 
     if (kIsWeb) return 'http://localhost:8080/api/v1';

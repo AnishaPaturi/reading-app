@@ -241,7 +241,7 @@ class Book {
     return Book(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? 'Untitled',
-      author: json['author']?.toString() ?? 'Unknown Author',
+      author: json['author']?.toString() ?? json['publisher']?.toString() ?? 'Unknown Author',
       genre: json['genre']?.toString() ?? 'Fiction',
       description: json['description']?.toString() ?? '',
       status: parseStatus(json['status'] ?? json['readingStatus']),
@@ -256,7 +256,9 @@ class Book {
       files: parseFiles(json['files']),
       addedAt: json['addedAt'] != null
           ? DateTime.tryParse(json['addedAt'].toString()) ?? DateTime.now()
-          : DateTime.now(),
+          : (json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
+              : DateTime.now()),
       lastOpenedAt: json['lastOpenedAt'] != null ? DateTime.tryParse(json['lastOpenedAt'].toString()) : null,
       rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
       coverColors: parseColors(json['coverColors']),

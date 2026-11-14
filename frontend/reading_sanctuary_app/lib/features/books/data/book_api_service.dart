@@ -57,17 +57,46 @@ class BookApiService {
       if (shelfId != null && shelfId.isNotEmpty) 'shelfId': shelfId,
     });
 
-    final response = await dio.post(
-      '/api/v1/books/upload',
-      data: formData,
-      options: Options(
-        headers: {
-          if (accessToken.isNotEmpty) 'Authorization': 'Bearer $accessToken',
-        },
-      ),
-      onSendProgress: onSendProgress,
-    );
+    final rawBase = dio.options.baseUrl.replaceAll(RegExp(r'/+$'), '');
+    final endpoint = rawBase.endsWith('/api/v1')
+        ? '/books/upload'
+        : '/api/v1/books/upload';
 
-    return Map<String, dynamic>.from(response.data);
+    debugPrint('UPLOAD URL: $rawBase$endpoint');
+    debugPrint('UPLOAD METHOD: POST');
+
+    try {
+      final response = await dio.post(
+        endpoint,
+        data: formData,
+        options: Options(
+          headers: {
+            if (accessToken.isNotEmpty) 'Authorization': 'Bearer $accessToken',
+          },
+        ),
+        onSendProgress: onSendProgress,
+      );
+
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      debugPrint('UPLOAD ERROR: ${e.message}');
+      debugPrint('STATUS CODE: ${e.response?.statusCode}');
+      debugPrint('RESPONSE: ${e.response?.data}');
+      debugPrint('REQUEST URL: ${e.requestOptions.uri}');
+
+      String? serverMessage;
+      if (e.response?.data is Map<String, dynamic>) {
+        final data = e.response!.data as Map<String, dynamic>;
+        serverMessage = data['message']?.toString() ??
+            data['detail']?.toString() ??
+            data['error']?.toString();
+      }
+      throw Exception(
+        serverMessage ??
+            (e.response?.statusCode != null
+                ? 'Upload failed (${e.response!.statusCode}): ${e.message}'
+                : e.message ?? 'Book upload failed'),
+      );
+    }
   }
 }

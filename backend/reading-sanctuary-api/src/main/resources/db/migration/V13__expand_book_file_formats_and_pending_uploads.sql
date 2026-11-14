@@ -12,7 +12,7 @@ ALTER TABLE book_files
 
 ALTER TABLE book_files
     ADD CONSTRAINT chk_book_file_format
-    CHECK (file_format IN ('PDF', 'EPUB', 'DOCX', 'MP3', 'M4B', 'M4A'));
+    CHECK (file_format IN ('PDF', 'EPUB', 'DOCX', 'MP3', 'M4B'));
 
 -- 3. PENDING BOOK UPLOADS TABLE
 CREATE TABLE IF NOT EXISTS pending_book_uploads (

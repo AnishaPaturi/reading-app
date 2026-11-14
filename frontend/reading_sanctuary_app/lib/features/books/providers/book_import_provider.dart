@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_config.dart';
 import '../../../features/authentication/presentation/providers/auth_provider.dart';
 import '../../../features/bookshelf/presentation/providers/bookshelf_provider.dart';
+import '../../../features/reader/presentation/providers/reader_provider.dart';
 import '../../../shared/models/book.dart';
 import '../../../shared/services/providers.dart';
 import '../data/book_api_service.dart';
@@ -86,7 +87,9 @@ class BookImportNotifier extends StateNotifier<BookImportState> {
     );
 
     try {
-      final token = _ref.read(authTokenProvider) ?? '';
+      final token = _ref.read(authTokenProvider) ??
+          _ref.read(authNotifierProvider).user?.token ??
+          '';
 
       final response = await _apiService.uploadBook(
         file: file,

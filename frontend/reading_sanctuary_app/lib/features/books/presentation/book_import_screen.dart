@@ -308,7 +308,7 @@ class _BookImportScreenState extends ConsumerState<BookImportScreen> {
 
             // Reading Status
             DropdownButtonFormField<String>(
-              value: readingStatus,
+              initialValue: readingStatus,
               decoration: InputDecoration(
                 labelText: 'Reading Status',
                 prefixIcon: const Icon(Icons.bookmark_outline_rounded),

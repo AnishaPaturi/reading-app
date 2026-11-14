@@ -601,7 +601,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
               child: Row(
                 children: [
                   _FormatBadge(
-                    label: (metadata?.format ?? file.extension ?? 'FILE').toUpperCase(),
+                    label: (metadata?.format ?? file.extension).toUpperCase(),
                     icon: (file.extension.toLowerCase() == 'mp3' || file.extension.toLowerCase() == 'm4b')
                         ? Icons.headphones_rounded
                         : Icons.menu_book_rounded,

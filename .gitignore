@@ -35,6 +35,7 @@ coverage/
 *.lcov
 backend/reading-sanctuary-api/target/
 backend/reading-sanctuary-api/src/test/resources/application.properties
+backend/reading-sanctuary-api/reading-sanctuary-storage/
 
 # Docker
 docker-compose.override.yml

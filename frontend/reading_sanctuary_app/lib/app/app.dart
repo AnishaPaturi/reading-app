@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
 
 class AppScrollBehavior extends MaterialScrollBehavior {
   const AppScrollBehavior();
@@ -27,6 +28,8 @@ class ReadingSanctuaryApp extends ConsumerWidget {
       title: 'Reading Sanctuary',
       debugShowCheckedModeBanner: false,
       scrollBehavior: const AppScrollBehavior(),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: choice == AppThemeChoice.dark ? AppTheme.dark() : AppTheme.parchment(),
       routerConfig: ref.watch(routerProvider),
     );

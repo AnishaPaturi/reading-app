@@ -8,7 +8,7 @@ class BookImportService {
       type: FileType.custom,
       allowedExtensions: BookFileValidator.supportedExtensions,
       allowMultiple: false,
-      withReadStream: !kIsWeb,
+      withReadStream: true,
       withData: kIsWeb,
     );
 
@@ -28,7 +28,7 @@ class BookImportService {
       throw Exception('Unable to read the selected file.');
     }
 
-    if (kIsWeb && file.bytes == null) {
+    if (kIsWeb && file.bytes == null && file.readStream == null) {
       throw Exception('Unable to read the selected file in browser.');
     }
 

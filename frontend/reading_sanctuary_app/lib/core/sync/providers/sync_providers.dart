@@ -16,8 +16,9 @@ final localStorageDbProvider = Provider<LocalStorageDb>((ref) {
 });
 
 final cloudStorageApiServiceProvider = Provider<CloudStorageApiService>((ref) {
+  final token = ref.watch(authTokenProvider);
   return CloudStorageApiService(
-    tokenProvider: () => ref.watch(authTokenProvider),
+    tokenProvider: () => token,
   );
 });
 
@@ -34,8 +35,9 @@ final offlineTtsCacheServiceProvider = Provider<OfflineTtsCacheService>((ref) {
 });
 
 final syncApiServiceProvider = Provider<SyncApiService>((ref) {
+  final token = ref.watch(authTokenProvider);
   return SyncApiService(
-    tokenProvider: () => ref.watch(authTokenProvider),
+    tokenProvider: () => token,
   );
 });
 

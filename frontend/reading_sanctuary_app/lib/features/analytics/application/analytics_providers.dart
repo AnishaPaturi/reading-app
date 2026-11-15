@@ -15,8 +15,9 @@ import '../data/repositories/analytics_repository.dart';
 import '../data/services/activity_tracking_service.dart';
 
 final analyticsRepositoryProvider = Provider<AnalyticsRepository>((ref) {
+  final token = ref.watch(authTokenProvider);
   return HttpAnalyticsRepository(
-    tokenProvider: () => ref.watch(authTokenProvider),
+    tokenProvider: () => token,
   );
 });
 

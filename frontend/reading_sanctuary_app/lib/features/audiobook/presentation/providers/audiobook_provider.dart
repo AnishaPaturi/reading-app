@@ -13,8 +13,9 @@ import '../../../analytics/application/analytics_providers.dart';
 import '../../../analytics/data/models/activity_session.dart';
 
 final audiobookRepositoryProvider = Provider<AudiobookRepository>((ref) {
+  final token = ref.watch(authTokenProvider);
   return HttpAudiobookRepository(
-    tokenProvider: () => ref.read(authTokenProvider),
+    tokenProvider: () => token,
   );
 });
 

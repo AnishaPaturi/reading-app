@@ -105,7 +105,7 @@ public class BookUploadService {
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "File size exceeds the 100 MB limit");
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "File size exceeds the 2 GB limit");
         }
 
         String originalName = file.getOriginalFilename();
@@ -213,7 +213,7 @@ public class BookUploadService {
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "File size exceeds the 100 MB limit");
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "File size exceeds the 2 GB limit");
         }
 
         String originalName = file.getOriginalFilename();

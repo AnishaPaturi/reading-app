@@ -97,11 +97,17 @@ class BookApiService {
             data['detail']?.toString() ??
             data['error']?.toString();
       }
+      String friendlyError = e.message ?? 'Book upload failed';
+      if (friendlyError.contains('XMLHttpRequest onError')) {
+        friendlyError =
+            'Unable to connect to backend server ($fullUrl). Please ensure the backend server is running and accessible.';
+      }
+
       throw Exception(
         serverMessage ??
             (e.response?.statusCode != null
                 ? 'Upload failed (${e.response!.statusCode}): ${e.message}'
-                : e.message ?? 'Book upload failed'),
+                : friendlyError),
       );
     }
   }

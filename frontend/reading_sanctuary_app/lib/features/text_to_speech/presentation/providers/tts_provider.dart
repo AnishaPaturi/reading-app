@@ -9,8 +9,9 @@ import '../../../analytics/application/analytics_providers.dart';
 import '../../../analytics/data/models/activity_session.dart';
 
 final ttsRepositoryProvider = Provider<TtsRepository>((ref) {
+  final token = ref.watch(authTokenProvider);
   return HttpTtsRepository(
-    tokenProvider: () => ref.read(authTokenProvider),
+    tokenProvider: () => token,
   );
 });
 

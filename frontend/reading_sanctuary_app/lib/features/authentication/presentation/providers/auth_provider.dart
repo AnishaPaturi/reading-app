@@ -290,21 +290,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 final googleSignInProvider = Provider<GoogleSignIn>((ref) {
   final env = dotenv.isInitialized ? dotenv.env : const <String, String>{};
-  final webClientId = env['GOOGLE_WEB_CLIENT_ID']?.trim();
-  final serverClientId = env['GOOGLE_SERVER_CLIENT_ID']?.trim();
+  final webClientId = env['GOOGLE_WEB_CLIENT_ID']?.trim() ??
+      const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
+  final serverClientId = env['GOOGLE_SERVER_CLIENT_ID']?.trim() ??
+      const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
 
-  if (webClientId == null || webClientId.isEmpty) {
-    throw StateError(
-      'GOOGLE_WEB_CLIENT_ID is missing from the .env file.',
-    );
-  }
+  final effectiveWebClientId = webClientId.isNotEmpty ? webClientId : null;
+  final effectiveServerClientId = serverClientId.isNotEmpty
+      ? serverClientId
+      : effectiveWebClientId;
 
   return GoogleSignIn(
-    clientId: webClientId,
-    serverClientId:
-        (serverClientId == null || serverClientId.isEmpty)
-            ? webClientId
-            : serverClientId,
+    clientId: effectiveWebClientId,
+    serverClientId: effectiveServerClientId,
     scopes: const [
       'email',
       'profile',

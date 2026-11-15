@@ -11,15 +11,19 @@ import '../../../../core/sync/providers/sync_providers.dart';
 final authTokenProvider = StateProvider<String?>((ref) => null);
 
 final readerRepositoryProvider = Provider<ReaderRepository>((ref) {
+  final token = ref.watch(authTokenProvider);
   return HttpReaderRepository(
-    tokenProvider: () => ref.read(authTokenProvider),
+    tokenProvider: () => token,
   );
 });
 
 final readerFileServiceProvider = Provider<ReaderFileService>((ref) {
+  final token = ref.watch(authTokenProvider);
+  final downloadManager = ref.watch(downloadManagerProvider);
+
   return ReaderFileService(
-    tokenProvider: () => ref.read(authTokenProvider),
-    downloadManager: ref.watch(downloadManagerProvider),
+    tokenProvider: () => token,
+    downloadManager: downloadManager,
   );
 });
 
@@ -57,8 +61,8 @@ class ReaderDocumentArgs {
 
 final readerDocumentProvider =
     FutureProvider.family<ReaderDocument, ReaderDocumentArgs>((ref, args) async {
-  final fileService = ref.read(readerFileServiceProvider);
-  final repo = ref.read(readerRepositoryProvider);
+  final fileService = ref.watch(readerFileServiceProvider);
+  final repo = ref.watch(readerRepositoryProvider);
 
   final bytesFuture = fileService.loadFileBytes(
     bookId: args.bookId,
@@ -87,16 +91,16 @@ final readerCurrentPositionProvider =
     StateProvider.autoDispose<ReaderPosition?>((ref) => null);
 
 final readerBookmarksProvider = FutureProvider.family<List<ReaderBookmark>, String>((ref, bookId) async {
-  final repo = ref.read(readerRepositoryProvider);
+  final repo = ref.watch(readerRepositoryProvider);
   return repo.getBookmarks(bookId: bookId);
 });
 
 final readerHighlightsProvider = FutureProvider.family<List<ReaderHighlight>, String>((ref, bookId) async {
-  final repo = ref.read(readerRepositoryProvider);
+  final repo = ref.watch(readerRepositoryProvider);
   return repo.getHighlights(bookId: bookId);
 });
 
 final readerNotesProvider = FutureProvider.family<List<ReaderBookNote>, String>((ref, bookId) async {
-  final repo = ref.read(readerRepositoryProvider);
+  final repo = ref.watch(readerRepositoryProvider);
   return repo.getNotes(bookId: bookId);
 });

@@ -85,16 +85,19 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   }
 
   void _onPositionChanged(ReaderPosition position) {
-    ref.read(readerCurrentPositionProvider.notifier).state = position;
-    ref.read(readerPositionServiceProvider).onPositionChanged(
-          bookId: widget.bookId,
-          fileId: widget.fileId,
-          position: position,
-        );
-    ref.read(activityTrackingServiceProvider).updateProgress(
-          currentLocation: position.locationValue,
-          currentPage: position.pageNumber,
-        );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(readerCurrentPositionProvider.notifier).state = position;
+      ref.read(readerPositionServiceProvider).onPositionChanged(
+            bookId: widget.bookId,
+            fileId: widget.fileId,
+            position: position,
+          );
+      ref.read(activityTrackingServiceProvider).updateProgress(
+            currentLocation: position.locationValue,
+            currentPage: position.pageNumber,
+          );
+    });
   }
 
   Future<void> _handleToggleBookmark(List<ReaderBookmark> existingBookmarks) async {
@@ -151,17 +154,19 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                   children: ReaderHighlightColor.values.map((c) {
                     return InkWell(
                       onTap: () async {
+                        final locationType = ref.read(readerCurrentPositionProvider)?.locationType ?? 'PDF_PAGE';
                         Navigator.of(ctx).pop();
                         await ref.read(readerRepositoryProvider).createHighlight(
                               bookId: widget.bookId,
                               bookFileId: widget.fileId,
                               selectedText: selectedText,
-                              locationType: ref.read(readerCurrentPositionProvider)?.locationType ?? 'PDF_PAGE',
+                              locationType: locationType,
                               startLocation: startLocation,
                               endLocation: endLocation,
                               pageNumber: pageNumber,
                               color: c,
                             );
+                        if (!mounted) return;
                         ref.invalidate(readerHighlightsProvider(widget.bookId));
                       },
                       borderRadius: BorderRadius.circular(20),

@@ -1,9 +1,65 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:reading_sanctuary_app/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:reading_sanctuary_app/features/home/home_screen.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/providers/home_reading_progress_provider.dart';
+import 'package:reading_sanctuary_app/features/reader/data/reading_progress_repository.dart';
 import 'package:reading_sanctuary_app/features/reader/domain/reading_progress.dart';
 import 'package:reading_sanctuary_app/features/reader/presentation/widgets/page_navigation_slider.dart';
 import 'package:reading_sanctuary_app/features/reader/presentation/widgets/reader_bottom_bar.dart';
+import 'package:reading_sanctuary_app/shared/models/book.dart';
+import 'package:reading_sanctuary_app/shared/services/book_repository.dart';
+import 'package:reading_sanctuary_app/shared/services/providers.dart';
+
+class TestAssetBundle extends CachingAssetBundle {
+  @override
+  Future<ByteData> load(String key) async {
+    if (key.contains('AssetManifest') || key.contains('FontManifest')) {
+      return rootBundle.load(key);
+    }
+    final bytes = Uint8List.fromList([
+      0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+      0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+      0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
+      0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    ]);
+    return ByteData.view(bytes.buffer);
+  }
+}
+
+class FakeReadingProgressRepository implements ReadingProgressRepository {
+  final Map<String, ReadingProgress> storage = {};
+
+  @override
+  Future<List<ReadingProgress>> getAllProgress() async => storage.values.toList();
+
+  @override
+  Future<ReadingProgress?> getProgress(String bookFileId) async => storage[bookFileId];
+
+  @override
+  Future<ReadingProgress> saveProgress(String bookFileId, ReadingProgress progress, {bool syncRemote = true}) async {
+    storage[bookFileId] = progress;
+    return progress;
+  }
+
+  @override
+  Future<void> resetProgress(String bookFileId) async {
+    storage.remove(bookFileId);
+  }
+
+  @override
+  Future<bool> hasPendingSync(String bookFileId) async => false;
+
+  @override
+  Future<void> syncPendingRecords() async {}
+}
 
 void main() {
   group('ReadingProgress Model', () {
@@ -164,6 +220,7 @@ void main() {
   group('Local Progress Persistence', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+      dotenv.testLoad(fileInput: 'GOOGLE_WEB_CLIENT_ID=dummy\nGOOGLE_SERVER_CLIENT_ID=dummy\nAPI_BASE_URL=http://localhost:8080');
     });
 
     test('saves and retrieves progress across simulated restarts', () async {
@@ -187,6 +244,114 @@ void main() {
       expect(restored.currentPage, 182);
       expect(restored.totalPages, 363);
       expect(restored.progressPercentage, 50.138);
+    });
+  });
+
+  group('Home Reading Progress Providers and Mapping', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      dotenv.testLoad(fileInput: 'GOOGLE_WEB_CLIENT_ID=dummy\nGOOGLE_SERVER_CLIENT_ID=dummy\nAPI_BASE_URL=http://localhost:8080');
+    });
+    test('homeProgressByFileIdProvider indexes records by bookFileId', () async {
+      final container = ProviderContainer(
+        overrides: [
+          homeReadingProgressProvider.overrideWith((ref) async => [
+                const ReadingProgress(
+                  bookFileId: 'file-bone-year-pdf',
+                  format: 'PDF',
+                  currentPage: 57,
+                  totalPages: 363,
+                  progressPercentage: 15.702,
+                ),
+                const ReadingProgress(
+                  bookFileId: 'file-audio-1',
+                  format: 'M4B',
+                  audioPositionMs: 60000,
+                  audioDurationMs: 600000,
+                  progressPercentage: 10.0,
+                ),
+              ]),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Await future provider
+      await container.read(homeReadingProgressProvider.future);
+
+      final map = container.read(homeProgressByFileIdProvider);
+      expect(map.containsKey('file-bone-year-pdf'), isTrue);
+      expect(map['file-bone-year-pdf']!.currentPage, 57);
+      expect(map['file-bone-year-pdf']!.totalPages, 363);
+      expect(map['file-bone-year-pdf']!.progressPercentage, 15.702);
+
+      expect(map.containsKey('file-audio-1'), isTrue);
+      expect(map['file-audio-1']!.format, 'M4B');
+    });
+
+    testWidgets('HomeScreen Currently Reading card displays Page 57 of 363 and 15.7% Completed', (tester) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final testBook = Book(
+        id: 'book-bone-year',
+        title: 'Bone Year',
+        author: "O'Donovan, Ashley R.",
+        genre: 'Dark Academia',
+        description: 'Test description',
+        status: ReadingStatus.currentlyReading,
+        progress: 0.0,
+        pages: 363,
+        formats: const [BookFormat.ebook],
+        files: const [
+          BookFile(
+            id: 'file-bone-year-pdf',
+            format: BookFileFormat.pdf,
+            fileName: 'bone-year.pdf',
+            fileSize: 1024,
+          ),
+        ],
+        addedAt: DateTime.now(),
+        coverColors: const [Color(0xFF2C3E50), Color(0xFFBDC3C7)],
+      );
+
+      final progress = ReadingProgress(
+        bookFileId: 'file-bone-year-pdf',
+        format: 'PDF',
+        currentPage: 57,
+        totalPages: 363,
+        progressPercentage: 15.702,
+        updatedAt: DateTime.now(),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            bookRepositoryProvider.overrideWithValue(MockBookRepository([testBook])),
+            homeReadingProgressProvider.overrideWith((ref) async => [progress]),
+            userDisplayNameProvider.overrideWithValue('Reader'),
+            userAvatarAssetProvider.overrideWithValue('assets/images/dashboard/dash_avatar.png'),
+            userBannerAssetProvider.overrideWithValue('assets/images/dashboard/dash_banner.png'),
+          ],
+          child: DefaultAssetBundle(
+            bundle: TestAssetBundle(),
+            child: const MaterialApp(
+              home: HomeScreen(),
+            ),
+          ),
+        ),
+      );
+
+      // Settle async timers and build
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Currently Reading'), findsOneWidget);
+      expect(find.text('Bone Year'), findsNWidgets(2));
+      expect(find.text('Page 57 of 363'), findsOneWidget);
+      expect(find.text('15.7% Completed'), findsOneWidget);
+      expect(find.text('0% Completed'), findsNothing);
     });
   });
 }

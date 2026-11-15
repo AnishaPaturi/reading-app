@@ -11,6 +11,8 @@ import 'package:reading_sanctuary_app/features/library/theme/bookshelf_theme.dar
 import 'package:reading_sanctuary_app/shared/models/book.dart';
 import 'package:reading_sanctuary_app/shared/services/providers.dart';
 import '../../shared/utils/book_file_navigation.dart';
+import '../reader/domain/reading_progress.dart';
+import 'presentation/providers/home_reading_progress_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -41,6 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final booksAsync = ref.watch(booksProvider);
+    final progressMap = ref.watch(homeProgressByFileIdProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -97,22 +100,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           data: (books) => Scrollbar(
                             controller: _mainScrollController,
                             thumbVisibility: isWide,
-                            child: SingleChildScrollView(
-                              controller: _mainScrollController,
-                              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                              padding: EdgeInsets.fromLTRB(
-                                isWide ? 24 : 16,
-                                8,
-                                isWide ? 24 : 16,
-                                isWide ? 24 : 20,
-                              ),
-                              child: _buildDashboardBody(
-                                context,
-                                contentWidth: isWide
-                                    ? constraints.maxWidth - 234
-                                    : constraints.maxWidth - 32,
-                                books: books,
-                                isWide: isWide,
+                            child: RefreshIndicator(
+                              color: ClayColors.primaryPurple,
+                              onRefresh: () async {
+                                ref.invalidate(homeReadingProgressProvider);
+                                ref.invalidate(booksProvider);
+                                await ref.read(booksProvider.future);
+                                await ref.read(homeReadingProgressProvider.future);
+                              },
+                              child: SingleChildScrollView(
+                                controller: _mainScrollController,
+                                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                                padding: EdgeInsets.fromLTRB(
+                                  isWide ? 24 : 16,
+                                  8,
+                                  isWide ? 24 : 16,
+                                  isWide ? 24 : 20,
+                                ),
+                                child: _buildDashboardBody(
+                                  context,
+                                  contentWidth: isWide
+                                      ? constraints.maxWidth - 234
+                                      : constraints.maxWidth - 32,
+                                  books: books,
+                                  progressMap: progressMap,
+                                  isWide: isWide,
+                                ),
                               ),
                             ),
                           ),
@@ -139,19 +152,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     BuildContext context, {
     required double contentWidth,
     required List<Book> books,
+    required Map<String, ReadingProgress> progressMap,
     bool isWide = false,
   }) {
     final useTwoColumns = contentWidth >= 800;
 
     final readingBooks = books
-        .where((b) => b.status == ReadingStatus.currentlyReading)
+        .where((b) =>
+            b.status == ReadingStatus.currentlyReading ||
+            _hasActiveReadingProgress(b, progressMap))
         .toList();
 
     final listeningBooks = books
         .where((b) =>
             b.formats.contains(BookFormat.audiobook) &&
             (b.status == ReadingStatus.currentlyReading ||
-                (b.progress > 0 && b.progress < 1.0)))
+                (b.progress > 0 && b.progress < 1.0) ||
+                _hasActiveListeningProgress(b, progressMap)))
         .toList();
 
     final effectiveReading = readingBooks;
@@ -169,24 +186,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _buildCurrentlyReadingSection(context, effectiveReading),
+                child: _buildCurrentlyReadingSection(context, effectiveReading, progressMap),
               ),
               const SizedBox(width: 24),
               Expanded(
                 child: _buildCurrentlyListeningSection(
                   context,
                   effectiveListening,
+                  progressMap,
                   isWide: isWide,
                 ),
               ),
             ],
           )
         else ...[
-          _buildCurrentlyReadingSection(context, effectiveReading),
+          _buildCurrentlyReadingSection(context, effectiveReading, progressMap),
           const SizedBox(height: 24),
           _buildCurrentlyListeningSection(
             context,
             effectiveListening,
+            progressMap,
             isWide: isWide,
           ),
         ],
@@ -195,7 +214,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildCurrentlyReadingSection(BuildContext context, List<Book> books) {
+  Widget _buildCurrentlyReadingSection(
+    BuildContext context,
+    List<Book> books,
+    Map<String, ReadingProgress> progressMap,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -309,20 +332,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           )
         else
           for (final book in books) ...[
-            _buildReadingCard(context, book),
+            _buildReadingCard(context, book, progressMap),
             const SizedBox(height: 14),
           ],
       ],
     );
   }
 
-  Widget _buildReadingCard(BuildContext context, Book book) {
+  Widget _buildReadingCard(
+    BuildContext context,
+    Book book,
+    Map<String, ReadingProgress> progressMap,
+  ) {
     final palette = BookshelfTheme.paletteForId(book.id);
-    final progressPct = (book.progress * 100).round();
-    final totalPages = book.pages > 0 ? book.pages : 100;
-    final currentPage = book.currentPage > 0
-        ? book.currentPage
-        : ((totalPages * progressPct) / 100).round();
+    final progress = _findReadingProgressForBook(book, progressMap);
+
+    final int totalPages = (progress?.totalPages != null && progress!.totalPages! > 0)
+        ? progress.totalPages!
+        : (book.pages > 0 ? book.pages : 100);
+
+    final int currentPage = (progress?.currentPage != null && progress!.currentPage! > 0)
+        ? progress.currentPage!.clamp(1, totalPages)
+        : (book.currentPage > 0
+            ? book.currentPage.clamp(1, totalPages)
+            : 1);
+
+    final double rawPercentage = progress != null && progress.progressPercentage > 0
+        ? progress.progressPercentage
+        : (book.progress > 0
+            ? book.progress * 100.0
+            : (currentPage > 1 && totalPages > 0 ? (currentPage / totalPages) * 100.0 : 0.0));
+
+    final double progressPctValue = rawPercentage.clamp(0.0, 100.0);
+    final String progressPctText = progressPctValue.truncateToDouble() == progressPctValue
+        ? progressPctValue.toStringAsFixed(0)
+        : progressPctValue.toStringAsFixed(1);
+
     final pagesRemaining = (totalPages - currentPage).clamp(0, totalPages);
     final hoursRemaining =
         (pagesRemaining * 1.5 / 60).clamp(0.1, 24.0).toStringAsFixed(1);
@@ -330,7 +375,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return ClayCard(
       padding: const EdgeInsets.all(16),
       onTap: () {
-        openBookDocument(context, book);
+        _continueReading(context, book, progress);
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -405,7 +450,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            '$progressPct% Completed',
+                            '$progressPctText% Completed',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
@@ -436,7 +481,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
                       child: LinearProgressIndicator(
-                        value: progressPct / 100.0,
+                        value: (progressPctValue / 100.0).clamp(0.0, 1.0),
                         minHeight: 8,
                         backgroundColor: const Color(0xFFEDE6FA),
                         valueColor:
@@ -484,7 +529,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: ClayColors.deepPurple,
                 textColor: Colors.white,
                 onTap: () {
-                  openBookDocument(context, book);
+                  _continueReading(context, book, progress);
                 },
               ),
             ],
@@ -496,7 +541,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildCurrentlyListeningSection(
     BuildContext context,
-    List<Book> books, {
+    List<Book> books,
+    Map<String, ReadingProgress> progressMap, {
     bool isWide = false,
   }) {
     return Column(
@@ -624,7 +670,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 itemCount: books.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 14),
                 itemBuilder: (context, index) =>
-                    _buildListeningCard(context, books[index]),
+                    _buildListeningCard(context, books[index], progressMap),
               ),
             ),
           ),
@@ -632,19 +678,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildListeningCard(BuildContext context, Book book) {
+  Widget _buildListeningCard(
+    BuildContext context,
+    Book book,
+    Map<String, ReadingProgress> progressMap,
+  ) {
     final palette = BookshelfTheme.paletteForId(book.id);
-    final progressPct = (book.progress * 100).round();
+    final audioProgress = _findListeningProgressForBook(book, progressMap);
+    final double rawPct = audioProgress != null && audioProgress.progressPercentage > 0
+        ? audioProgress.progressPercentage
+        : (book.progress * 100.0);
+    final int progressPct = rawPct.round().clamp(0, 100);
     const totalChapters = 14;
     final currentChapter =
-        ((book.progress) * totalChapters).clamp(1, totalChapters).round();
+        ((progressPct / 100.0) * totalChapters).clamp(1, totalChapters).round();
     final hoursRemaining =
-        ((1.0 - book.progress) * 8.0).clamp(0.0, 20.0).toStringAsFixed(1);
+        ((1.0 - (progressPct / 100.0)) * 8.0).clamp(0.0, 20.0).toStringAsFixed(1);
 
     return ClayCard(
       padding: const EdgeInsets.all(16),
       onTap: () {
-        openBookAudio(context, book);
+        _continueListening(context, book, audioProgress);
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -826,7 +880,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: const Color(0xFF4379EE),
                 textColor: Colors.white,
                 onTap: () {
-                  openBookAudio(context, book);
+                  _continueListening(context, book, audioProgress);
                 },
               ),
             ],
@@ -834,5 +888,120 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _continueReading(
+    BuildContext context,
+    Book book,
+    ReadingProgress? progress,
+  ) async {
+    if (progress != null) {
+      final targetFile = book.files.firstWhere(
+        (f) => f.id == progress.bookFileId,
+        orElse: () => book.files.firstWhere(
+          (f) => f.format == BookFileFormat.pdf || f.format == BookFileFormat.epub,
+          orElse: () => book.files.first,
+        ),
+      );
+      await openBookInFormat(context, book, format: targetFile.format);
+    } else {
+      await openBookDocument(context, book);
+    }
+
+    if (mounted) {
+      ref.invalidate(homeReadingProgressProvider);
+      ref.invalidate(booksProvider);
+    }
+  }
+
+  Future<void> _continueListening(
+    BuildContext context,
+    Book book,
+    ReadingProgress? progress,
+  ) async {
+    if (progress != null) {
+      final targetFile = book.files.firstWhere(
+        (f) => f.id == progress.bookFileId,
+        orElse: () => book.files.firstWhere(
+          (f) => f.format.isAudio,
+          orElse: () => book.files.first,
+        ),
+      );
+      await openBookInFormat(context, book, format: targetFile.format);
+    } else {
+      await openBookAudio(context, book);
+    }
+
+    if (mounted) {
+      ref.invalidate(homeReadingProgressProvider);
+      ref.invalidate(booksProvider);
+    }
+  }
+
+  ReadingProgress? _findReadingProgressForBook(
+    Book book,
+    Map<String, ReadingProgress> progressMap,
+  ) {
+    ReadingProgress? best;
+
+    for (final file in book.files) {
+      if (file.format == BookFileFormat.pdf || file.format == BookFileFormat.epub) {
+        final p = progressMap[file.id];
+        if (p != null) {
+          if (best == null) {
+            best = p;
+          } else {
+            final bestTime = best.updatedAt ?? best.lastOpenedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final pTime = p.updatedAt ?? p.lastOpenedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            if (pTime.isAfter(bestTime)) {
+              best = p;
+            }
+          }
+        }
+      }
+    }
+
+    if (best != null) return best;
+
+    // Fallback: check book.id in case a record was keyed by bookId
+    if (progressMap.containsKey(book.id)) {
+      return progressMap[book.id];
+    }
+
+    return null;
+  }
+
+  bool _hasActiveReadingProgress(
+    Book book,
+    Map<String, ReadingProgress> progressMap,
+  ) {
+    final progress = _findReadingProgressForBook(book, progressMap);
+    if (progress == null) return false;
+    final pct = progress.progressPercentage;
+    final page = progress.currentPage ?? 1;
+    return (pct > 0 && pct < 100) || page > 1;
+  }
+
+  ReadingProgress? _findListeningProgressForBook(
+    Book book,
+    Map<String, ReadingProgress> progressMap,
+  ) {
+    for (final file in book.files) {
+      if (file.format.isAudio) {
+        final p = progressMap[file.id];
+        if (p != null) return p;
+      }
+    }
+    return null;
+  }
+
+  bool _hasActiveListeningProgress(
+    Book book,
+    Map<String, ReadingProgress> progressMap,
+  ) {
+    final progress = _findListeningProgressForBook(book, progressMap);
+    if (progress == null) return false;
+    return (progress.progressPercentage > 0 && progress.progressPercentage < 100) ||
+        (progress.audioPositionMs != null && progress.audioPositionMs! > 0);
   }
 }

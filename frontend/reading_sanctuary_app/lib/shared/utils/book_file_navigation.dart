@@ -5,7 +5,7 @@ import '../models/book.dart';
 
 /// Opens the exact attached file matching the requested format.
 /// Never substitutes book.id for file.id.
-void openBookInFormat(
+Future<T?> openBookInFormat<T>(
   BuildContext context,
   Book book, {
   required BookFileFormat format,
@@ -27,7 +27,7 @@ void openBookInFormat(
         ),
       ),
     );
-    return;
+    return Future.value(null);
   }
 
   final isAudio = format.isAudio;
@@ -47,14 +47,14 @@ void openBookInFormat(
     queryParameters: queryParameters,
   );
 
-  context.push(uri.toString());
+  return context.push<T>(uri.toString());
 }
 
 /// Opens a document, preferring PDF and then EPUB.
-void openBookDocument(BuildContext context, Book book) {
+Future<T?> openBookDocument<T>(BuildContext context, Book book) {
   if (book.files.isEmpty) {
     _showMissingFileMessage(context, book);
-    return;
+    return Future.value(null);
   }
 
   final pdf = book.files.where(
@@ -62,12 +62,11 @@ void openBookDocument(BuildContext context, Book book) {
   );
 
   if (pdf.isNotEmpty) {
-    openBookInFormat(
+    return openBookInFormat<T>(
       context,
       book,
       format: BookFileFormat.pdf,
     );
-    return;
   }
 
   final epub = book.files.where(
@@ -75,19 +74,19 @@ void openBookDocument(BuildContext context, Book book) {
   );
 
   if (epub.isNotEmpty) {
-    openBookInFormat(
+    return openBookInFormat<T>(
       context,
       book,
       format: BookFileFormat.epub,
     );
-    return;
   }
 
   _showMissingFileMessage(context, book);
+  return Future.value(null);
 }
 
 /// Opens an audiobook, preferring MP3, then M4B, then M4A.
-void openBookAudio(BuildContext context, Book book) {
+Future<T?> openBookAudio<T>(BuildContext context, Book book) {
   const audioFormats = [
     BookFileFormat.mp3,
     BookFileFormat.m4b,
@@ -96,16 +95,16 @@ void openBookAudio(BuildContext context, Book book) {
 
   for (final format in audioFormats) {
     if (book.files.any((file) => file.format == format)) {
-      openBookInFormat(
+      return openBookInFormat<T>(
         context,
         book,
         format: format,
       );
-      return;
     }
   }
 
   _showMissingFileMessage(context, book);
+  return Future.value(null);
 }
 
 void _showMissingFileMessage(

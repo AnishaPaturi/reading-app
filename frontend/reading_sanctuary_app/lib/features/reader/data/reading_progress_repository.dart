@@ -104,15 +104,40 @@ class DefaultReadingProgressRepository implements ReadingProgressRepository {
 
   @override
   Future<List<ReadingProgress>> getAllProgress() async {
+    final localList = await _getAllLocal();
+    final localMap = {for (var p in localList) p.bookFileId: p};
+    final pendingIds = await _getPendingSyncIds();
+
     try {
       final remoteList = await _api.getAllProgress();
-      for (final r in remoteList) {
-        if (r.bookFileId.isNotEmpty) {
-          await _saveLocalOnly(r.bookFileId, r);
+      final resultMap = <String, ReadingProgress>{};
+
+      for (final remote in remoteList) {
+        if (remote.bookFileId.isEmpty) continue;
+        final local = localMap[remote.bookFileId];
+        final isPending = pendingIds.contains(remote.bookFileId);
+
+        if (local != null &&
+            (isPending ||
+                (local.updatedAt != null &&
+                    remote.updatedAt != null &&
+                    local.updatedAt!.isAfter(remote.updatedAt!)))) {
+          resultMap[remote.bookFileId] = local;
+        } else {
+          resultMap[remote.bookFileId] = remote;
+          await _saveLocalOnly(remote.bookFileId, remote);
         }
       }
-      if (remoteList.isNotEmpty) {
-        return remoteList;
+
+      // Add any local-only records that were not returned by remote
+      for (final local in localList) {
+        if (!resultMap.containsKey(local.bookFileId)) {
+          resultMap[local.bookFileId] = local;
+        }
+      }
+
+      if (resultMap.isNotEmpty) {
+        return resultMap.values.toList();
       }
     } catch (e) {
       debugPrint('ReadingProgressRepository.getAllProgress remote failed: $e');

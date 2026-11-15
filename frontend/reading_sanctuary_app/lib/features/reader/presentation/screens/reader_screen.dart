@@ -20,6 +20,8 @@ import '../widgets/reader_sidebar.dart';
 import '../widgets/reader_toolbar.dart';
 import '../../../analytics/application/analytics_providers.dart';
 import '../../../analytics/data/models/activity_session.dart';
+import 'package:reading_sanctuary_app/shared/services/providers.dart';
+import '../providers/reading_progress_provider.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
   final String bookId;
@@ -292,13 +294,39 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
       data: (doc) {
         final fileType = ReaderFileType.fromFormat(doc.fileFormat);
 
-        return Scaffold(
-          key: _scaffoldKey,
-          appBar: ReaderToolbar(
-            title: doc.bookTitle,
-            format: doc.fileFormat,
-            isBookmarked: isCurrentBookmarked,
-            onBack: () => Navigator.of(context).maybePop(),
+        return PopScope(
+          canPop: true,
+          onPopInvokedWithResult: (didPop, result) {
+            ref.read(readerPositionServiceProvider).flushPending();
+            try {
+              final progressParams = ReadingProgressParams(
+                bookFileId: widget.fileId,
+                format: widget.fileFormat,
+              );
+              ref.read(readingProgressNotifierProvider(progressParams).notifier).saveImmediately();
+            } catch (_) {}
+          },
+          child: Scaffold(
+            key: _scaffoldKey,
+            appBar: ReaderToolbar(
+              title: doc.bookTitle,
+              format: doc.fileFormat,
+              isBookmarked: isCurrentBookmarked,
+              onBack: () async {
+                final navigator = Navigator.of(context);
+                await ref.read(readerPositionServiceProvider).flushPending();
+                try {
+                  final progressParams = ReadingProgressParams(
+                    bookFileId: widget.fileId,
+                    format: widget.fileFormat,
+                  );
+                  await ref.read(readingProgressNotifierProvider(progressParams).notifier).saveImmediately();
+                } catch (_) {}
+                if (mounted) {
+                  ref.invalidate(booksProvider);
+                  navigator.maybePop();
+                }
+              },
             onToggleBookmark: () => _handleToggleBookmark(bookmarks),
             onOpenSettings: _openSettingsPanel,
             onOpenAnnotations: () => _scaffoldKey.currentState?.openEndDrawer(),
@@ -379,8 +407,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               }
             },
           ),
-        );
-      },
+        ),
+      );
+    },
     );
   }
 

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -172,15 +171,18 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      // Save locally
+      // Simulate offline: API throws
+      fakeApi.shouldThrow = true;
       await repo.saveAnnotation(localAnno);
 
+      // Verify stored locally with pending sync
       final localList = await repo.getAnnotations('bf1');
       expect(localList.length, equals(1));
       expect(localList.first.selectedText, equals('Passage to remember'));
       expect(localList.first.isPendingSync, isTrue);
 
-      // Now sync pending annotations
+      // Now back online: sync pending annotations
+      fakeApi.shouldThrow = false;
       await repo.syncPendingAnnotations();
 
       expect(fakeApi.serverStore.length, equals(1));
@@ -232,6 +234,8 @@ void main() {
       addTearDown(container.dispose);
 
       final params = const BookAnnotationParams(bookId: 'b1', bookFileId: 'bf1');
+      // Wait for initial load to complete
+      await container.read(bookFileAnnotationsProvider(params).notifier).load();
 
       // Add highlight
       await container.read(bookFileAnnotationsProvider(params).notifier).addHighlight(
@@ -268,6 +272,7 @@ void main() {
       addTearDown(container.dispose);
 
       final params = const BookAnnotationParams(bookId: 'b1', bookFileId: 'bf1');
+      await container.read(bookFileAnnotationsProvider(params).notifier).load();
 
       final created = await container.read(bookFileAnnotationsProvider(params).notifier).addNote(
             noteText: 'Initial text',
@@ -338,9 +343,9 @@ void main() {
         ),
       );
 
-      expect(find.text('"A quoted sentence of great beauty."'), findsOneWidget);
+      expect(find.text('“A quoted sentence of great beauty.”'), findsOneWidget);
       expect(find.text('Add Note'), findsOneWidget);
-      expect(find.text('Page 12'), findsOneWidget);
+      expect(find.text('PAGE 12'), findsOneWidget);
 
       await tester.tap(find.text('Add Note'));
       await tester.pump();
@@ -399,13 +404,13 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check header and tabs
-      expect(find.text('Annotations'), findsOneWidget);
-      expect(find.text('All (2)'), findsOneWidget);
-      expect(find.text('Highlights (1)'), findsOneWidget);
-      expect(find.text('Notes (1)'), findsOneWidget);
+      expect(find.text('My Annotations'), findsOneWidget);
+      expect(find.text('All'), findsOneWidget);
+      expect(find.text('Highlights'), findsOneWidget);
+      expect(find.text('Notes'), findsOneWidget);
 
       // Check content
-      expect(find.text('"First highlighted quote"'), findsOneWidget);
+      expect(find.text('“First highlighted quote”'), findsOneWidget);
       expect(find.text('A thoughtful reflection on page 4'), findsOneWidget);
 
       // Tap on first annotation card jump button

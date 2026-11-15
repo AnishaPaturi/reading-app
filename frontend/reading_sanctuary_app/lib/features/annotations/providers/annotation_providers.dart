@@ -21,6 +21,8 @@ class BookFileAnnotationsNotifier extends StateNotifier<AsyncValue<List<BookAnno
   final String bookFileId;
   final String bookId;
 
+  Future<void>? _loadFuture;
+
   BookFileAnnotationsNotifier({
     required AnnotationRepository repository,
     required this.bookFileId,
@@ -30,12 +32,27 @@ class BookFileAnnotationsNotifier extends StateNotifier<AsyncValue<List<BookAnno
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load() {
+    _loadFuture ??= _doLoad();
+    return _loadFuture!;
+  }
+
+  Future<void> _doLoad() async {
     try {
       final list = await _repository.getAnnotations(bookFileId);
-      state = AsyncValue.data(list);
+      final current = state.value ?? [];
+      final pending = current.where((a) => a.isPendingSync).toList();
+      final map = {for (var a in list) a.id: a};
+      for (var p in pending) {
+        map[p.id] = p;
+      }
+      state = AsyncValue.data(map.values.toList());
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      if (state is AsyncLoading) {
+        state = AsyncValue.error(e, st);
+      }
+    } finally {
+      _loadFuture = null;
     }
   }
 

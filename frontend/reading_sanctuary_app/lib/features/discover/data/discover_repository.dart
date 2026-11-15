@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/network/api_client.dart';
+import '../../../core/network/api_client.dart';
 import '../../../shared/models/book.dart';
 
 abstract class DiscoverRepository {

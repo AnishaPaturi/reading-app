@@ -94,6 +94,15 @@ class PdfReaderViewState extends State<PdfReaderView> {
                 }
               : null,
           onPageChanged: _handlePageChanged,
+          enableTextSelection: true,
+          pagePaintCallbacks: [
+            (canvas, pageRect, page) {
+              // Test paint callback
+            },
+          ],
+          pageOverlaysBuilder: (context, pageRect, page) {
+            return [];
+          },
           onViewerReady: (document, controller) {
             setState(() {
               _pageCount = document.pages.length;

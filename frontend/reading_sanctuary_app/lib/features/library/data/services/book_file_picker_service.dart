@@ -17,7 +17,7 @@ class BookFilePickerService {
         type: FileType.custom,
         allowedExtensions: supportedExtensions,
         allowMultiple: false,
-        // Enable stream across platforms so large audiobooks (e.g. 600MB+) stream without crashing RAM.
+        // Enable streaming across platforms so large audiobooks (e.g. 600MB+) don't overload RAM.
         withData: kIsWeb,
         withReadStream: true,
       );
@@ -35,7 +35,6 @@ class BookFilePickerService {
         );
       }
 
-      // Browser files must provide readable bytes or a stream.
       if (kIsWeb && file.bytes == null && file.readStream == null) {
         throw Exception(
           'Unable to read the selected file. Please try again.',

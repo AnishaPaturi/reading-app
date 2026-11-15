@@ -19,14 +19,20 @@ class BookApiService {
     MultipartFile multipartFile;
 
     if (kIsWeb) {
-      final bytes = file.bytes;
-      if (bytes == null) {
+      if (file.readStream != null) {
+        multipartFile = MultipartFile.fromStream(
+          () => file.readStream!,
+          file.size,
+          filename: file.name,
+        );
+      } else if (file.bytes != null) {
+        multipartFile = MultipartFile.fromBytes(
+          file.bytes!,
+          filename: file.name,
+        );
+      } else {
         throw Exception('Unable to read selected file.');
       }
-      multipartFile = MultipartFile.fromBytes(
-        bytes,
-        filename: file.name,
-      );
     } else {
       if (file.readStream != null) {
         multipartFile = MultipartFile.fromStream(
@@ -58,16 +64,16 @@ class BookApiService {
     });
 
     final rawBase = dio.options.baseUrl.replaceAll(RegExp(r'/+$'), '');
-    final endpoint = rawBase.endsWith('/api/v1')
-        ? '/books/upload'
-        : '/api/v1/books/upload';
+    final fullUrl = rawBase.endsWith('/api/v1')
+        ? '$rawBase/books/upload'
+        : '$rawBase/api/v1/books/upload';
 
-    debugPrint('UPLOAD URL: $rawBase$endpoint');
+    debugPrint('UPLOAD URL: $fullUrl');
     debugPrint('UPLOAD METHOD: POST');
 
     try {
       final response = await dio.post(
-        endpoint,
+        fullUrl,
         data: formData,
         options: Options(
           headers: {

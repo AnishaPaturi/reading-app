@@ -12,6 +12,7 @@ import '../widgets/chapter_list.dart';
 import '../widgets/sleep_timer_sheet.dart';
 import '../widgets/bookmark_dialog.dart';
 import '../../services/audiobook_artwork_service.dart';
+import '../../services/audiobook_playback_service.dart';
 
 class AudiobookPlayerPage extends ConsumerStatefulWidget {
   final String audiobookId;

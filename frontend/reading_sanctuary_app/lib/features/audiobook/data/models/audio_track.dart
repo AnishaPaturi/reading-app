@@ -13,9 +13,12 @@ class AudioTrack {
 
   const AudioTrack({
     required this.id,
-    required this.audiobookId,
-    required this.filePath,
-    required this.fileName,
+    String? audiobookId,
+    String? bookId,
+    String? fileId,
+    String? filePath,
+    String? fileName,
+    String? title,
     this.trackOrder = 0,
     this.durationMs = 0,
     required this.format,
@@ -23,7 +26,9 @@ class AudioTrack {
     this.fileSizeBytes = 0,
     this.coverUrl,
     this.author,
-  });
+  })  : audiobookId = audiobookId ?? bookId ?? '',
+        filePath = filePath ?? '',
+        fileName = fileName ?? title ?? chapterTitle ?? '';
 
   // Backward compatibility getters
   String get bookId => audiobookId;
@@ -33,8 +38,10 @@ class AudioTrack {
   AudioTrack copyWith({
     String? id,
     String? audiobookId,
+    String? bookId,
     String? filePath,
     String? fileName,
+    String? title,
     int? trackOrder,
     int? durationMs,
     String? format,
@@ -45,9 +52,9 @@ class AudioTrack {
   }) {
     return AudioTrack(
       id: id ?? this.id,
-      audiobookId: audiobookId ?? this.audiobookId,
+      audiobookId: audiobookId ?? bookId ?? this.audiobookId,
       filePath: filePath ?? this.filePath,
-      fileName: fileName ?? this.fileName,
+      fileName: fileName ?? title ?? this.fileName,
       trackOrder: trackOrder ?? this.trackOrder,
       durationMs: durationMs ?? this.durationMs,
       format: format ?? this.format,

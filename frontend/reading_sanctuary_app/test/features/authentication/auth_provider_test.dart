@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -46,6 +47,12 @@ class FakeAuthApiService extends AuthApiService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    dotenv.testLoad(
+      fileInput: 'GOOGLE_WEB_CLIENT_ID=mock-client-id\nGOOGLE_SERVER_CLIENT_ID=mock-client-id\n',
+    );
+  });
 
   late FakeAuthApiService fakeApiService;
   late InMemoryAuthSessionStorage fakeStorage;
@@ -180,9 +187,11 @@ void main() {
 
   group('Provider Riverpod Integration Tests', () {
     test('userGenderProvider and userAvatarAssetProvider reflect restored user', () async {
+      fakeApiService.userProfileResult = sampleUser;
       final container = ProviderContainer(
         overrides: [
           authSessionStorageProvider.overrideWithValue(fakeStorage),
+          authApiServiceProvider.overrideWithValue(fakeApiService),
         ],
       );
       addTearDown(container.dispose);
@@ -206,9 +215,11 @@ void main() {
         displayName: 'Reader',
         gender: 'boy',
       );
+      fakeApiService.userProfileResult = emailUser;
       final container = ProviderContainer(
         overrides: [
           authSessionStorageProvider.overrideWithValue(fakeStorage),
+          authApiServiceProvider.overrideWithValue(fakeApiService),
         ],
       );
       addTearDown(container.dispose);

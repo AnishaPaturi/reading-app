@@ -1,16 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../features/reader/presentation/providers/reader_provider.dart';
 import 'api_client.dart';
 import 'api_config.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final token = ref.watch(authTokenProvider);
+  // Capture the stable StateController, not the changing token value.
+  final tokenController = ref.read(authTokenProvider.notifier);
+
   return ApiClient(
-    tokenProvider: () => token,
+    tokenProvider: () => tokenController.state,
+
     onUnauthorized: () {
-      // Invalidate memory token on 401 without purging cached user profile
-      ref.read(authTokenProvider.notifier).state = null;
+      // Clear the current token when the backend rejects it.
+      tokenController.state = null;
     },
+
     baseUrl: ApiConfig.baseUrl,
   );
 });

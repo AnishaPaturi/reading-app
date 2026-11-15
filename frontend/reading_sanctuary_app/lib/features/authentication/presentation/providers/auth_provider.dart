@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -50,16 +51,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> restoreSession() async {
     try {
       final session = await _sessionStorage.loadSession();
+
+      if (!mounted) return false;
+
       if (session != null && session.token.isNotEmpty) {
         _tokenNotifier.state = session.token;
-        state = state.copyWith(user: session.user, isLoading: false);
-        // Silently refresh authoritative profile from server
+
+        state = state.copyWith(
+          user: session.user,
+          isLoading: false,
+        );
+
+        // Refresh profile without blocking startup.
         refreshUserProfile();
+
         return true;
       }
     } catch (_) {
-      // Gracefully continue without session if loading fails
+      if (!mounted) return false;
     }
+
+    if (!mounted) return false;
+
     state = const AuthState();
     return false;
   }
@@ -110,10 +123,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Refreshes user profile directly from database (/api/v1/users/me).
   Future<void> refreshUserProfile() async {
     final token = _tokenNotifier.state;
+
     if (token == null || token.isEmpty) return;
+
     try {
       final fetched = await _apiService.fetchUserProfile();
+
+      // The notifier may have been disposed during the request.
+      if (!mounted) return;
+
       final current = state.user;
+
       final merged = fetched.copyWith(
         token: token,
         displayName: (fetched.displayName != null &&
@@ -125,10 +145,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
             ? fetched.gender
             : current?.gender,
       );
+
       state = state.copyWith(user: merged);
-      await _sessionStorage.saveSession(token: token, user: merged);
-    } catch (_) {
-      // Fallback gracefully to existing session
+
+      await _sessionStorage.saveSession(
+        token: token,
+        user: merged,
+      );
+
+      if (!mounted) return;
+    } catch (e) {
+      if (!mounted) return;
+
+      if (e is UnauthorizedException) {
+        await _sessionStorage.clearSession();
+
+        if (!mounted) return;
+
+        _tokenNotifier.state = null;
+        state = const AuthState();
+      }
     }
   }
 
@@ -136,6 +172,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final authUser = await _apiService.login(email: email, password: password);
+      if (!mounted) return false;
+
       final token = authUser.token;
       _tokenNotifier.state = token;
 
@@ -143,6 +181,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (token != null && token.isNotEmpty) {
         try {
           final profile = await _apiService.fetchUserProfile();
+          if (!mounted) return false;
           authoritativeUser = profile.copyWith(
             token: token,
             gender: (profile.gender != null && profile.gender!.isNotEmpty)
@@ -153,11 +192,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           // Fall back to login response if /users/me is unreachable
         }
         await _sessionStorage.saveSession(token: token, user: authoritativeUser);
+        if (!mounted) return false;
       }
 
       state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
       return false;
     }
@@ -177,6 +218,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         username: username,
         gender: gender,
       );
+      if (!mounted) return false;
+
       final token = authUser.token;
       _tokenNotifier.state = token;
 
@@ -184,6 +227,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (token != null && token.isNotEmpty) {
         try {
           final profile = await _apiService.fetchUserProfile();
+          if (!mounted) return false;
           authoritativeUser = profile.copyWith(
             token: token,
             gender: (profile.gender != null && profile.gender!.isNotEmpty)
@@ -194,11 +238,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           // Fall back to register response if /users/me is unreachable
         }
         await _sessionStorage.saveSession(token: token, user: authoritativeUser);
+        if (!mounted) return false;
       }
 
       state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
       return false;
     }
@@ -219,6 +265,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       } catch (_) {}
 
       final account = await _googleSignIn.signIn();
+      if (!mounted) return false;
       if (account == null) {
         // The user closed the Google account picker.
         state = state.copyWith(isLoading: false);
@@ -226,6 +273,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
 
       final googleAuth = await account.authentication;
+      if (!mounted) return false;
+
       final token = (googleAuth.idToken != null && googleAuth.idToken!.isNotEmpty)
           ? googleAuth.idToken
           : googleAuth.accessToken;
@@ -236,6 +285,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       // Backend verifies either the ID token JWT or access token with Google.
       final authUser = await _apiService.loginWithGoogle(idToken: token);
+      if (!mounted) return false;
+
       if (authUser.token == null || authUser.token!.isEmpty) {
         throw Exception('The server did not return a Reading Sanctuary session.');
       }
@@ -246,6 +297,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       AuthUser authoritativeUser = authUser;
       try {
         final profile = await _apiService.fetchUserProfile();
+        if (!mounted) return false;
         authoritativeUser = profile.copyWith(
           token: sessionToken,
           gender: (profile.gender != null && profile.gender!.isNotEmpty)
@@ -257,9 +309,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
 
       await _sessionStorage.saveSession(token: sessionToken, user: authoritativeUser);
+      if (!mounted) return false;
+
       state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
       return false;
     }
@@ -277,6 +332,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await prefs.remove('sanctuary_user_display_name');
     } catch (_) {}
     _tokenNotifier.state = null;
+    if (!mounted) return;
     state = const AuthState();
   }
 
@@ -289,20 +345,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final googleSignInProvider = Provider<GoogleSignIn>((ref) {
-  final env = dotenv.isInitialized ? dotenv.env : const <String, String>{};
-  final webClientId = env['GOOGLE_WEB_CLIENT_ID']?.trim() ??
-      const String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
-  final serverClientId = env['GOOGLE_SERVER_CLIENT_ID']?.trim() ??
-      const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
+  final webClientId =
+      dotenv.env['GOOGLE_WEB_CLIENT_ID']?.trim();
 
-  final effectiveWebClientId = webClientId.isNotEmpty ? webClientId : null;
-  final effectiveServerClientId = serverClientId.isNotEmpty
-      ? serverClientId
-      : effectiveWebClientId;
+  final serverClientId =
+      dotenv.env['GOOGLE_SERVER_CLIENT_ID']?.trim();
+
+  if (webClientId == null || webClientId.isEmpty) {
+    throw StateError(
+      'GOOGLE_WEB_CLIENT_ID is missing from .env',
+    );
+  }
 
   return GoogleSignIn(
-    clientId: effectiveWebClientId,
-    serverClientId: effectiveServerClientId,
+    clientId: webClientId,
+
+    // Google Sign-In Web does not support serverClientId.
+    serverClientId: kIsWeb
+        ? null
+        : ((serverClientId == null || serverClientId.isEmpty)
+            ? webClientId
+            : serverClientId),
+
     scopes: const [
       'email',
       'profile',
@@ -314,10 +378,14 @@ final authApiServiceProvider = Provider<AuthApiService>((ref) {
   return AuthApiService(apiClient: ref.watch(apiClientProvider));
 });
 
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+final authNotifierProvider =
+    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(
     apiService: ref.watch(authApiServiceProvider),
-    tokenNotifier: ref.watch(authTokenProvider.notifier),
+
+    // Do not subscribe to token state changes here.
+    tokenNotifier: ref.read(authTokenProvider.notifier),
+
     googleSignIn: ref.watch(googleSignInProvider),
     sessionStorage: ref.watch(authSessionStorageProvider),
   );

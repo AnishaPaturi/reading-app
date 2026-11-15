@@ -8,11 +8,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables before starting the application.
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (e) {
-    debugPrint('Warning: .env file could not be loaded: $e');
-  }
+  await dotenv.load(fileName: '.env');
 
   runApp(
     const ProviderScope(

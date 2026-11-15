@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reading_sanctuary_app/features/authentication/presentation/screens/login_screen.dart';
@@ -15,6 +16,12 @@ Widget _buildTestApp(Widget child) {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    dotenv.testLoad(
+      fileInput: 'GOOGLE_WEB_CLIENT_ID=mock-client-id\nGOOGLE_SERVER_CLIENT_ID=mock-client-id\n',
+    );
+  });
 
   group('LoginScreen Tests', () {
     testWidgets('renders all login elements correctly', (tester) async {

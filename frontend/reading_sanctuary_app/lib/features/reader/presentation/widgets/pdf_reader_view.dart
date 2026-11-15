@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
+import '../../../annotations/domain/annotation_type.dart';
+import '../../../annotations/domain/book_annotation.dart';
 import '../../data/models/reader_position.dart';
 import '../../data/models/reader_settings.dart';
 
@@ -9,16 +11,20 @@ class PdfReaderView extends StatefulWidget {
   final Uint8List fileBytes;
   final ReaderPosition? initialPosition;
   final ReaderSettings settings;
+  final List<BookAnnotation> annotations;
   final void Function(ReaderPosition position) onPositionChanged;
   final void Function(String text, String startLocation, String endLocation, int pageNumber)? onTextSelected;
+  final ValueChanged<BookAnnotation>? onAnnotationTap;
 
   const PdfReaderView({
     super.key,
     required this.fileBytes,
     this.initialPosition,
     required this.settings,
+    this.annotations = const [],
     required this.onPositionChanged,
     this.onTextSelected,
+    this.onAnnotationTap,
   });
 
   @override
@@ -94,14 +100,102 @@ class PdfReaderViewState extends State<PdfReaderView> {
                 }
               : null,
           onPageChanged: _handlePageChanged,
-          enableTextSelection: true,
           pagePaintCallbacks: [
             (canvas, pageRect, page) {
-              // Test paint callback
+              final pageHighlights = widget.annotations.where(
+                (a) => a.pageNumber == page.pageNumber && a.type == AnnotationType.highlight,
+              );
+              for (final highlight in pageHighlights) {
+                final paint = Paint()
+                  ..color = highlight.displayColor.withValues(alpha: 0.38)
+                  ..style = PaintingStyle.fill;
+
+                final rects = highlight.normalizedRects;
+                if (rects.isNotEmpty) {
+                  for (final r in rects) {
+                    canvas.drawRect(r.toAbsoluteRect(pageRect), paint);
+                  }
+                }
+              }
             },
           ],
           pageOverlaysBuilder: (context, pageRect, page) {
-            return [];
+            final notes = widget.annotations.where(
+              (a) => a.pageNumber == page.pageNumber && a.type == AnnotationType.note,
+            ).toList();
+            if (notes.isEmpty) return const [];
+
+            return [
+              Positioned(
+                right: 12,
+                top: 12,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () {
+                      if (notes.isNotEmpty && widget.onAnnotationTap != null) {
+                        widget.onAnnotationTap!(notes.first);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF533E85).withValues(alpha: 0.88),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.sticky_note_2_rounded, size: 14, color: Colors.white),
+                          if (notes.length > 1) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              '${notes.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ];
+          },
+          customizeContextMenuItems: (params, items) {
+            if (params.contextMenuFor == PdfViewerPart.selectedText) {
+              items.insert(
+                0,
+                ContextMenuButtonItem(
+                  label: 'Annotate',
+                  onPressed: () async {
+                    final text = await params.textSelectionDelegate.getSelectedText();
+                    params.dismissContextMenu();
+                    if (text != null && text.trim().isNotEmpty && widget.onTextSelected != null) {
+                      final pageNum = params.a?.page.pageNumber ?? _pageNumber;
+                      widget.onTextSelected!(
+                        text.trim(),
+                        'page=$pageNum',
+                        'page=$pageNum',
+                        pageNum,
+                      );
+                    }
+                  },
+                ),
+              );
+            }
           },
           onViewerReady: (document, controller) {
             setState(() {

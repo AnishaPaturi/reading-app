@@ -189,7 +189,7 @@ class _AudiobookPlayerPageState extends ConsumerState<AudiobookPlayerPage> {
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.playfairDisplay(
+                        style: GoogleFonts.inter(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: textPrimary,
@@ -297,7 +297,7 @@ class _AudiobookPlayerPageState extends ConsumerState<AudiobookPlayerPage> {
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   'Playback Speed',
-                  style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w700),
+                  style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
               ),
               ...speeds.map((s) => ListTile(

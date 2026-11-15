@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/auth_palette.dart';
 
 class ClayButton extends StatefulWidget {
@@ -75,11 +76,11 @@ class _ClayButtonState extends State<ClayButton> {
                   )
                 : Text(
                     widget.label,
-                    style: const TextStyle(
+                    style: GoogleFonts.inter(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.3,
                     ),
                   ),
           ),

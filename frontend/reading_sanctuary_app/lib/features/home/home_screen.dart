@@ -10,6 +10,7 @@ import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_
 import 'package:reading_sanctuary_app/features/library/theme/bookshelf_theme.dart';
 import 'package:reading_sanctuary_app/shared/models/book.dart';
 import 'package:reading_sanctuary_app/shared/services/providers.dart';
+import '../../shared/utils/book_file_navigation.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -329,12 +330,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return ClayCard(
       padding: const EdgeInsets.all(16),
       onTap: () {
-        final targetFile = book.files.isNotEmpty ? book.files.first : null;
-        final fileId = targetFile?.id ?? book.id;
-        final format = targetFile?.format.label ?? 'PDF';
-        context.push(
-          '/reader/${book.id}/$fileId?title=${Uri.encodeComponent(book.title)}&format=$format',
-        );
+        openBookDocument(context, book);
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -488,12 +484,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: ClayColors.deepPurple,
                 textColor: Colors.white,
                 onTap: () {
-                  final targetFile = book.files.isNotEmpty ? book.files.first : null;
-                  final fileId = targetFile?.id ?? book.id;
-                  final format = targetFile?.format.label ?? 'PDF';
-                  context.push(
-                    '/reader/${book.id}/$fileId?title=${Uri.encodeComponent(book.title)}&format=$format',
-                  );
+                  openBookDocument(context, book);
                 },
               ),
             ],
@@ -652,9 +643,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return ClayCard(
       padding: const EdgeInsets.all(16),
-      onTap: () => context.push(
-        '/listen/${book.id}/${book.id}?title=${Uri.encodeComponent(book.title)}&author=${Uri.encodeComponent(book.author)}&format=MP3',
-      ),
+      onTap: () {
+        openBookAudio(context, book);
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -834,9 +825,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 fontSize: 12,
                 color: const Color(0xFF4379EE),
                 textColor: Colors.white,
-                onTap: () => context.push(
-                  '/listen/${book.id}/${book.id}?title=${Uri.encodeComponent(book.title)}&author=${Uri.encodeComponent(book.author)}&format=MP3',
-                ),
+                onTap: () {
+                  openBookAudio(context, book);
+                },
               ),
             ],
           ),

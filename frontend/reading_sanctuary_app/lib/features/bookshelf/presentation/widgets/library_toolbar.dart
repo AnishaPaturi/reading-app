@@ -39,8 +39,8 @@ class LibraryToolbar extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.cormorantGaramond(
-                      fontSize: 22,
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: ClayColors.textDark,
                     ),

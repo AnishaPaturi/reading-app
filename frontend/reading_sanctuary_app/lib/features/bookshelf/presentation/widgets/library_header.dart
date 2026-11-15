@@ -57,10 +57,10 @@ class LibraryHeader extends StatelessWidget {
                       child: Text(
                         'YOUR PERSONAL READING SANCTUARY',
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.cinzel(
+                        style: GoogleFonts.inter(
                           fontSize: 10,
                           letterSpacing: 1.5,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                           color: ClayColors.primaryPurple,
                         ),
                       ),
@@ -72,9 +72,9 @@ class LibraryHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   title,
-                  style: GoogleFonts.cormorantGaramond(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
                     color: ClayColors.textDark,
                   ),

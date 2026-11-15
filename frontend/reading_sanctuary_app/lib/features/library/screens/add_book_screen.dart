@@ -254,7 +254,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
         ),
         title: Text(
           isReviewing ? 'Review Book Details' : 'Add New Book',
-          style: GoogleFonts.fraunces(
+          style: GoogleFonts.inter(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: ClayColors.textDark,
@@ -324,7 +324,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
 
               Text(
                 'Upload your book',
-                style: GoogleFonts.fraunces(
+                style: GoogleFonts.inter(
                   fontSize: 21,
                   fontWeight: FontWeight.w700,
                   color: ClayColors.textDark,
@@ -409,7 +409,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
             children: [
               Text(
                 'How it works',
-                style: GoogleFonts.fraunces(
+                style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: ClayColors.textDark,
@@ -524,7 +524,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
 
               Text(
                 isExtracting ? 'Analyzing Book Metadata...' : 'Uploading Book...',
-                style: GoogleFonts.fraunces(
+                style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: ClayColors.textDark,
@@ -891,7 +891,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
           const Spacer(),
           Text(
             _titleController.text.isNotEmpty ? _titleController.text : 'Book Title',
-            style: GoogleFonts.fraunces(
+            style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: Colors.white,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/auth_palette.dart';
 
 class ClayTextField extends StatefulWidget {
@@ -142,14 +143,14 @@ class _ClayTextFieldState extends State<ClayTextField> {
                         fieldState.didChange(val);
                       },
                       cursorColor: AuthPalette.primaryPurpleDark,
-                      style: const TextStyle(
+                      style: GoogleFonts.inter(
                         color: AuthPalette.textDark,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
                       decoration: InputDecoration(
                         hintText: widget.hintText,
-                        hintStyle: const TextStyle(
+                        hintStyle: GoogleFonts.inter(
                           color: AuthPalette.textMuted,
                           fontSize: 14.5,
                           fontWeight: FontWeight.w400,

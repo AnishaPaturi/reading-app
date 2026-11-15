@@ -35,7 +35,7 @@ class AudiobookHistoryPage extends ConsumerWidget {
         elevation: 0,
         title: Text(
           'Listening History',
-          style: GoogleFonts.playfairDisplay(
+          style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             fontSize: 20,
             color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -53,7 +53,7 @@ class AudiobookHistoryPage extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Text(
                       'No listening sessions recorded yet',
-                      style: GoogleFonts.playfairDisplay(
+                      style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -100,7 +100,7 @@ class AudiobookHistoryPage extends ConsumerWidget {
                         children: [
                           Text(
                             '$totalListeningHours Hours',
-                            style: GoogleFonts.playfairDisplay(
+                            style: GoogleFonts.inter(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
                               color: isDark ? AppColors.ivory : AppColors.textDark,

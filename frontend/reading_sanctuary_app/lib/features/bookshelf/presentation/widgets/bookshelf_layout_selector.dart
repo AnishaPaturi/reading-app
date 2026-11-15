@@ -24,7 +24,7 @@ class BookshelfLayoutSelector extends StatelessWidget {
       children: [
         Text(
           'Display Layout',
-          style: GoogleFonts.cormorantGaramond(
+          style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: ClayColors.textDark,
@@ -94,7 +94,7 @@ class BookshelfLayoutSelector extends StatelessWidget {
 
         Text(
           'Shelf Background Style',
-          style: GoogleFonts.cormorantGaramond(
+          style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: ClayColors.textDark,

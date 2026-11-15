@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../theme/auth_palette.dart';
 import '../widgets/auth_scaffold.dart';
@@ -109,8 +110,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         const SizedBox(height: 20),
         Row(children: [
           Expanded(child: Container(height: 1, color: AuthPalette.dividerLine)),
-          const Padding(padding: EdgeInsets.symmetric(horizontal: 12),
-            child: Text('or continue with', style: TextStyle(
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text('or continue with', style: GoogleFonts.inter(
               color: AuthPalette.textMuted, fontSize: 13, fontWeight: FontWeight.w500))),
           Expanded(child: Container(height: 1, color: AuthPalette.dividerLine)),
         ]),
@@ -119,10 +120,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         const SizedBox(height: 22),
         Center(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center,
           alignment: WrapAlignment.center, children: [
-          const Text('Already have an account? ', style: TextStyle(
+          Text('Already have an account? ', style: GoogleFonts.inter(
             color: AuthPalette.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
           GestureDetector(onTap: () => context.go('/login'),
-            child: const Text('Login', style: TextStyle(
+            child: Text('Login', style: GoogleFonts.inter(
               color: AuthPalette.textLink, fontSize: 14, fontWeight: FontWeight.w700))),
         ])),
       ])),
@@ -147,11 +148,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 4),
             child: Text(
               'Gender',
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 color: AuthPalette.textMuted,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -178,9 +179,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           onChanged: (val) => setState(() => _selectedGender = val),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
+                        Text(
                           'Male',
-                          style: TextStyle(
+                          style: GoogleFonts.inter(
                             color: AuthPalette.textDark,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -209,9 +210,9 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           onChanged: (val) => setState(() => _selectedGender = val),
                         ),
                         const SizedBox(width: 6),
-                        const Text(
+                        Text(
                           'Female',
-                          style: TextStyle(
+                          style: GoogleFonts.inter(
                             color: AuthPalette.textDark,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,

@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../../../../core/network/api_config.dart';
 import '../../../offline/services/download_manager.dart';
 
@@ -13,64 +13,98 @@ class ReaderFileService {
     String? baseUrl,
     required this.tokenProvider,
     this.downloadManager,
-  }) : baseUrl = baseUrl ?? _resolveBaseUrl();
-
-  static String _resolveBaseUrl() => ApiConfig.baseUrl;
+  }) : baseUrl = baseUrl ?? ApiConfig.baseUrl;
 
   Future<Uint8List> loadFileBytes({
     required String bookId,
     required String fileId,
   }) async {
-    // 1. Check local offline storage first
+    if (bookId.trim().isEmpty || fileId.trim().isEmpty) {
+      throw ArgumentError(
+        'Both bookId and fileId are required to open a document.',
+      );
+    }
+
+    // 1. Check offline storage first.
     if (downloadManager != null) {
-      final localBytes = await downloadManager!.getLocalFileBytes(fileId);
+      final localBytes =
+          await downloadManager!.getLocalFileBytes(fileId);
+
       if (localBytes != null && localBytes.isNotEmpty) {
-        debugPrint('ReaderFileService loaded file $fileId from offline storage');
+        debugPrint(
+          'ReaderFileService: Loaded $fileId from offline storage.',
+        );
+
         return localBytes;
       }
     }
 
-    // 2. Fetch from remote backend
+    // 2. Retrieve authentication token.
     final token = tokenProvider();
+
+    if (token == null || token.isEmpty) {
+      throw Exception(
+        'Your session has expired. Please sign in again.',
+      );
+    }
+
     final headers = <String, String>{
-      'Accept': '*/*',
-      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      'Accept': 'application/octet-stream',
+      'Authorization': 'Bearer $token',
     };
 
-    final url = Uri.parse('$baseUrl/books/$bookId/files/$fileId');
-    try {
-      final response = await http.get(url, headers: headers);
-      if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
-        return response.bodyBytes;
+    // 3. Request the exact file ID.
+    final url = Uri.parse(
+      '$baseUrl/books/$bookId/files/$fileId',
+    );
+
+    debugPrint('ReaderFileService: Downloading $url');
+
+    final response = await http.get(
+      url,
+      headers: headers,
+    );
+
+    // 4. Successful download.
+    if (response.statusCode == 200) {
+      if (response.bodyBytes.isEmpty) {
+        throw Exception(
+          'The requested document is empty.',
+        );
       }
 
-      // If the file was not found with the requested fileId (e.g. placeholder or mismatched ID),
-      // query the book's files list and retry downloading using the first available file.
-      if (response.statusCode == 404) {
-        debugPrint('ReaderFileService: 404 for $url. Checking file list for book $bookId...');
-        final listUrl = Uri.parse('$baseUrl/books/$bookId/files');
-        final listResponse = await http.get(listUrl, headers: headers);
-        if (listResponse.statusCode == 200) {
-          final dynamic filesJson = jsonDecode(listResponse.body);
-          if (filesJson is List && filesJson.isNotEmpty) {
-            final firstFile = filesJson.first;
-            final realFileId = firstFile['id']?.toString();
-            if (realFileId != null && realFileId != fileId) {
-              debugPrint('ReaderFileService: Retrying with resolved fileId $realFileId');
-              final retryUrl = Uri.parse('$baseUrl/books/$bookId/files/$realFileId');
-              final retryResponse = await http.get(retryUrl, headers: headers);
-              if (retryResponse.statusCode == 200 && retryResponse.bodyBytes.isNotEmpty) {
-                return retryResponse.bodyBytes;
-              }
-            }
-          }
-        }
-      }
+      debugPrint(
+        'ReaderFileService: Download successful. '
+        'Bytes: ${response.bodyBytes.length}',
+      );
 
-      throw Exception('Failed to download document: HTTP ${response.statusCode}');
-    } catch (e) {
-      debugPrint('ReaderFileService download error: $e');
-      rethrow;
+      return response.bodyBytes;
     }
+
+    // 5. Report meaningful errors.
+    if (response.statusCode == 401) {
+      throw Exception(
+        'Your session is unauthorized. Please sign in again.',
+      );
+    }
+
+    if (response.statusCode == 403) {
+      throw Exception(
+        'You do not have permission to access this file.',
+      );
+    }
+
+    if (response.statusCode == 404) {
+      throw Exception(
+        'The requested book file was not found. '
+        'Please verify that the file is attached to this book '
+        'and exists in backend storage.',
+      );
+    }
+
+    throw Exception(
+      'Failed to download document. '
+      'HTTP ${response.statusCode}: ${response.body}',
+    );
   }
 }

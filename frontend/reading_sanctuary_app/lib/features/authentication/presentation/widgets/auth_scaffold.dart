@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/auth_palette.dart';
 
 class AuthScaffold extends StatelessWidget {
@@ -22,6 +23,7 @@ class AuthScaffold extends StatelessWidget {
           seedColor: AuthPalette.primaryPurple,
           brightness: Brightness.light,
         ),
+        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
         textSelectionTheme: const TextSelectionThemeData(
           cursorColor: AuthPalette.primaryPurpleDark,
           selectionColor: Color(0x409E8DE5),

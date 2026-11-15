@@ -90,8 +90,8 @@ class LibraryStatistics extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: GoogleFonts.cormorantGaramond(
-                  fontSize: 26,
+                style: GoogleFonts.inter(
+                  fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: ClayColors.textDark,
                 ),

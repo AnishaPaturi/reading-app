@@ -130,10 +130,10 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
           Text(
             'DID NOT FINISH',
             textAlign: TextAlign.center,
-            style: GoogleFonts.cinzel(
-              fontSize: 26,
+            style: GoogleFonts.inter(
+              fontSize: 24,
               fontWeight: FontWeight.w800,
-              letterSpacing: 4.0,
+              letterSpacing: 2.0,
               color: lightGold,
             ),
           ),
@@ -143,11 +143,10 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
           Text(
             "SOME STORIES AREN'T MEANT TO BE FINISHED.",
             textAlign: TextAlign.center,
-            style: GoogleFonts.cormorantGaramond(
-              fontSize: 13,
+            style: GoogleFonts.inter(
+              fontSize: 12,
               fontWeight: FontWeight.w600,
-              letterSpacing: 2.2,
-              fontStyle: FontStyle.italic,
+              letterSpacing: 1.5,
               color: mutedGold,
             ),
           ),
@@ -194,8 +193,8 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.cormorantGaramond(
-              fontSize: 22,
+            style: GoogleFonts.inter(
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               color: Colors.white,
               letterSpacing: -0.2,
@@ -233,8 +232,8 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
                     children: [
                       Text(
                         '$pctStopped%',
-                        style: GoogleFonts.cinzel(
-                          fontSize: 28,
+                        style: GoogleFonts.inter(
+                          fontSize: 26,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFFFFAB40),
                         ),
@@ -275,8 +274,8 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
                       Text(
                         dnfFormattedDate,
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.cormorantGaramond(
-                          fontSize: 22,
+                        style: GoogleFonts.inter(
+                          fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: lightGold,
                         ),
@@ -312,7 +311,7 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
             alignment: Alignment.centerLeft,
             child: Text(
               'Why are you parting ways?',
-              style: GoogleFonts.cormorantGaramond(
+              style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: mutedGold,
@@ -393,7 +392,7 @@ class _DnfCompletionCardState extends ConsumerState<DnfCompletionCard> {
           Text(
             '“A book abandoned, not forgotten.”',
             textAlign: TextAlign.center,
-            style: GoogleFonts.cormorantGaramond(
+            style: GoogleFonts.inter(
               fontSize: 16,
               fontStyle: FontStyle.italic,
               color: const Color(0xFF8C7F99),

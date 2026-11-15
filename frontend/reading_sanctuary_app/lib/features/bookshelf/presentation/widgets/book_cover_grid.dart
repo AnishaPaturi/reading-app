@@ -269,8 +269,8 @@ class BookCoverGrid extends StatelessWidget {
                     book.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.cormorantGaramond(
-                      fontSize: 16,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -370,8 +370,8 @@ class BookCoverGrid extends StatelessWidget {
           children: [
             Text(
               '+$count',
-              style: GoogleFonts.cormorantGaramond(
-                fontSize: 24,
+              style: GoogleFonts.inter(
+                fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: accentColor,
               ),

@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 
 abstract final class AuthPalette {
-  // Background pastel lavender
-  static const Color backgroundLight = Color(0xFFDDD2F3);
-  static const Color backgroundDark = Color(0xFFC5B4E4);
+  // Background porcelain lavender matching Home page
+  static const Color backgroundLight = Color(0xFFF4F0FB);
+  static const Color backgroundDark = Color(0xFFEDE5F8);
 
   // Card surfaces
-  static const Color phoneBody = Color(0xFFFBF8F5);
-  static const Color cardSurface = Color(0xFFFAF7F5);
+  static const Color phoneBody = Color(0xFFF9F6FE);
+  static const Color cardSurface = Color(0xFFFFFFFF);
   static const Color cardInner = Color(0xFFFFFFFF);
 
   // Input fields
   static const Color inputBackground = Color(0xFFFFFFFF);
-  static const Color inputBorder = Color(0xFFEBE3D8);
-  static const Color inputBorderFocused = Color(0xFFA291EA);
+  static const Color inputBorder = Color(0xFFEADBFA);
+  static const Color inputBorderFocused = Color(0xFF9482E6);
 
-  // Accent & Buttons
-  static const Color primaryPurple = Color(0xFF9E8DE5);
-  static const Color primaryPurpleDark = Color(0xFF8873DA);
-  static const Color iconBadge = Color(0xFFA594E8);
+  // Accent & Buttons matching Home page purple
+  static const Color primaryPurple = Color(0xFF6B45B3);
+  static const Color primaryPurpleDark = Color(0xFF523396);
+  static const Color iconBadge = Color(0xFF9482E6);
   static const Color iconColor = Colors.white;
 
-  // Typography
-  static const Color textDark = Color(0xFF383145);
-  static const Color textMuted = Color(0xFF8C7F9B);
-  static const Color textLink = Color(0xFF7360E2);
-  static const Color eyeIcon = Color(0xFF9E95A8);
+  // Typography matching Home page text tokens
+  static const Color textDark = Color(0xFF2E1A48);
+  static const Color textMuted = Color(0xFF7A6894);
+  static const Color textLink = Color(0xFF6B45B3);
+  static const Color eyeIcon = Color(0xFF7A6894);
 
   // Divider
-  static const Color dividerLine = Color(0xFFDFD6CD);
+  static const Color dividerLine = Color(0xFFEADBFA);
 
   // Shadows
-  static const Color buttonShadow = Color(0xFF755ED6);
-  static const Color cardShadow = Color(0x1F5C4BAF);
+  static const Color buttonShadow = Color(0x336B45B3);
+  static const Color cardShadow = Color(0x1A4B3A75);
 }

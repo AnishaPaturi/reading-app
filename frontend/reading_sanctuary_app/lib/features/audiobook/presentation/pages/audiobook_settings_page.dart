@@ -28,7 +28,7 @@ class _AudiobookSettingsPageState extends ConsumerState<AudiobookSettingsPage> {
         elevation: 0,
         title: Text(
           'Audiobook Settings',
-          style: GoogleFonts.playfairDisplay(
+          style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             fontSize: 20,
             color: isDark ? AppColors.ivory : AppColors.textDark,

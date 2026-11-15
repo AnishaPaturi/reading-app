@@ -59,7 +59,7 @@ class AudiobookGridCard extends StatelessWidget {
               audiobook.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.playfairDisplay(
+              style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: isDark ? AppColors.ivory : AppColors.textDark,

@@ -46,7 +46,7 @@ class _AudiobookLibraryPageState extends ConsumerState<AudiobookLibraryPage> {
         elevation: 0,
         title: Text(
           'Audiobooks',
-          style: GoogleFonts.playfairDisplay(
+          style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             fontSize: 22,
             color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -212,7 +212,7 @@ class _AudiobookLibraryPageState extends ConsumerState<AudiobookLibraryPage> {
                                 resumeSuggestion.audiobook.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.playfairDisplay(
+                                style: GoogleFonts.inter(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -318,7 +318,7 @@ class _AudiobookLibraryPageState extends ConsumerState<AudiobookLibraryPage> {
                         const SizedBox(height: 16),
                         Text(
                           'No audiobooks found',
-                          style: GoogleFonts.playfairDisplay(
+                          style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: isDark ? AppColors.ivory : AppColors.textDark,

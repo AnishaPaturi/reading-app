@@ -98,7 +98,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
         ),
         title: Text(
           isEditing ? 'Customize Bookshelf' : 'Create Bookshelf',
-          style: GoogleFonts.cormorantGaramond(
+          style: GoogleFonts.inter(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: ClayColors.textDark,
@@ -139,7 +139,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
             // Shelf Name
             Text(
               'Shelf Name',
-              style: GoogleFonts.cormorantGaramond(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: ClayColors.textDark,
@@ -180,7 +180,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
             // Description
             Text(
               'Description (Optional)',
-              style: GoogleFonts.cormorantGaramond(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: ClayColors.textDark,
@@ -218,7 +218,7 @@ class _EditBookshelfScreenState extends ConsumerState<EditBookshelfScreen> {
             // Icon Choice
             Text(
               'Shelf Icon',
-              style: GoogleFonts.cormorantGaramond(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: ClayColors.textDark,

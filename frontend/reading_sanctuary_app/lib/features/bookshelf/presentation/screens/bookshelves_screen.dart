@@ -84,7 +84,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Delete Bookshelf?',
-          style: GoogleFonts.cormorantGaramond(
+          style: GoogleFonts.inter(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: ClayColors.textDark,
@@ -157,7 +157,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                 children: [
                   Text(
                     'Manage Bookshelves',
-                    style: GoogleFonts.cormorantGaramond(
+                    style: GoogleFonts.inter(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
                       color: ClayColors.textDark,
@@ -575,7 +575,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                 children: [
                   Text(
                     'Create a new bookshelf',
-                    style: GoogleFonts.cormorantGaramond(
+                    style: GoogleFonts.inter(
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
                       color: ClayColors.textDark,

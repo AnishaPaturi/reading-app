@@ -7,7 +7,7 @@ enum AppThemeChoice { dark, parchment }
 
 class ThemeController extends Notifier<AppThemeChoice> {
   @override
-  AppThemeChoice build() => AppThemeChoice.dark; // Dark Academia is the default
+  AppThemeChoice build() => AppThemeChoice.parchment; // Unified Home Page Porcelain aesthetic
 
   void toggle() =>
       state = state == AppThemeChoice.dark ? AppThemeChoice.parchment : AppThemeChoice.dark;
@@ -17,79 +17,88 @@ class ThemeController extends Notifier<AppThemeChoice> {
 final themeProvider = NotifierProvider<ThemeController, AppThemeChoice>(ThemeController.new);
 
 abstract final class AppTheme {
-  static ThemeData dark() => _build(Brightness.dark);
+  static ThemeData dark() => _build(Brightness.light);
   static ThemeData parchment() => _build(Brightness.light);
 
-  static TextStyle serif(TextStyle? base, {FontWeight weight = FontWeight.w600}) =>
-      GoogleFonts.playfairDisplay(textStyle: base, fontWeight: weight);
+  /// Consistent typography matching the Home page (Inter with strong weight and negative letter spacing)
+  static TextStyle serif(TextStyle? base, {FontWeight weight = FontWeight.w700}) =>
+      GoogleFonts.inter(textStyle: base, fontWeight: weight, letterSpacing: -0.3);
 
   static ThemeData _build(Brightness b) {
-    final dark = b == Brightness.dark;
-    final bg = dark ? AppColors.espresso : AppColors.ivory;
-    final surface = dark ? AppColors.card : AppColors.parchment;
-    final text = dark ? AppColors.textLight : AppColors.textDark;
+    const bg = Color(0xFFF4F0FB);
+    const surface = Color(0xFFF9F6FE);
+    const text = Color(0xFF2E1A48);
+    const primary = Color(0xFF6B45B3);
+    const secondary = Color(0xFF9482E6);
 
-    final scheme = ColorScheme(
-      brightness: b,
-      primary: dark ? AppColors.gold : AppColors.brown,
-      onPrimary: dark ? AppColors.espresso : AppColors.ivory,
-      secondary: AppColors.bronze,
-      onSecondary: AppColors.ivory,
-      error: const Color(0xFFC96F5F),
-      onError: AppColors.ivory,
+    final scheme = const ColorScheme(
+      brightness: Brightness.light,
+      primary: primary,
+      onPrimary: Colors.white,
+      secondary: secondary,
+      onSecondary: Colors.white,
+      error: Color(0xFFC96F5F),
+      onError: Colors.white,
       surface: surface,
       onSurface: text,
     );
 
-    final inter = GoogleFonts.interTextTheme(ThemeData(brightness: b).textTheme)
+    final inter = GoogleFonts.interTextTheme(ThemeData.light().textTheme)
         .apply(bodyColor: text, displayColor: text);
     final textTheme = inter.copyWith(
-      displayLarge: serif(inter.displayLarge),
-      displayMedium: serif(inter.displayMedium),
-      headlineLarge: serif(inter.headlineLarge),
-      headlineMedium: serif(inter.headlineMedium),
-      headlineSmall: serif(inter.headlineSmall),
-      titleLarge: serif(inter.titleLarge),
+      displayLarge: GoogleFonts.inter(textStyle: inter.displayLarge, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: text),
+      displayMedium: GoogleFonts.inter(textStyle: inter.displayMedium, fontWeight: FontWeight.w800, letterSpacing: -0.4, color: text),
+      headlineLarge: GoogleFonts.inter(textStyle: inter.headlineLarge, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: text),
+      headlineMedium: GoogleFonts.inter(textStyle: inter.headlineMedium, fontWeight: FontWeight.w700, letterSpacing: -0.3, color: text),
+      headlineSmall: GoogleFonts.inter(textStyle: inter.headlineSmall, fontWeight: FontWeight.w700, letterSpacing: -0.2, color: text),
+      titleLarge: GoogleFonts.inter(textStyle: inter.titleLarge, fontWeight: FontWeight.w700, letterSpacing: -0.2, color: text),
     );
 
-    final outline = AppColors.gold.withAlpha(90);
+    const outline = Color(0xFFEADBFA);
     return ThemeData(
       useMaterial3: true,
-      brightness: b,
+      brightness: Brightness.light,
       colorScheme: scheme,
       scaffoldBackgroundColor: bg,
       textTheme: textTheme,
       dividerColor: outline,
       appBarTheme: AppBarTheme(
-        backgroundColor: dark ? AppColors.walnut : AppColors.parchment,
+        backgroundColor: Colors.transparent,
         foregroundColor: text,
         elevation: 0,
         scrolledUnderElevation: 0,
-        titleTextStyle: serif(textTheme.titleLarge?.copyWith(fontSize: 24)),
+        titleTextStyle: GoogleFonts.inter(
+          color: text,
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surface,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6), borderSide: BorderSide(color: outline)),
+            borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: outline)),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6), borderSide: BorderSide(color: outline)),
+            borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: outline)),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: scheme.primary, width: 1.5)),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: primary, width: 1.5)),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
           minimumSize: const Size(48, 44),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(48, 44),
-          side: BorderSide(color: outline),
+          side: const BorderSide(color: outline),
           foregroundColor: text,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );

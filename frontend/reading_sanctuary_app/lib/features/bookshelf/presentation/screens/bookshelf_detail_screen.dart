@@ -69,7 +69,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Delete Bookshelf?',
-          style: GoogleFonts.cormorantGaramond(
+          style: GoogleFonts.inter(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: ClayColors.textDark,
@@ -242,7 +242,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                             shelf.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.cormorantGaramond(
+                            style: GoogleFonts.inter(
                               fontSize: 26,
                               fontWeight: FontWeight.w700,
                               color: theme.textColor,
@@ -418,7 +418,7 @@ class _BookshelfDetailScreenState extends ConsumerState<BookshelfDetailScreen> {
                           const SizedBox(height: 12),
                           Text(
                             shelfBooks.isEmpty ? 'No books on this shelf yet' : 'No books matching "$_searchQuery"',
-                            style: GoogleFonts.cormorantGaramond(
+                            style: GoogleFonts.inter(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
                               color: ClayColors.textDark,

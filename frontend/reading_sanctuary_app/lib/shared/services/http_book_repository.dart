@@ -63,24 +63,40 @@ class HttpBookRepository implements BookRepository {
             } catch (_) {}
 
             List<BookFile> files = [];
+
+            // First, try to read files included in the book response.
             if (item['files'] is List) {
               files = (item['files'] as List)
                   .whereType<Map<String, dynamic>>()
-                  .map((f) => BookFile.fromJson(f))
+                  .map((json) => BookFile.fromJson(json))
+                  .where((file) => file.id.trim().isNotEmpty)
                   .toList();
-            } else {
+            }
+
+            // IMPORTANT:
+            // An empty files array does not necessarily mean that the book
+            // has no uploaded files. The book endpoint may omit file details
+            // or return an empty collection.
+            //
+            // Therefore, explicitly fetch the file records if necessary.
+            if (files.isEmpty && bookId.isNotEmpty) {
               try {
-                final filesRes = await _apiClient.get(
+                final filesResponse = await _apiClient.get(
                   '/books/$bookId/files',
-                  timeout: const Duration(seconds: 2),
+                  timeout: const Duration(seconds: 10),
                 );
-                if (filesRes is List) {
-                  files = filesRes
+
+                if (filesResponse is List) {
+                  files = filesResponse
                       .whereType<Map<String, dynamic>>()
-                      .map((f) => BookFile.fromJson(f))
+                      .map((json) => BookFile.fromJson(json))
+                      .where((file) => file.id.trim().isNotEmpty)
                       .toList();
                 }
-              } catch (_) {}
+              } catch (error, stackTrace) {
+                debugPrint('Failed to load files for book $bookId: $error');
+                debugPrintStack(stackTrace: stackTrace);
+              }
             }
 
             final colorList = _generateCoverColors(bookId);

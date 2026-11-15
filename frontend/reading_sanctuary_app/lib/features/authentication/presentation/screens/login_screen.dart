@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../theme/auth_palette.dart';
 import '../widgets/auth_scaffold.dart';
@@ -84,15 +85,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
             onPressed: () => ForgotPasswordDialog.show(context,
               initialEmail: _emailController.text.trim()),
-            child: const Text('Forgot Password?', style: TextStyle(
+            child: Text('Forgot Password?', style: GoogleFonts.inter(
               color: AuthPalette.textLink, fontSize: 13.5, fontWeight: FontWeight.w600)))),
           const SizedBox(height: 16),
           ClayButton(label: 'Login', isLoading: authState.isLoading, onPressed: _handleLogin),
           const SizedBox(height: 20),
           Row(children: [
             Expanded(child: Container(height: 1, color: AuthPalette.dividerLine)),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text('or continue with', style: TextStyle(
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text('or continue with', style: GoogleFonts.inter(
                 color: AuthPalette.textMuted, fontSize: 13, fontWeight: FontWeight.w500))),
             Expanded(child: Container(height: 1, color: AuthPalette.dividerLine)),
           ]),
@@ -101,10 +102,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const SizedBox(height: 22),
           Center(child: Wrap(crossAxisAlignment: WrapCrossAlignment.center,
             alignment: WrapAlignment.center, children: [
-            const Text("Don't have an account? ", style: TextStyle(
+            Text("Don't have an account? ", style: GoogleFonts.inter(
               color: AuthPalette.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
             GestureDetector(onTap: () => context.go('/signup'),
-              child: const Text('Sign Up', style: TextStyle(
+              child: Text('Sign Up', style: GoogleFonts.inter(
                 color: AuthPalette.textLink, fontSize: 14, fontWeight: FontWeight.w700))),
           ])),
         ]),

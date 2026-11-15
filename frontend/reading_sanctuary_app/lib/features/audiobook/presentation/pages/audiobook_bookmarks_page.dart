@@ -37,7 +37,7 @@ class _AudiobookBookmarksPageState extends ConsumerState<AudiobookBookmarksPage>
         elevation: 0,
         title: Text(
           'Saved Bookmarks',
-          style: GoogleFonts.playfairDisplay(
+          style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             fontSize: 20,
             color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -78,7 +78,7 @@ class _AudiobookBookmarksPageState extends ConsumerState<AudiobookBookmarksPage>
                           const SizedBox(height: 12),
                           Text(
                             'No bookmarks saved yet',
-                            style: GoogleFonts.playfairDisplay(
+                            style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: isDark ? AppColors.ivory : AppColors.textDark,

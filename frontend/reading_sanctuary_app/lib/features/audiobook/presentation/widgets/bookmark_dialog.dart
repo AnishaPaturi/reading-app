@@ -57,7 +57,7 @@ class _BookmarkDialogState extends State<BookmarkDialog> {
         children: [
           Text(
             'Add Bookmark',
-            style: GoogleFonts.playfairDisplay(
+            style: GoogleFonts.inter(
               fontWeight: FontWeight.w700,
               color: isDark ? AppColors.ivory : AppColors.textDark,
             ),

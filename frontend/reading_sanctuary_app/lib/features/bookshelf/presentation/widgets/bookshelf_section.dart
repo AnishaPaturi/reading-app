@@ -146,8 +146,8 @@ class BookshelfSection extends StatelessWidget {
                             title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.cormorantGaramond(
-                              fontSize: 21,
+                            style: GoogleFonts.inter(
+                              fontSize: 20,
                               fontWeight: FontWeight.w700,
                               color: ClayColors.textDark,
                               height: 1.1,

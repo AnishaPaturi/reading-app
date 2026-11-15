@@ -51,8 +51,8 @@ class EmptyLibraryState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             isSearch ? 'No Matching Shelves' : 'Your Book Sanctuary Awaits',
-            style: GoogleFonts.cormorantGaramond(
-              fontSize: 24,
+            style: GoogleFonts.inter(
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               color: ClayColors.textDark,
             ),

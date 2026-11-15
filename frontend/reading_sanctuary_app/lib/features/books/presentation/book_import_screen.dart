@@ -115,7 +115,7 @@ class _BookImportScreenState extends ConsumerState<BookImportScreen> {
       appBar: AppBar(
         title: Text(
           'Import Book',
-          style: GoogleFonts.cormorantGaramond(
+          style: GoogleFonts.inter(
             fontSize: 22,
             fontWeight: FontWeight.w700,
           ),

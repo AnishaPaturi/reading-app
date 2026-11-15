@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../app/theme/app_theme.dart';
 
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/features/authentication/presentation/providers/auth_provider.dart';
@@ -267,12 +268,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
         ClayTile(
           title: 'Theme & Display',
-          subtitle: 'Customize appearance and colors',
+          subtitle: 'Home porcelain & lavender theme',
           color: ClayColors.lavender,
           icon: Icons.palette_rounded,
           onTap: () {
+            ref.read(themeProvider.notifier).toggle();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Theme options opened')),
+              const SnackBar(content: Text('Theme refreshed to Home style')),
             );
           },
         ),

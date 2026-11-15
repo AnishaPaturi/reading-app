@@ -53,7 +53,7 @@ class ChapterListSheet extends StatelessWidget {
             children: [
               Text(
                 'Chapters (${chapters.length})',
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: isDark ? AppColors.ivory : AppColors.textDark,

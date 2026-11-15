@@ -124,7 +124,7 @@ class _AudiobookImportPageState extends ConsumerState<AudiobookImportPage> {
         elevation: 0,
         title: Text(
           'Import Audiobooks',
-          style: GoogleFonts.playfairDisplay(
+          style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             fontSize: 20,
             color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -168,7 +168,7 @@ class _AudiobookImportPageState extends ConsumerState<AudiobookImportPage> {
                       children: [
                         Text(
                           'Select Audio Source',
-                          style: GoogleFonts.playfairDisplay(
+                          style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -231,7 +231,7 @@ class _AudiobookImportPageState extends ConsumerState<AudiobookImportPage> {
                       children: [
                         Text(
                           'Proposed Audiobooks (${_discoveredBooks.length})',
-                          style: GoogleFonts.playfairDisplay(
+                          style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -303,7 +303,7 @@ class _AudiobookImportPageState extends ConsumerState<AudiobookImportPage> {
                     children: [
                       Text(
                         book.title,
-                        style: GoogleFonts.playfairDisplay(
+                        style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: isDark ? AppColors.ivory : AppColors.textDark,

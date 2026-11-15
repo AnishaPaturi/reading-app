@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/shared/models/book.dart';
 import 'package:reading_sanctuary_app/shared/services/providers.dart';
+import '../../shared/utils/book_file_navigation.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
 import 'package:reading_sanctuary_app/features/library/theme/bookshelf_theme.dart';
 import 'package:reading_sanctuary_app/features/library/widgets/clay_decorations.dart';
@@ -377,12 +378,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
           height: 48,
           child: ElevatedButton.icon(
             onPressed: () {
-              final targetFile = book.files.isNotEmpty ? book.files.first : null;
-              final fileId = targetFile?.id ?? book.id;
-              final format = targetFile?.format.label ?? 'PDF';
-              context.push(
-                '/reader/${book.id}/$fileId?title=${Uri.encodeComponent(book.title)}&format=$format',
-              );
+              openBookDocument(context, book);
             },
             icon: const Icon(Icons.arrow_forward_rounded, color: Color(0xFFFFB28D), size: 20),
             label: Text(
@@ -513,12 +509,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                 height: 32,
                 fontSize: 12,
                 onTap: () {
-                  final targetFile = b.files.isNotEmpty ? b.files.first : null;
-                  final fileId = targetFile?.id ?? b.id;
-                  final format = targetFile?.format.label ?? 'PDF';
-                  context.push(
-                    '/reader/${b.id}/$fileId?title=${Uri.encodeComponent(b.title)}&format=$format',
-                  );
+                  openBookDocument(context, b);
                 },
               ),
             ],

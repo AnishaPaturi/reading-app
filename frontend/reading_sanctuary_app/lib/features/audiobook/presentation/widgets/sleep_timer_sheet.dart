@@ -59,7 +59,7 @@ class _SleepTimerSheetState extends State<SleepTimerSheet> {
             children: [
               Text(
                 'Sleep Timer',
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.inter(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: isDark ? AppColors.ivory : AppColors.textDark,

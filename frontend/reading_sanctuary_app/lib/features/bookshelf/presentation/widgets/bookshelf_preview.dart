@@ -95,7 +95,7 @@ class BookshelfPreview extends StatelessWidget {
                           name.isEmpty ? 'Your Bookshelf Title' : name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.cormorantGaramond(
+                          style: GoogleFonts.inter(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: theme.textColor,

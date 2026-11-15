@@ -92,8 +92,8 @@ class BookshelfCard extends StatelessWidget {
                               shelf.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.cormorantGaramond(
-                                fontSize: 22,
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: ClayColors.textDark,
                                 letterSpacing: -0.3,

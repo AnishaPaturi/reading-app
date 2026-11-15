@@ -8,6 +8,7 @@ import '../../core/widgets/clay_components.dart';
 import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
+import '../../shared/utils/book_file_navigation.dart';
 import '../dnf/screens/dnf_cinematic_screen.dart';
 import '../offline/presentation/widgets/offline_download_button.dart';
 
@@ -301,17 +302,18 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                           ElevatedButton.icon(
                             onPressed: () {
                               if (_format == 2) {
-                                final audioFile = b.files.where((f) => f.format.isAudio).firstOrNull;
-                                final fileId = audioFile?.id ?? b.id;
-                                context.push(
-                                  '/listen/${b.id}/$fileId?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=MP3',
+                                openBookAudio(context, b);
+                              } else if (_format == 1) {
+                                openBookInFormat(
+                                  context,
+                                  b,
+                                  format: BookFileFormat.epub,
                                 );
                               } else {
-                                final formatName = _format == 1 ? 'EPUB' : 'PDF';
-                                final docFile = b.files.where((f) => f.format.label.toUpperCase() == formatName).firstOrNull;
-                                final fileId = docFile?.id ?? (b.files.isNotEmpty ? b.files.first.id : b.id);
-                                context.push(
-                                  '/reader/${b.id}/$fileId?title=${Uri.encodeComponent(b.title)}&format=$formatName',
+                                openBookInFormat(
+                                  context,
+                                  b,
+                                  format: BookFileFormat.pdf,
                                 );
                               }
                             },
@@ -337,13 +339,30 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                             onPressed: () {
                               final hasAudio = b.formats.contains(BookFormat.audiobook);
                               if (hasAudio && _format != 1 && _format != 0) {
-                                context.push(
-                                  '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=MP3',
-                                );
+                                openBookAudio(context, b);
                               } else {
-                                final formatName = _format == 1 ? 'EPUB' : 'PDF';
+                                final format = _format == 1 ? BookFileFormat.epub : BookFileFormat.pdf;
+                                BookFile? docFile;
+                                for (final file in b.files) {
+                                  if (file.format == format) {
+                                    docFile = file;
+                                    break;
+                                  }
+                                }
+                                docFile ??= b.files.where((f) => !f.format.isAudio).firstOrNull;
+                                if (docFile == null || docFile.id.trim().isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'No readable file is attached to "${b.title}". Please upload the file again.',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                final formatName = docFile.format.label;
                                 context.push(
-                                  '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=$formatName&mode=tts',
+                                  '/listen/${b.id}/${docFile.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=$formatName&mode=tts',
                                 );
                               }
                             },
@@ -550,7 +569,7 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                                         children: [
                                           Text(
                                             'Retired to DNF Sanctuary',
-                                            style: GoogleFonts.cormorantGaramond(
+                                            style: GoogleFonts.inter(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w700,
                                               color: const Color(0xFFFFE082),

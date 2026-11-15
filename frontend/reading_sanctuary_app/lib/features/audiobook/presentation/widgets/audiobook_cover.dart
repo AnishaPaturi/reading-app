@@ -109,7 +109,7 @@ class AudiobookCover extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: GoogleFonts.playfairDisplay(
+            style: GoogleFonts.inter(
               color: AppColors.ivory,
               fontSize: (width * 0.09).clamp(10.0, 15.0),
               fontWeight: FontWeight.w700,

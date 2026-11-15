@@ -4,13 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized 3D Clay Palette matching the reference designs
 abstract final class ClayColors {
-  static const Color background = Color(0xFFEDE5F8);
-  static const Color backgroundEnd = Color(0xFFE4DCF6);
+  static const Color background = Color(0xFFF4F0FB);
+  static const Color backgroundEnd = Color(0xFFEDE5F8);
 
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFECE5F8), Color(0xFFE4DCF6)],
+    colors: [Color(0xFFF4F0FB), Color(0xFFEDE5F8)],
   );
 
   static const Color primaryPurple = Color(0xFF6B45B3);

@@ -20,7 +20,7 @@ class BookshelfThemePicker extends StatelessWidget {
       children: [
         Text(
           'Shelf Aesthetic Theme',
-          style: GoogleFonts.cormorantGaramond(
+          style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: ClayColors.textDark,
@@ -106,7 +106,7 @@ class BookshelfThemePicker extends StatelessWidget {
                             theme.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.cormorantGaramond(
+                            style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: theme.textColor,

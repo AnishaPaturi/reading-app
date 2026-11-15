@@ -84,7 +84,7 @@ class _AudiobookDetailsPageState extends ConsumerState<AudiobookDetailsPage> {
             Text(
               book.title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.playfairDisplay(
+              style: GoogleFonts.inter(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -187,7 +187,7 @@ class _AudiobookDetailsPageState extends ConsumerState<AudiobookDetailsPage> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Tracks (${tracks.length})',
-                style: GoogleFonts.playfairDisplay(
+                style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: isDark ? AppColors.ivory : AppColors.textDark,
@@ -243,7 +243,7 @@ class _AudiobookDetailsPageState extends ConsumerState<AudiobookDetailsPage> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Bookmarks (${bookmarks.length})',
-                  style: GoogleFonts.playfairDisplay(
+                  style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: isDark ? AppColors.ivory : AppColors.textDark,

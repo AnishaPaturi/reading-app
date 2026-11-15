@@ -129,7 +129,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                   children: [
                     Text(
                       isForShelf ? 'Add Books to Shelf' : 'Add Books to Sanctuary',
-                      style: GoogleFonts.cormorantGaramond(
+                      style: GoogleFonts.inter(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                         color: ClayColors.textDark,
@@ -200,7 +200,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
                     isForShelf ? 'OR SELECT FROM LIBRARY' : 'BOOKS IN YOUR LIBRARY',
-                    style: GoogleFonts.cinzel(
+                    style: GoogleFonts.inter(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.2,
@@ -269,7 +269,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                             book.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.cormorantGaramond(
+                            style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: ClayColors.textDark,
@@ -300,7 +300,7 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
                             book.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.cormorantGaramond(
+                            style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: ClayColors.textDark,

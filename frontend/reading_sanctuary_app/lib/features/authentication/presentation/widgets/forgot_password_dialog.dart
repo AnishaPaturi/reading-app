@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/auth_palette.dart';
 import 'clay_button.dart';
 import 'clay_text_field.dart';
@@ -86,10 +87,10 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Reset Password',
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                     color: AuthPalette.textDark,
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -104,9 +105,9 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Enter your registered email address and we will send you instructions to reset your password.',
-            style: TextStyle(
+            style: GoogleFonts.inter(
               color: AuthPalette.textMuted,
               fontSize: 14,
               height: 1.4,

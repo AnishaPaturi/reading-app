@@ -99,7 +99,7 @@ class ReadingTrackerScreen extends ConsumerWidget {
                 Text(
                   '“A book abandoned, not forgotten.”\nBooks you decide to part ways with will rest peacefully here.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.cormorantGaramond(
+                  style: GoogleFonts.inter(
                     fontSize: 14,
                     fontStyle: FontStyle.italic,
                     color: ClayColors.textMuted,

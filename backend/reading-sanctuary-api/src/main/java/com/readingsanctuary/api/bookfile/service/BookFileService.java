@@ -126,30 +126,20 @@ public class BookFileService {
     @Transactional(readOnly = true)
     public Resource download(UUID userId, UUID bookId, UUID fileId) {
 
+        // Verify that this book belongs to the authenticated user.
         getOwnedBook(bookId, userId);
 
-        BookFile file = getOwnedFileForDownload(bookId, fileId);
+        // Download ONLY the requested file.
+        // Never silently substitute another file.
+        BookFile file = getOwnedFile(bookId, fileId);
 
         try {
             return storageService.load(file.getStorageKey());
         } catch (IOException exception) {
             throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Stored file not found");
+                    HttpStatus.NOT_FOUND,
+                    "The requested file is missing from storage");
         }
-    }
-
-    private BookFile getOwnedFileForDownload(UUID bookId, UUID fileId) {
-
-        return fileRepository.findByIdAndBook_Id(fileId, bookId)
-                .or(() -> {
-                    List<BookFile> files = fileRepository.findAllByBook_Id(bookId);
-                    return files.stream()
-                            .filter(f -> "PDF".equalsIgnoreCase(f.getFileFormat()) || "EPUB".equalsIgnoreCase(f.getFileFormat()))
-                            .findFirst()
-                            .or(() -> files.stream().findFirst());
-                })
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Book file not found"));
     }
 
     @Transactional

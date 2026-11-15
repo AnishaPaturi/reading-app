@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/api_exception.dart';
@@ -287,17 +288,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
-const defaultGoogleServerClientId =
-    '91225974915-rddik9ug32ebdlrtt2rrscttp6tjabq5.apps.googleusercontent.com';
-
 final googleSignInProvider = Provider<GoogleSignIn>((ref) {
-  const webClientId = String.fromEnvironment(
-    'GOOGLE_SERVER_CLIENT_ID',
-    defaultValue: defaultGoogleServerClientId,
-  );
+  final env = dotenv.isInitialized ? dotenv.env : const <String, String>{};
+  final webClientId = env['GOOGLE_WEB_CLIENT_ID']?.trim();
+  final serverClientId = env['GOOGLE_SERVER_CLIENT_ID']?.trim();
+
+  if (webClientId == null || webClientId.isEmpty) {
+    throw StateError(
+      'GOOGLE_WEB_CLIENT_ID is missing from the .env file.',
+    );
+  }
+
   return GoogleSignIn(
-    scopes: const ['email', 'profile'],
-    serverClientId: webClientId.isEmpty ? null : webClientId,
+    clientId: webClientId,
+    serverClientId:
+        (serverClientId == null || serverClientId.isEmpty)
+            ? webClientId
+            : serverClientId,
+    scopes: const [
+      'email',
+      'profile',
+    ],
   );
 });
 

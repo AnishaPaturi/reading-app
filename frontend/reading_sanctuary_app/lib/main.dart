@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'app/app.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: ReadingSanctuaryApp()));
+
+  // Load environment variables before starting the application.
+  await dotenv.load(fileName: '.env');
+
+  runApp(
+    const ProviderScope(
+      child: ReadingSanctuaryApp(),
+    ),
+  );
 }

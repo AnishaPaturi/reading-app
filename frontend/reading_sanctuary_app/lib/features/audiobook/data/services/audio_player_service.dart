@@ -4,17 +4,18 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/audio_chapter.dart';
 import '../models/audio_track.dart';
+import '../models/audiobook.dart';
 import '../../domain/enums/audio_playback_state.dart';
-import 'audio_background_handler.dart';
+import '../../services/audiobook_player_handler.dart';
 
 class AudioPlayerService {
-  AudioBackgroundHandler? _handler;
+  AudiobookPlayerHandler? _handler;
   bool _initialized = false;
   AudioTrack? _currentTrack;
   List<AudioChapter> _chapters = [];
   int _currentChapterIndex = 0;
 
-  AudioBackgroundHandler? get handler => _handler;
+  AudiobookPlayerHandler? get handler => _handler;
   AudioPlayer? get player => _handler?.player;
   AudioTrack? get currentTrack => _currentTrack;
   List<AudioChapter> get chapters => List.unmodifiable(_chapters);
@@ -56,17 +57,17 @@ class AudioPlayerService {
 
     try {
       _handler = await AudioService.init(
-        builder: () => AudioBackgroundHandler(),
+        builder: () => AudiobookPlayerHandler(),
         config: const AudioServiceConfig(
-          androidNotificationChannelId: 'com.readingsanctuary.audio',
-          androidNotificationChannelName: 'Reading Sanctuary Audio Playback',
+          androidNotificationChannelId: 'com.readingsanctuary.audiobooks',
+          androidNotificationChannelName: 'Reading Sanctuary Audiobook Playback',
           androidNotificationOngoing: true,
           androidStopForegroundOnPause: true,
         ),
       );
     } catch (e) {
       debugPrint('AudioService.init fallback to local handler: $e');
-      _handler = AudioBackgroundHandler();
+      _handler = AudiobookPlayerHandler();
     }
 
     await _handler?.configureSession();
@@ -83,27 +84,35 @@ class AudioPlayerService {
     await initialize();
     _currentTrack = track;
 
-    _handler?.updateMediaMetadata(
-      id: track.fileId,
-      title: track.title,
-      author: track.author,
-      coverUrl: track.coverUrl,
+    await _handler?.loadTracks(
+      tracks: [track],
+      bookTitle: track.title,
+      author: track.author ?? 'Unknown Author',
+      coverPath: track.coverUrl,
+      initialPosition: initialPosition ?? Duration.zero,
+      initialSpeed: initialSpeed,
     );
+  }
 
-    final player = _handler?.player;
-    if (player == null) return;
+  Future<void> loadAudiobook({
+    required Audiobook book,
+    required List<AudioTrack> tracks,
+    int initialTrackIndex = 0,
+    Duration initialPosition = Duration.zero,
+    double initialSpeed = 1.0,
+  }) async {
+    await initialize();
+    _currentTrack = tracks.isNotEmpty ? tracks[initialTrackIndex] : null;
 
-    await player.setAudioSource(
-      AudioSource.uri(
-        Uri.parse(audioUrl),
-        headers: headers,
-      ),
+    await _handler?.loadTracks(
+      tracks: tracks,
+      bookTitle: book.title,
+      author: book.author,
+      coverPath: book.coverPath,
+      initialTrackIndex: initialTrackIndex,
       initialPosition: initialPosition,
+      initialSpeed: initialSpeed,
     );
-
-    if (initialSpeed != 1.0) {
-      await player.setSpeed(initialSpeed);
-    }
   }
 
   void setChapters(List<AudioChapter> chapters) {

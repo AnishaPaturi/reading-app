@@ -5,6 +5,13 @@ import '../features/analytics/presentation/screens/analytics_dashboard_screen.da
 import '../features/analytics/presentation/screens/reading_goals_screen.dart';
 import '../features/analytics/presentation/screens/yearly_wrap_up_screen.dart';
 import '../features/audiobook/presentation/screens/audiobook_screen.dart';
+import '../features/audiobook/presentation/pages/audiobook_library_page.dart';
+import '../features/audiobook/presentation/pages/audiobook_import_page.dart';
+import '../features/audiobook/presentation/pages/audiobook_details_page.dart';
+import '../features/audiobook/presentation/pages/audiobook_player_page.dart';
+import '../features/audiobook/presentation/pages/audiobook_bookmarks_page.dart';
+import '../features/audiobook/presentation/pages/audiobook_history_page.dart';
+import '../features/audiobook/presentation/pages/audiobook_settings_page.dart';
 import '../features/authentication/presentation/screens/login_screen.dart';
 import '../features/authentication/presentation/screens/signup_screen.dart';
 import '../features/bookshelf/presentation/screens/bookshelves_screen.dart';
@@ -77,12 +84,28 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: '/audiobooks/:id/player',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AudiobookPlayerPage(audiobookId: id);
+        },
+      ),
       ShellRoute(
         builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(path: '/home', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/dashboard', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/library', pageBuilder: (c, s) => _page(s, const LibraryScreen())),
+          GoRoute(path: '/audiobooks', pageBuilder: (c, s) => _page(s, const AudiobookLibraryPage())),
+          GoRoute(path: '/audiobooks/import', pageBuilder: (c, s) => _page(s, const AudiobookImportPage())),
+          GoRoute(path: '/audiobooks/bookmarks', pageBuilder: (c, s) => _page(s, const AudiobookBookmarksPage())),
+          GoRoute(path: '/audiobooks/history', pageBuilder: (c, s) => _page(s, const AudiobookHistoryPage())),
+          GoRoute(path: '/audiobooks/settings', pageBuilder: (c, s) => _page(s, const AudiobookSettingsPage())),
+          GoRoute(
+            path: '/audiobooks/:id',
+            pageBuilder: (c, s) => _page(s, AudiobookDetailsPage(audiobookId: s.pathParameters['id']!)),
+          ),
           GoRoute(
             path: '/library/add',
             pageBuilder: (c, s) => _page(

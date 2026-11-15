@@ -66,7 +66,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      ref.read(readerPositionServiceProvider).flushPending();
       ref.read(activityTrackingServiceProvider).closeSession();
     } else if (state == AppLifecycleState.resumed) {
       ref.read(activityTrackingServiceProvider).startSession(
@@ -80,6 +83,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    ref.read(readerPositionServiceProvider).flushPending();
     ref.read(activityTrackingServiceProvider).closeSession();
     super.dispose();
   }
@@ -190,6 +194,51 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     );
   }
 
+  Future<void> _handleResetProgress() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reset Reading Progress?'),
+        content: const Text(
+          'This will clear your saved reading position for this book file and return to the beginning.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Reset Progress'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      Navigator.of(context).pop(); // Close settings panel
+      await ref.read(readerRepositoryProvider).resetPosition(
+            bookId: widget.bookId,
+            fileId: widget.fileId,
+          );
+      if (_pdfKey.currentState != null) {
+        _pdfKey.currentState!.goToPage(1);
+      }
+      ref.read(readerCurrentPositionProvider.notifier).state = const ReaderPosition(
+        locationType: 'PDF_PAGE',
+        locationValue: 'page=1',
+        pageNumber: 1,
+        progressPercentage: 0.0,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Reading progress reset to the beginning.')),
+        );
+      }
+    }
+  }
+
   void _openSettingsPanel() {
     showModalBottomSheet(
       context: context,
@@ -206,6 +255,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
             onLineSpacingChanged: notifier.updateLineSpacing,
             onMarginChanged: notifier.updateMargin,
             onPageLayoutChanged: notifier.updatePageLayout,
+            onResetProgress: _handleResetProgress,
           );
         },
       ),
@@ -313,6 +363,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
             currentPage: currentPosition?.pageNumber,
             totalPages: currentPosition?.totalPages,
             progressPercentage: currentPosition?.progressPercentage ?? 0.0,
+            onPageSelected: (page) {
+              if (fileType == ReaderFileType.pdf && _pdfKey.currentState != null) {
+                _pdfKey.currentState!.goToPage(page);
+              }
+            },
             onPrevious: () {
               if (currentPosition?.pageNumber != null && _pdfKey.currentState != null) {
                 _pdfKey.currentState!.goToPage(currentPosition!.pageNumber! - 1);

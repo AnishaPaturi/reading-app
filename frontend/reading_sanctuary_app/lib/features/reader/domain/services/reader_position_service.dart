@@ -27,6 +27,13 @@ class ReaderPositionService {
     _currentFileId = fileId;
     _pendingPosition = position;
 
+    // Save locally immediately so ungraceful shutdowns / browser refreshes never lose progress
+    repository.saveLocalPosition(
+      bookId: bookId,
+      fileId: fileId,
+      position: position,
+    );
+
     _debounceTimer?.cancel();
     _debounceTimer = Timer(debounceDuration, () async {
       await flushPending();

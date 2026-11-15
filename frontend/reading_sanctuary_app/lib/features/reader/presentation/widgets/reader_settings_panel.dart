@@ -10,6 +10,7 @@ class ReaderSettingsPanel extends StatelessWidget {
   final ValueChanged<double> onLineSpacingChanged;
   final ValueChanged<ReaderMargin> onMarginChanged;
   final ValueChanged<Axis> onPageLayoutChanged;
+  final VoidCallback? onResetProgress;
 
   const ReaderSettingsPanel({
     super.key,
@@ -19,6 +20,7 @@ class ReaderSettingsPanel extends StatelessWidget {
     required this.onLineSpacingChanged,
     required this.onMarginChanged,
     required this.onPageLayoutChanged,
+    this.onResetProgress,
   });
 
   @override
@@ -145,6 +147,38 @@ class ReaderSettingsPanel extends StatelessWidget {
               selected: {settings.pageLayout},
               onSelectionChanged: (set) => onPageLayoutChanged(set.first),
             ),
+
+            if (onResetProgress != null) ...[
+              const Divider(color: Color(0xFFEDE5F8), height: 28),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Reading Progress',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13.5, color: ClayColors.textDark),
+                      ),
+                      Text(
+                        'Clear saved position and return to start',
+                        style: GoogleFonts.inter(fontSize: 11, color: ClayColors.textMuted),
+                      ),
+                    ],
+                  ),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.redAccent,
+                      side: const BorderSide(color: Colors.redAccent),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                    label: const Text('Reset'),
+                    onPressed: onResetProgress,
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

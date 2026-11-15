@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/models/book.dart';
 import '../../../shared/services/providers.dart';
+import '../../../shared/utils/book_file_navigation.dart';
 import '../../dnf/screens/dnf_cinematic_screen.dart';
 import '../theme/bookshelf_theme.dart';
 import 'clay_book_spine.dart';
@@ -243,11 +244,17 @@ class BookPreviewSheet extends ConsumerWidget {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    context.push('/book/${book.id}');
+                    if (book.files.isNotEmpty) {
+                      openBookDocument(context, book);
+                    } else {
+                      context.push('/book/${book.id}');
+                    }
                   },
                   icon: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 18),
                   label: Text(
-                    'Read Now',
+                    book.progress > 0 && book.currentPage > 0
+                        ? 'Continue (p. ${book.currentPage})'
+                        : 'Read Now',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,

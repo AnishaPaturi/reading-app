@@ -1,11 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/api_config.dart';
 import '../models/reader_annotations.dart';
 import '../models/reader_position.dart';
 
 abstract class ReaderRepository {
+  Future<void> saveLocalPosition({
+    required String bookId,
+    required String fileId,
+    required ReaderPosition position,
+  }) async {}
+
   Future<ReaderPosition?> getPosition({
     required String bookId,
     required String fileId,
@@ -92,25 +99,71 @@ class HttpReaderRepository implements ReaderRepository {
     };
   }
 
+  static const String _localProgressPrefix = 'sanctuary_progress_';
+
+  @override
+  Future<void> saveLocalPosition({
+    required String bookId,
+    required String fileId,
+    required ReaderPosition position,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('$_localProgressPrefix$fileId', jsonEncode(position.toJson()));
+    } catch (e) {
+      debugPrint('Error saving local position: $e');
+    }
+  }
+
   @override
   Future<ReaderPosition?> getPosition({
     required String bookId,
     required String fileId,
   }) async {
+    ReaderPosition? localPosition;
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final str = prefs.getString('$_localProgressPrefix$fileId');
+      if (str != null && str.isNotEmpty) {
+        localPosition = ReaderPosition.fromJson(jsonDecode(str) as Map<String, dynamic>);
+      }
+    } catch (_) {}
+
+    try {
+      // 1. Try unified reading-progress endpoint
+      final progressRes = await http.get(
+        Uri.parse('$baseUrl/reading-progress/$fileId'),
+        headers: _headers(),
+      );
+      if (progressRes.statusCode == 200 && progressRes.body.isNotEmpty) {
+        final data = jsonDecode(progressRes.body) as Map<String, dynamic>;
+        final rp = ReaderPosition(
+          locationType: data['format'] == 'EPUB' ? 'EPUB_CFI' : 'PDF_PAGE',
+          locationValue: data['epubCfi']?.toString() ?? 'page=${data['currentPage'] ?? 1}',
+          pageNumber: (data['currentPage'] as num?)?.toInt(),
+          totalPages: (data['totalPages'] as num?)?.toInt(),
+          progressPercentage: (data['progressPercentage'] as num?)?.toDouble() ?? 0.0,
+        );
+        await saveLocalPosition(bookId: bookId, fileId: fileId, position: rp);
+        return rp;
+      }
+
+      // 2. Fallback to books/.../reading-position endpoint
       final res = await http.get(
         Uri.parse('$baseUrl/books/$bookId/files/$fileId/reading-position'),
         headers: _headers(),
       );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body) as Map<String, dynamic>;
-        return ReaderPosition.fromJson(data);
+        final rp = ReaderPosition.fromJson(data);
+        await saveLocalPosition(bookId: bookId, fileId: fileId, position: rp);
+        return rp;
       }
-      return null;
     } catch (e) {
       debugPrint('Error fetching position: $e');
-      return null;
     }
+
+    return localPosition;
   }
 
   @override
@@ -119,16 +172,40 @@ class HttpReaderRepository implements ReaderRepository {
     required String fileId,
     required ReaderPosition position,
   }) async {
-    final res = await http.put(
-      Uri.parse('$baseUrl/books/$bookId/files/$fileId/reading-position'),
-      headers: _headers(),
-      body: jsonEncode(position.toJson()),
-    );
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      final data = jsonDecode(res.body) as Map<String, dynamic>;
-      return ReaderPosition.fromJson(data);
-    }
-    throw Exception('Failed to save reading position (HTTP ${res.statusCode})');
+    // 1. Save local immediately
+    await saveLocalPosition(bookId: bookId, fileId: fileId, position: position);
+
+    // 2. Call unified /reading-progress endpoint
+    try {
+      final progressPayload = {
+        'format': position.locationType == 'EPUB_CFI' ? 'EPUB' : 'PDF',
+        'currentPage': position.pageNumber,
+        'totalPages': position.totalPages,
+        'epubCfi': position.locationType == 'EPUB_CFI' ? position.locationValue : null,
+        'progressPercentage': position.progressPercentage,
+        'positionData': '{}',
+      };
+      await http.put(
+        Uri.parse('$baseUrl/reading-progress/$fileId'),
+        headers: _headers(),
+        body: jsonEncode(progressPayload),
+      );
+    } catch (_) {}
+
+    // 3. Call legacy reading-position endpoint
+    try {
+      final res = await http.put(
+        Uri.parse('$baseUrl/books/$bookId/files/$fileId/reading-position'),
+        headers: _headers(),
+        body: jsonEncode(position.toJson()),
+      );
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        return ReaderPosition.fromJson(data);
+      }
+    } catch (_) {}
+
+    return position;
   }
 
   @override
@@ -136,10 +213,24 @@ class HttpReaderRepository implements ReaderRepository {
     required String bookId,
     required String fileId,
   }) async {
-    await http.delete(
-      Uri.parse('$baseUrl/books/$bookId/files/$fileId/reading-position'),
-      headers: _headers(),
-    );
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('$_localProgressPrefix$fileId');
+    } catch (_) {}
+
+    try {
+      await http.delete(
+        Uri.parse('$baseUrl/reading-progress/$fileId'),
+        headers: _headers(),
+      );
+    } catch (_) {}
+
+    try {
+      await http.delete(
+        Uri.parse('$baseUrl/books/$bookId/files/$fileId/reading-position'),
+        headers: _headers(),
+      );
+    } catch (_) {}
   }
 
   @override

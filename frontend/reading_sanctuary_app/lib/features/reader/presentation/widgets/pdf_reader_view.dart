@@ -38,8 +38,12 @@ class PdfReaderViewState extends State<PdfReaderView> {
   }
 
   void goToPage(int page) {
-    if (page >= 1 && page <= _pageCount) {
-      _controller.goToPage(pageNumber: page);
+    final safeTotal = _pageCount > 0 ? _pageCount : page;
+    final safePage = page.clamp(1, safeTotal);
+    _pageNumber = safePage;
+
+    if (_controller.isReady) {
+      _controller.goToPage(pageNumber: safePage);
     }
   }
 
@@ -94,6 +98,9 @@ class PdfReaderViewState extends State<PdfReaderView> {
             setState(() {
               _pageCount = document.pages.length;
             });
+            if (_pageNumber > 1 && _pageNumber <= _pageCount) {
+              controller.goToPage(pageNumber: _pageNumber);
+            }
             _handlePageChanged(_pageNumber);
           },
         ),

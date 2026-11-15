@@ -10,13 +10,23 @@ import 'package:reading_sanctuary_app/features/reader/presentation/providers/rea
 
 class FakeReaderRepository implements ReaderRepository {
   ReaderPosition? savedPosition;
+  ReaderPosition? localPosition;
   final List<ReaderBookmark> bookmarks = [];
   final List<ReaderHighlight> highlights = [];
   final List<ReaderBookNote> notes = [];
 
   @override
+  Future<void> saveLocalPosition({
+    required String bookId,
+    required String fileId,
+    required ReaderPosition position,
+  }) async {
+    localPosition = position;
+  }
+
+  @override
   Future<ReaderPosition?> getPosition({required String bookId, required String fileId}) async {
-    return savedPosition;
+    return savedPosition ?? localPosition;
   }
 
   @override

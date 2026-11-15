@@ -59,17 +59,35 @@ public class LocalFileStorageService {
 
         Path filePath = storageRoot.resolve(storageKey).normalize();
 
-        if (!filePath.startsWith(storageRoot)) {
-            throw new IOException("Invalid storage path");
+        if (filePath.startsWith(storageRoot) && Files.exists(filePath) && Files.isReadable(filePath)) {
+            return new UrlResource(filePath.toUri());
         }
 
-        Resource resource = new UrlResource(filePath.toUri());
-
-        if (!resource.exists() || !resource.isReadable()) {
-            throw new IOException("File not found or not readable");
+        // Check under books/
+        Path inBooks = storageRoot.resolve("books").resolve(storageKey).normalize();
+        if (inBooks.startsWith(storageRoot) && Files.exists(inBooks) && Files.isReadable(inBooks)) {
+            return new UrlResource(inBooks.toUri());
         }
 
-        return resource;
+        // Check under pending/
+        Path inPending = storageRoot.resolve("pending").resolve(storageKey).normalize();
+        if (inPending.startsWith(storageRoot) && Files.exists(inPending) && Files.isReadable(inPending)) {
+            return new UrlResource(inPending.toUri());
+        }
+
+        // Check base filename under books/ and pending/
+        String baseName = Path.of(storageKey).getFileName().toString();
+        Path inBooksBase = storageRoot.resolve("books").resolve(baseName).normalize();
+        if (inBooksBase.startsWith(storageRoot) && Files.exists(inBooksBase) && Files.isReadable(inBooksBase)) {
+            return new UrlResource(inBooksBase.toUri());
+        }
+
+        Path inPendingBase = storageRoot.resolve("pending").resolve(baseName).normalize();
+        if (inPendingBase.startsWith(storageRoot) && Files.exists(inPendingBase) && Files.isReadable(inPendingBase)) {
+            return new UrlResource(inPendingBase.toUri());
+        }
+
+        throw new IOException("File not found or not readable: " + storageKey);
     }
 
     public void delete(String storageKey) throws IOException {

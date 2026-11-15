@@ -301,13 +301,17 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                           ElevatedButton.icon(
                             onPressed: () {
                               if (_format == 2) {
+                                final audioFile = b.files.where((f) => f.format.isAudio).firstOrNull;
+                                final fileId = audioFile?.id ?? b.id;
                                 context.push(
-                                  '/listen/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=MP3',
+                                  '/listen/${b.id}/$fileId?title=${Uri.encodeComponent(b.title)}&author=${Uri.encodeComponent(b.author)}&format=MP3',
                                 );
                               } else {
                                 final formatName = _format == 1 ? 'EPUB' : 'PDF';
+                                final docFile = b.files.where((f) => f.format.label.toUpperCase() == formatName).firstOrNull;
+                                final fileId = docFile?.id ?? (b.files.isNotEmpty ? b.files.first.id : b.id);
                                 context.push(
-                                  '/reader/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&format=$formatName',
+                                  '/reader/${b.id}/$fileId?title=${Uri.encodeComponent(b.title)}&format=$formatName',
                                 );
                               }
                             },

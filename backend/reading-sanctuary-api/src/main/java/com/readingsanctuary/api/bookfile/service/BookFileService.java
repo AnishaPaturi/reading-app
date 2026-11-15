@@ -128,7 +128,7 @@ public class BookFileService {
 
         getOwnedBook(bookId, userId);
 
-        BookFile file = getOwnedFile(bookId, fileId);
+        BookFile file = getOwnedFileForDownload(bookId, fileId);
 
         try {
             return storageService.load(file.getStorageKey());
@@ -136,6 +136,20 @@ public class BookFileService {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Stored file not found");
         }
+    }
+
+    private BookFile getOwnedFileForDownload(UUID bookId, UUID fileId) {
+
+        return fileRepository.findByIdAndBook_Id(fileId, bookId)
+                .or(() -> {
+                    List<BookFile> files = fileRepository.findAllByBook_Id(bookId);
+                    return files.stream()
+                            .filter(f -> "PDF".equalsIgnoreCase(f.getFileFormat()) || "EPUB".equalsIgnoreCase(f.getFileFormat()))
+                            .findFirst()
+                            .or(() -> files.stream().findFirst());
+                })
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Book file not found"));
     }
 
     @Transactional

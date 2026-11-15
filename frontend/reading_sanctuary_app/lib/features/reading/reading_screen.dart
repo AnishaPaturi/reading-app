@@ -377,8 +377,11 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
           height: 48,
           child: ElevatedButton.icon(
             onPressed: () {
+              final targetFile = book.files.isNotEmpty ? book.files.first : null;
+              final fileId = targetFile?.id ?? book.id;
+              final format = targetFile?.format.label ?? 'PDF';
               context.push(
-                '/reader/${book.id}/${book.id}?title=${Uri.encodeComponent(book.title)}&format=PDF',
+                '/reader/${book.id}/$fileId?title=${Uri.encodeComponent(book.title)}&format=$format',
               );
             },
             icon: const Icon(Icons.arrow_forward_rounded, color: Color(0xFFFFB28D), size: 20),
@@ -509,9 +512,14 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
                 textColor: const Color(0xFF382352),
                 height: 32,
                 fontSize: 12,
-                onTap: () => context.push(
-                  '/reader/${b.id}/${b.id}?title=${Uri.encodeComponent(b.title)}&format=PDF',
-                ),
+                onTap: () {
+                  final targetFile = b.files.isNotEmpty ? b.files.first : null;
+                  final fileId = targetFile?.id ?? b.id;
+                  final format = targetFile?.format.label ?? 'PDF';
+                  context.push(
+                    '/reader/${b.id}/$fileId?title=${Uri.encodeComponent(b.title)}&format=$format',
+                  );
+                },
               ),
             ],
           ),

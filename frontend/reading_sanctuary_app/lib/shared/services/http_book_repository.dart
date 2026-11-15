@@ -62,6 +62,27 @@ class HttpBookRepository implements BookRepository {
               }
             } catch (_) {}
 
+            List<BookFile> files = [];
+            if (item['files'] is List) {
+              files = (item['files'] as List)
+                  .whereType<Map<String, dynamic>>()
+                  .map((f) => BookFile.fromJson(f))
+                  .toList();
+            } else {
+              try {
+                final filesRes = await _apiClient.get(
+                  '/books/$bookId/files',
+                  timeout: const Duration(seconds: 2),
+                );
+                if (filesRes is List) {
+                  files = filesRes
+                      .whereType<Map<String, dynamic>>()
+                      .map((f) => BookFile.fromJson(f))
+                      .toList();
+                }
+              } catch (_) {}
+            }
+
             final colorList = _generateCoverColors(bookId);
             final String? coverUrl = item['coverUrl']?.toString() ??
                 item['coverImageUrl']?.toString() ??
@@ -78,6 +99,7 @@ class HttpBookRepository implements BookRepository {
               progress: progress > 0 ? progress : (currentPage > 0 ? (currentPage / totalPages) : 0.0),
               pages: totalPages,
               formats: const [BookFormat.ebook, BookFormat.audiobook],
+              files: files,
               addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
               coverColors: colorList,
               coverImageUrl: coverUrl,

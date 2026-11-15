@@ -328,9 +328,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return ClayCard(
       padding: const EdgeInsets.all(16),
-      onTap: () => context.push(
-        '/reader/${book.id}/${book.id}?title=${Uri.encodeComponent(book.title)}&format=PDF',
-      ),
+      onTap: () {
+        final targetFile = book.files.isNotEmpty ? book.files.first : null;
+        final fileId = targetFile?.id ?? book.id;
+        final format = targetFile?.format.label ?? 'PDF';
+        context.push(
+          '/reader/${book.id}/$fileId?title=${Uri.encodeComponent(book.title)}&format=$format',
+        );
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -482,9 +487,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 fontSize: 12,
                 color: ClayColors.deepPurple,
                 textColor: Colors.white,
-                onTap: () => context.push(
-                  '/reader/${book.id}/${book.id}?title=${Uri.encodeComponent(book.title)}&format=PDF',
-                ),
+                onTap: () {
+                  final targetFile = book.files.isNotEmpty ? book.files.first : null;
+                  final fileId = targetFile?.id ?? book.id;
+                  final format = targetFile?.format.label ?? 'PDF';
+                  context.push(
+                    '/reader/${book.id}/$fileId?title=${Uri.encodeComponent(book.title)}&format=$format',
+                  );
+                },
               ),
             ],
           ),

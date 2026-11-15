@@ -183,7 +183,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
                   onPressed: () async {
                     final text = await params.textSelectionDelegate.getSelectedText();
                     params.dismissContextMenu();
-                    if (text != null && text.trim().isNotEmpty && widget.onTextSelected != null) {
+                    if (text.trim().isNotEmpty && widget.onTextSelected != null) {
                       final pageNum = params.a?.page.pageNumber ?? _pageNumber;
                       widget.onTextSelected!(
                         text.trim(),

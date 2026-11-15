@@ -169,7 +169,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Highlighted in ${colorOption.label}'),
+              content: Text('Highlighted in ${colorOption.name}'),
               duration: const Duration(seconds: 2),
             ),
           );

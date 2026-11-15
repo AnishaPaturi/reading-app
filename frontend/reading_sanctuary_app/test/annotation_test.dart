@@ -23,6 +23,12 @@ class FakeAnnotationApi implements AnnotationApi {
   }
 
   @override
+  Future<List<BookAnnotation>> getAnnotationsByBook(String bookId) async {
+    if (shouldThrow) throw Exception('Network error');
+    return serverStore.where((a) => a.bookId == bookId).toList();
+  }
+
+  @override
   Future<BookAnnotation> createAnnotation(BookAnnotation annotation) async {
     if (shouldThrow) throw Exception('Network error');
     final saved = annotation.copyWith(
@@ -268,10 +274,13 @@ void main() {
             pageNumber: 1,
           );
 
-      // Update
-      await container.read(bookFileAnnotationsProvider(params).notifier).updateAnnotation(
-            created.id,
+      // Update note and color
+      await container.read(bookFileAnnotationsProvider(params).notifier).updateNote(
+            id: created.id,
             noteText: 'Updated thoughts',
+          );
+      await container.read(bookFileAnnotationsProvider(params).notifier).updateColor(
+            id: created.id,
             color: '#D2E8D4',
           );
 

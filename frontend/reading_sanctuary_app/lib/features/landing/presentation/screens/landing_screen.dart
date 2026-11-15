@@ -146,7 +146,7 @@ class LandingScreen extends StatelessWidget {
             Positioned(
               left: constraints.maxWidth * 0.10,
               right: constraints.maxWidth * 0.10,
-              bottom: constraints.maxHeight * 0.08,
+              bottom: constraints.maxHeight * 0.02,
               height: constraints.maxHeight * 0.08,
               child: _InteractivePillButton(
                 tooltip: "Let's go",
@@ -180,22 +180,20 @@ class _InteractivePillButtonState extends State<_InteractivePillButton> {
   Widget build(BuildContext context) {
     return Tooltip(
       message: widget.tooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) {
-          setState(() => _isPressed = false);
-          widget.onTap();
-        },
-        onTapCancel: () => setState(() => _isPressed = false),
-        child: AnimatedScale(
-          scale: _isPressed ? 0.96 : 1.0,
-          duration: const Duration(milliseconds: 100),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              color: _isPressed ? Colors.black.withValues(alpha: 0.08) : Colors.transparent,
-            ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: widget.onTap,
+          onHighlightChanged: (pressed) {
+            setState(() {
+              _isPressed = pressed;
+            });
+          },
+          child: AnimatedScale(
+            scale: _isPressed ? 0.96 : 1.0,
+            duration: const Duration(milliseconds: 100),
+            child: const SizedBox.expand(),
           ),
         ),
       ),

@@ -2,31 +2,34 @@ class BookFileValidator {
   static const List<String> supportedExtensions = [
     'pdf',
     'epub',
-    'm4a',
     'mp3',
+    'm4b',
   ];
 
   static const Map<String, String> mimeTypes = {
     'pdf': 'application/pdf',
     'epub': 'application/epub+zip',
-    'm4a': 'audio/mp4',
     'mp3': 'audio/mpeg',
+    'm4b': 'audio/mp4',
   };
 
   static bool isSupported(String filename) {
-    if (!filename.contains('.')) return false;
-    final extension = filename.split('.').last.toLowerCase();
+    final extension = getExtension(filename);
     return supportedExtensions.contains(extension);
   }
 
   static String getExtension(String filename) {
-    if (!filename.contains('.')) return '';
-    return filename.split('.').last.toLowerCase();
+    final dotIndex = filename.lastIndexOf('.');
+    if (dotIndex < 0 || dotIndex == filename.length - 1) {
+      return '';
+    }
+
+    return filename.substring(dotIndex + 1).toLowerCase();
   }
 
   static String getMimeType(String filename) {
-    final extension = getExtension(filename);
-    return mimeTypes[extension] ?? 'application/octet-stream';
+    return mimeTypes[getExtension(filename)] ??
+        'application/octet-stream';
   }
 
   static String getFormat(String filename) {

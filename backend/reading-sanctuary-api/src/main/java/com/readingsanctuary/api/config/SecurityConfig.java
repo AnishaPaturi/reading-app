@@ -16,7 +16,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class SecurityConfig {
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://localhost:*}")
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://localhost:*,http://127.0.0.1:*,https://localhost:*,https://127.0.0.1:*}")
     private String allowedOrigins;
 
     @Bean
@@ -24,9 +24,10 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/register",
                     "/api/v1/auth/login", "/api/v1/auth/google").permitAll()
-                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                .requestMatchers("/actuator/health", "/actuator/info", "/error").permitAll()
                 .anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         return http.build();
@@ -38,10 +39,16 @@ public class SecurityConfig {
         List<String> origins = Arrays.stream(allowedOrigins.split(","))
             .map(String::trim).toList();
         config.setAllowedOriginPatterns(origins);
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept",
-            "X-Requested-With", "Origin"));
-        config.setExposedHeaders(List.of("Authorization", "Content-Disposition"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
+        config.setAllowedHeaders(List.of(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "Origin",
+            "X-Requested-With",
+            "*"
+        ));
+        config.setExposedHeaders(List.of("Authorization", "Content-Disposition", "Content-Type", "Accept"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

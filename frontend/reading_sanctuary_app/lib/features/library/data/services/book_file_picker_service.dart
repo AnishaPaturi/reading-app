@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/selected_book_file.dart';
 
@@ -8,7 +9,6 @@ class BookFilePickerService {
     'epub',
     'mp3',
     'm4b',
-    'm4a',
   ];
 
   Future<SelectedBookFile?> pickBookFile() async {
@@ -17,6 +17,8 @@ class BookFilePickerService {
         type: FileType.custom,
         allowedExtensions: supportedExtensions,
         allowMultiple: false,
+        // Enable stream across platforms so large audiobooks (e.g. 600MB+) stream without crashing RAM.
+        withData: kIsWeb,
         withReadStream: true,
       );
 
@@ -28,14 +30,41 @@ class BookFilePickerService {
       final extension = file.extension?.toLowerCase();
 
       if (extension == null || !supportedExtensions.contains(extension)) {
-        throw Exception('Unsupported book format: ${extension ?? 'unknown'}. Supported formats: PDF, EPUB, MP3, M4B, M4A.');
+        throw Exception(
+          'Unsupported format. Please select PDF, EPUB, MP3 or M4B.',
+        );
+      }
+
+      // Browser files must provide readable bytes or a stream.
+      if (kIsWeb && file.bytes == null && file.readStream == null) {
+        throw Exception(
+          'Unable to read the selected file. Please try again.',
+        );
+      }
+
+      // Native platforms must provide at least one readable source.
+      if (!kIsWeb &&
+          file.path == null &&
+          file.readStream == null &&
+          file.bytes == null) {
+        throw Exception(
+          'Unable to access the selected file.',
+        );
+      }
+
+      if (file.size <= 0) {
+        throw Exception('The selected file is empty.');
       }
 
       return SelectedBookFile.fromPlatformFile(file);
     } on PlatformException catch (e) {
-      throw Exception('File picker error: ${e.message}');
+      throw Exception(
+        'File picker error: ${e.message ?? 'Unknown error'}',
+      );
     } catch (e) {
-      throw Exception('Failed to pick file: $e');
+      throw Exception(
+        'Failed to select book: ${e.toString()}',
+      );
     }
   }
 }

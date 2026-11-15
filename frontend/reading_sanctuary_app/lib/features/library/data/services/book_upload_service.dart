@@ -33,7 +33,15 @@ class BookUploadService {
     request.headers['Accept'] = 'application/json';
 
     http.MultipartFile multipartFile;
-    if (file.hasBytes) {
+    if (file.hasStream) {
+      // Use stream for large files to avoid loading hundreds of megabytes into memory
+      multipartFile = http.MultipartFile(
+        'file',
+        file.readStream!,
+        file.size,
+        filename: file.name,
+      );
+    } else if (file.hasBytes) {
       multipartFile = http.MultipartFile.fromBytes(
         'file',
         file.bytes!,
@@ -43,14 +51,6 @@ class BookUploadService {
       multipartFile = await http.MultipartFile.fromPath(
         'file',
         file.path!,
-        filename: file.name,
-      );
-    } else if (file.hasStream) {
-      // Use stream for large files (withReadStream: true)
-      multipartFile = http.MultipartFile(
-        'file',
-        file.readStream!,
-        file.size,
         filename: file.name,
       );
     } else {

@@ -74,5 +74,41 @@ void main() {
       expect(routes, contains('/login'));
       expect(find.text('Login Screen Mock'), findsOneWidget);
     });
+
+    testWidgets("Let's go button hitbox is aligned with visible button artwork at bottom of slide", (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final routes = <String>[];
+      await tester.pumpWidget(_buildLandingTestApp(navigatedRoutes: routes));
+      await tester.pumpAndSettle();
+
+      final buttonFinder = find.byTooltip("Let's go");
+      expect(buttonFinder, findsOneWidget);
+
+      final buttonRect = tester.getRect(buttonFinder);
+      final slideFinder = find.byWidgetPredicate(
+        (w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == 'assets/images/landing/landing_slide_1.png',
+      );
+      expect(slideFinder, findsOneWidget);
+      final slideRect = tester.getRect(slideFinder);
+
+      // Verify hitbox is aligned near the bottom of the slide artwork (between 2% and 10% from bottom)
+      final bottomOffset = slideRect.bottom - buttonRect.bottom;
+      final bottomRatio = bottomOffset / slideRect.height;
+      expect(bottomRatio, closeTo(0.02, 0.015));
+
+      // Tapping at 5% from the bottom of the slide (where the visible button artwork is located)
+      final visibleButtonPoint = Offset(
+        slideRect.center.dx,
+        slideRect.bottom - (slideRect.height * 0.05),
+      );
+      await tester.tapAt(visibleButtonPoint);
+      await tester.pumpAndSettle();
+
+      expect(routes, contains('/login'));
+      expect(find.text('Login Screen Mock'), findsOneWidget);
+    });
   });
 }

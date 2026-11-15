@@ -16,5 +16,5 @@ abstract final class ApiConfig {
   }
 
   static const Duration timeout = Duration(seconds: 30);
-  static const Duration uploadTimeout = Duration(minutes: 5);
+  static const Duration uploadTimeout = Duration(minutes: 20);
 }

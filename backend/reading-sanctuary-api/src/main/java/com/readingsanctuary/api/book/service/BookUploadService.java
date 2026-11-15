@@ -51,7 +51,7 @@ public class BookUploadService {
     private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
 
     private static final Set<String> SUPPORTED_FORMATS = Set.of("pdf", "epub", "mp3", "m4b", "m4a");
-    private static final long MAX_FILE_SIZE = 100L * 1024 * 1024; // 100 MB
+    private static final long MAX_FILE_SIZE = 2048L * 1024 * 1024; // 2 GB (2048 MB)
 
     private final UserRepository userRepository;
     private final BookRepository bookRepository;

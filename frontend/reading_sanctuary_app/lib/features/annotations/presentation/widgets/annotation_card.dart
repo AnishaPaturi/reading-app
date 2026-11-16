@@ -24,6 +24,7 @@ class AnnotationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHighlight = annotation.type == AnnotationType.highlight;
+    final isQuote = annotation.type == AnnotationType.quote;
     final color = annotation.displayColor;
     final hasPassage = annotation.selectedText != null && annotation.selectedText!.trim().isNotEmpty;
     final hasNote = annotation.noteText != null && annotation.noteText!.trim().isNotEmpty;
@@ -41,10 +42,14 @@ class AnnotationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                 decoration: BoxDecoration(
-                  color: isHighlight ? color.withValues(alpha: 0.45) : const Color(0xFFECE5FA),
+                  color: isHighlight
+                      ? color.withValues(alpha: 0.45)
+                      : (isQuote ? const Color(0xFFFAF0E6) : const Color(0xFFECE5FA)),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isHighlight ? color : ClayColors.primaryPurple,
+                    color: isHighlight
+                        ? color
+                        : (isQuote ? ClayColors.coral : ClayColors.primaryPurple),
                     width: 1,
                   ),
                 ),
@@ -52,17 +57,25 @@ class AnnotationCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isHighlight ? Icons.brush_rounded : Icons.edit_note_rounded,
+                      isHighlight
+                          ? Icons.brush_rounded
+                          : (isQuote ? Icons.format_quote_rounded : Icons.edit_note_rounded),
                       size: 13,
-                      color: isHighlight ? const Color(0xFF4C2A1E) : ClayColors.primaryPurple,
+                      color: isHighlight
+                          ? const Color(0xFF4C2A1E)
+                          : (isQuote ? ClayColors.coral : ClayColors.primaryPurple),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      isHighlight ? 'Highlight' : 'Note',
+                      isHighlight
+                          ? 'Highlight'
+                          : (isQuote ? 'Quote' : 'Note'),
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: isHighlight ? const Color(0xFF4C2A1E) : ClayColors.primaryPurple,
+                        color: isHighlight
+                            ? const Color(0xFF4C2A1E)
+                            : (isQuote ? ClayColors.coral : ClayColors.primaryPurple),
                       ),
                     ),
                   ],
@@ -140,21 +153,25 @@ class AnnotationCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isHighlight ? color.withValues(alpha: 0.25) : const Color(0xFFFAF7FE),
+                color: isHighlight
+                    ? color.withValues(alpha: 0.25)
+                    : (isQuote ? const Color(0xFFFBF6EE) : const Color(0xFFFAF7FE)),
                 borderRadius: BorderRadius.circular(10),
                 border: Border(
                   left: BorderSide(
-                    color: isHighlight ? color : ClayColors.coral,
+                    color: isHighlight
+                        ? color
+                        : (isQuote ? ClayColors.coral : ClayColors.primaryPurple),
                     width: 3.5,
                   ),
                 ),
               ),
               child: Text(
                 '“${annotation.selectedText!.trim()}”',
-                maxLines: 4,
+                maxLines: isQuote ? 8 : 4,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.lora(
-                  fontSize: 13,
+                  fontSize: isQuote ? 13.5 : 13,
                   fontStyle: FontStyle.italic,
                   color: ClayColors.textDark,
                 ),

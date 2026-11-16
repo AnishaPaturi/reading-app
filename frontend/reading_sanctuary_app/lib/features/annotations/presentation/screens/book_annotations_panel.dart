@@ -35,7 +35,7 @@ class _BookAnnotationsPanelState extends ConsumerState<BookAnnotationsPanel>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -156,6 +156,7 @@ class _BookAnnotationsPanelState extends ConsumerState<BookAnnotationsPanel>
                   Tab(text: 'All'),
                   Tab(text: 'Highlights'),
                   Tab(text: 'Notes'),
+                  Tab(text: 'Quotes'),
                 ],
               ),
             ),
@@ -205,13 +206,15 @@ class _BookAnnotationsPanelState extends ConsumerState<BookAnnotationsPanel>
                 data: (annotations) {
                   final highlights = annotations.where((a) => a.type == AnnotationType.highlight).toList();
                   final notes = annotations.where((a) => a.type == AnnotationType.note).toList();
+                  final quotes = annotations.where((a) => a.type == AnnotationType.quote).toList();
 
                   return TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildAnnotationList(annotations, 'No annotations yet', 'Select text in the reader to highlight or add a note.'),
+                      _buildAnnotationList(annotations, 'No annotations yet', 'Select text in the reader to highlight, take notes, or save quotes.'),
                       _buildAnnotationList(highlights, 'No highlights yet', 'Select text and pick a color to highlight passages.'),
                       _buildAnnotationList(notes, 'No notes yet', 'Tap "+ Add Note" or select a passage to save your thoughts.'),
+                      _buildAnnotationList(quotes, 'No quotes yet', 'Select memorable passages and save them to your Quotes collection.'),
                     ],
                   );
                 },

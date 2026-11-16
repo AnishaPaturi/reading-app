@@ -100,6 +100,20 @@ public class AnnotationService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AnnotationResponse> getQuotes(UUID userId, UUID bookId) {
+        if (bookId != null) {
+            return annotationRepository.findByUserIdAndBookIdAndTypeOrderByCreatedAtDesc(userId, bookId, AnnotationType.QUOTE)
+                    .stream()
+                    .map(AnnotationResponse::fromEntity)
+                    .toList();
+        }
+        return annotationRepository.findByUserIdAndTypeOrderByCreatedAtDesc(userId, AnnotationType.QUOTE)
+                .stream()
+                .map(AnnotationResponse::fromEntity)
+                .toList();
+    }
+
     public AnnotationResponse updateAnnotation(UUID userId, UUID annotationId, UpdateAnnotationRequest request) {
         Annotation annotation = annotationRepository.findByIdAndUserId(annotationId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Annotation not found"));

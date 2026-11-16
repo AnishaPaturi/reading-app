@@ -15,6 +15,7 @@ class AnnotationContextMenu extends StatelessWidget {
   final int? pageNumber;
   final ValueChanged<HighlightColorOption> onHighlight;
   final VoidCallback onAddNote;
+  final VoidCallback? onSaveQuote;
   final VoidCallback? onCopy;
 
   const AnnotationContextMenu({
@@ -23,6 +24,7 @@ class AnnotationContextMenu extends StatelessWidget {
     this.pageNumber,
     required this.onHighlight,
     required this.onAddNote,
+    this.onSaveQuote,
     this.onCopy,
   });
 
@@ -32,6 +34,7 @@ class AnnotationContextMenu extends StatelessWidget {
     int? pageNumber,
     required ValueChanged<HighlightColorOption> onHighlight,
     required VoidCallback onAddNote,
+    VoidCallback? onSaveQuote,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -48,6 +51,12 @@ class AnnotationContextMenu extends StatelessWidget {
           Navigator.of(ctx).pop();
           onAddNote();
         },
+        onSaveQuote: onSaveQuote != null
+            ? () {
+                Navigator.of(ctx).pop();
+                onSaveQuote();
+              }
+            : null,
         onCopy: () {
           Clipboard.setData(ClipboardData(text: selectedText));
           Navigator.of(ctx).pop();
@@ -151,13 +160,29 @@ class AnnotationContextMenu extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Action buttons row: Note & Copy
+              // Action buttons row: Quote, Note & Copy
               Row(
                 children: [
+                  if (onSaveQuote != null) ...[
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onSaveQuote,
+                        icon: const Icon(Icons.format_quote_rounded, size: 18),
+                        label: const Text('Quote'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: ClayColors.deepPurple,
+                          side: const BorderSide(color: Color(0xFFDDD2F5)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: onAddNote,
-                      icon: const Icon(Icons.edit_note_rounded, size: 20),
+                      icon: const Icon(Icons.edit_note_rounded, size: 19),
                       label: const Text('Add Note'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: ClayColors.deepPurple,
@@ -167,11 +192,11 @@ class AnnotationContextMenu extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: onCopy,
-                      icon: const Icon(Icons.content_copy_rounded, size: 18),
+                      icon: const Icon(Icons.content_copy_rounded, size: 17),
                       label: const Text('Copy'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: ClayColors.textDark,

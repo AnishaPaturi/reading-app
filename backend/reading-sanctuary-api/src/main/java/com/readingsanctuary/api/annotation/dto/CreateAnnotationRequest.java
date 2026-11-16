@@ -13,7 +13,7 @@ public record CreateAnnotationRequest(
     UUID bookFileId,
 
     @NotBlank(message = "type is required")
-    @Pattern(regexp = "(?i)^(HIGHLIGHT|NOTE)$", message = "type must be either HIGHLIGHT or NOTE")
+    @Pattern(regexp = "(?i)^(HIGHLIGHT|NOTE|QUOTE)$", message = "type must be HIGHLIGHT, NOTE, or QUOTE")
     String type,
 
     String selectedText,

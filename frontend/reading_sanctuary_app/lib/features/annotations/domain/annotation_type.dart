@@ -1,6 +1,7 @@
 enum AnnotationType {
   highlight,
   note,
+  quote,
 }
 
 extension AnnotationTypeX on AnnotationType {
@@ -10,6 +11,7 @@ extension AnnotationTypeX on AnnotationType {
     if (val == null) return AnnotationType.highlight;
     final lower = val.toLowerCase().trim();
     if (lower == 'note') return AnnotationType.note;
+    if (lower == 'quote') return AnnotationType.quote;
     return AnnotationType.highlight;
   }
 }

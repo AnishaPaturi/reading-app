@@ -136,7 +136,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
     if (!_controller.isReady || widget.annotations.isEmpty) return;
 
     for (final a in widget.annotations) {
-      if (a.type == AnnotationType.highlight &&
+      if ((a.type == AnnotationType.highlight || a.type == AnnotationType.quote) &&
           a.normalizedRects.isEmpty &&
           a.pageNumber != null &&
           a.selectedText != null &&
@@ -301,23 +301,30 @@ class PdfReaderViewState extends State<PdfReaderView> {
           pagePaintCallbacks: [
             (canvas, pageRect, page) {
               final pageHighlights = widget.annotations.where(
-                (a) => a.pageNumber == page.pageNumber && a.type == AnnotationType.highlight,
+                (a) => a.pageNumber == page.pageNumber &&
+                    (a.type == AnnotationType.highlight || a.type == AnnotationType.quote),
               );
               for (final highlight in pageHighlights) {
                 final isEmphasized = _emphasizedAnnotationId == highlight.id;
+                final isQuote = highlight.type == AnnotationType.quote;
                 final baseColor = highlight.displayColor;
                 final paint = Paint()
                   ..color = isEmphasized
-                      ? baseColor.withValues(alpha: 0.70)
-                      : baseColor.withValues(alpha: 0.40)
+                      ? (isQuote ? const Color(0xFFD4A373).withValues(alpha: 0.85) : baseColor.withValues(alpha: 0.70))
+                      : (isQuote ? const Color(0xFFE8D7C3).withValues(alpha: 0.55) : baseColor.withValues(alpha: 0.40))
                   ..style = PaintingStyle.fill;
 
                 final borderPaint = isEmphasized
                     ? (Paint()
-                        ..color = const Color(0xFF533E85)
+                        ..color = isQuote ? const Color(0xFF9A6138) : const Color(0xFF533E85)
                         ..strokeWidth = 2.0
                         ..style = PaintingStyle.stroke)
-                    : null;
+                    : (isQuote
+                        ? (Paint()
+                            ..color = const Color(0xFFC48B5E).withValues(alpha: 0.6)
+                            ..strokeWidth = 1.0
+                            ..style = PaintingStyle.stroke)
+                        : null);
 
                 final rects = highlight.normalizedRects.isNotEmpty
                     ? highlight.normalizedRects

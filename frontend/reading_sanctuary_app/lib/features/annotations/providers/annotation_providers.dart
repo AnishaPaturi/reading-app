@@ -94,6 +94,45 @@ class BookFileAnnotationsNotifier extends StateNotifier<AsyncValue<List<BookAnno
     }
   }
 
+  Future<BookAnnotation> addQuote({
+    required String selectedText,
+    String? noteText,
+    String? color,
+    int? pageNumber,
+    Map<String, dynamic>? locationData,
+  }) async {
+    final now = DateTime.now();
+    final tempId = const Uuid().v4();
+    final newAnnotation = BookAnnotation(
+      id: tempId,
+      bookId: bookId,
+      bookFileId: bookFileId,
+      type: AnnotationType.quote,
+      selectedText: selectedText,
+      noteText: noteText,
+      color: color ?? '#E5D4FF',
+      pageNumber: pageNumber,
+      locationData: locationData ?? const {},
+      createdAt: now,
+      updatedAt: now,
+      isPendingSync: true,
+    );
+
+    final currentList = state.value ?? [];
+    state = AsyncValue.data([...currentList, newAnnotation]);
+
+    try {
+      final saved = await _repository.saveAnnotation(newAnnotation);
+      final updated = (state.value ?? [])
+          .map((a) => a.id == tempId ? saved : a)
+          .toList();
+      state = AsyncValue.data(updated);
+      return saved;
+    } catch (e) {
+      return newAnnotation;
+    }
+  }
+
   Future<BookAnnotation> addNote({
     String? selectedText,
     required String noteText,

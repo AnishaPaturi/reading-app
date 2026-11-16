@@ -51,12 +51,14 @@ class EpubReaderViewState extends State<EpubReaderView> {
   void _applyHighlights() {
     for (final a in widget.annotations) {
       final cfi = a.epubCfi;
-      if (a.type == AnnotationType.highlight && cfi != null && cfi.isNotEmpty) {
+      if ((a.type == AnnotationType.highlight || a.type == AnnotationType.quote) &&
+          cfi != null &&
+          cfi.isNotEmpty) {
         try {
           _controller.addHighlight(
             cfi: cfi,
-            color: a.displayColor,
-            opacity: 0.38,
+            color: a.type == AnnotationType.quote ? const Color(0xFFD4A373) : a.displayColor,
+            opacity: a.type == AnnotationType.quote ? 0.45 : 0.38,
           );
         } catch (_) {}
       }

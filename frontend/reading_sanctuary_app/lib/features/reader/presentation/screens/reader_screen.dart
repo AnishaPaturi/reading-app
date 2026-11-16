@@ -8,6 +8,8 @@ import '../../../annotations/presentation/screens/book_annotations_panel.dart';
 import '../../../annotations/presentation/widgets/add_note_dialog.dart';
 import '../../../annotations/presentation/widgets/annotation_context_menu.dart';
 import '../../../annotations/providers/annotation_providers.dart';
+import '../../../home/presentation/providers/home_reading_progress_provider.dart';
+import '../../../tracker/application/quotes_highlights_provider.dart';
 import 'package:reading_sanctuary_app/shared/services/providers.dart';
 import '../../data/models/reader_annotations.dart';
 import '../../data/models/reader_document.dart';
@@ -211,6 +213,39 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           }
         }
       },
+      onSaveQuote: () async {
+        final locationData = <String, dynamic>{
+          'startLocation': startLocation,
+          'endLocation': endLocation,
+          if (rectangles.isNotEmpty)
+            'rectangles': rectangles.map((r) => r.toJson()).toList(),
+        };
+        if (startLocation.contains('/6/') || startLocation.contains('epubcfi') || startLocation.contains(':')) {
+          locationData['cfi'] = startLocation;
+        }
+
+        await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addQuote(
+              selectedText: selectedText,
+              pageNumber: pageNumber,
+              locationData: locationData,
+            );
+        try {
+          ref.read(quotesHighlightsProvider.notifier).addItem(
+                text: selectedText,
+                source: widget.bookTitle,
+                chapter: pageNumber != null ? 'Page $pageNumber' : 'Passage',
+                isQuote: true,
+              );
+        } catch (_) {}
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Saved to Quotes'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -321,6 +356,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               );
               ref.read(readingProgressNotifierProvider(progressParams).notifier).saveImmediately();
             } catch (_) {}
+            ref.invalidate(booksProvider);
+            ref.invalidate(homeReadingProgressProvider);
           },
           child: Scaffold(
             key: _scaffoldKey,
@@ -340,6 +377,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                 } catch (_) {}
                 if (mounted) {
                   ref.invalidate(booksProvider);
+                  ref.invalidate(homeReadingProgressProvider);
                   navigator.maybePop();
                 }
               },
@@ -357,7 +395,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               onSelectBookmark: (b) {
                 if (b.pageNumber != null && _pdfKey.currentState != null) {
                   _pdfKey.currentState!.goToPage(b.pageNumber!);
-                } else if (b.locationType == 'EPUB_CFI' && _epubKey.currentState != null) {
+                } else if ((b.locationType == 'EPUB_CFI' ||
+                        b.locationValue.contains('epubcfi') ||
+                        b.locationValue.contains('/6/')) &&
+                    _epubKey.currentState != null) {
                   _epubKey.currentState!.toCfi(b.locationValue);
                 }
               },

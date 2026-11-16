@@ -56,6 +56,16 @@ public class AnnotationController {
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/quotes")
+    public ResponseEntity<List<AnnotationResponse>> getQuotes(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) UUID bookId) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        List<AnnotationResponse> list = annotationService.getQuotes(userId, bookId);
+        return ResponseEntity.ok(list);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<AnnotationResponse> updateAnnotation(
             @AuthenticationPrincipal Jwt jwt,

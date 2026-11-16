@@ -146,6 +146,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     required String startLocation,
     required String endLocation,
     int? pageNumber,
+    List<NormalizedRect> rectangles = const [],
   }) {
     AnnotationContextMenu.show(
       context,
@@ -155,6 +156,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
         final locationData = <String, dynamic>{
           'startLocation': startLocation,
           'endLocation': endLocation,
+          if (rectangles.isNotEmpty)
+            'rectangles': rectangles.map((r) => r.toJson()).toList(),
         };
         if (startLocation.contains('/6/') || startLocation.contains('epubcfi') || startLocation.contains(':')) {
           locationData['cfi'] = startLocation;
@@ -185,6 +188,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           final locationData = <String, dynamic>{
             'startLocation': startLocation,
             'endLocation': endLocation,
+            if (rectangles.isNotEmpty)
+              'rectangles': rectangles.map((r) => r.toJson()).toList(),
           };
           if (startLocation.contains('/6/') || startLocation.contains('epubcfi') || startLocation.contains(':')) {
             locationData['cfi'] = startLocation;
@@ -374,7 +379,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                 onSelectAnnotation: (annotation) {
                   Navigator.of(context).pop();
                   if (annotation.pageNumber != null && _pdfKey.currentState != null) {
-                    _pdfKey.currentState!.goToPage(annotation.pageNumber!);
+                    _pdfKey.currentState!.jumpToAnnotation(annotation);
                   } else if (annotation.epubCfi != null && _epubKey.currentState != null) {
                     _epubKey.currentState!.toCfi(annotation.epubCfi!);
                   }
@@ -424,14 +429,16 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           annotations: annotations,
           onPositionChanged: _onPositionChanged,
           onAnnotationTap: (a) {
+            _pdfKey.currentState?.jumpToAnnotation(a);
             _scaffoldKey.currentState?.openEndDrawer();
           },
-          onTextSelected: (text, start, end, page) {
+          onTextSelected: (text, start, end, page, rects) {
             _handleTextSelected(
               selectedText: text,
               startLocation: start,
               endLocation: end,
               pageNumber: page,
+              rectangles: rects,
             );
           },
         );

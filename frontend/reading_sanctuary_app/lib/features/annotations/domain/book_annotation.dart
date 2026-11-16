@@ -86,10 +86,13 @@ class BookAnnotation {
   List<NormalizedRect> get normalizedRects {
     final raw = locationData['rectangles'];
     if (raw is List) {
-      return raw
-          .whereType<Map<String, dynamic>>()
-          .map((m) => NormalizedRect.fromJson(m))
-          .toList();
+      final list = <NormalizedRect>[];
+      for (final item in raw) {
+        if (item is Map) {
+          list.add(NormalizedRect.fromJson(Map<String, dynamic>.from(item)));
+        }
+      }
+      return list;
     }
     return const [];
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/sync_models.dart';
 import '../../../features/offline/domain/models/download_task.dart';
 
@@ -20,6 +21,12 @@ class LocalStorageDb {
 
   Future<void> init() async {
     if (_initialized) return;
+
+    if (kIsWeb) {
+      await _loadStateWeb();
+      _initialized = true;
+      return;
+    }
 
     try {
       if (customDirectoryPath != null) {
@@ -43,6 +50,42 @@ class LocalStorageDb {
   File _getFile(String filename) {
     final path = _baseDir != null ? '${_baseDir!.path}/$filename' : filename;
     return File(path);
+  }
+
+  Future<void> _loadStateWeb() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final metaStr = prefs.getString('sanctuary_metadata');
+      if (metaStr != null && metaStr.isNotEmpty) {
+        _metadata.addAll(jsonDecode(metaStr) as Map<String, dynamic>);
+      }
+
+      final outboxStr = prefs.getString('sanctuary_outbox');
+      if (outboxStr != null && outboxStr.isNotEmpty) {
+        final list = jsonDecode(outboxStr) as List<dynamic>;
+        _outbox.clear();
+        _outbox.addAll(list.map((e) => SyncChangeItem.fromJson(e as Map<String, dynamic>)));
+      }
+
+      final conflictsStr = prefs.getString('sanctuary_conflicts');
+      if (conflictsStr != null && conflictsStr.isNotEmpty) {
+        final list = jsonDecode(conflictsStr) as List<dynamic>;
+        _conflicts.clear();
+        _conflicts.addAll(list.map((e) => SyncConflictItem.fromJson(e as Map<String, dynamic>)));
+      }
+
+      final downloadsStr = prefs.getString('sanctuary_downloads');
+      if (downloadsStr != null && downloadsStr.isNotEmpty) {
+        final map = jsonDecode(downloadsStr) as Map<String, dynamic>;
+        _downloads.clear();
+        map.forEach((k, v) {
+          _downloads[k] = DownloadTask.fromJson(v as Map<String, dynamic>);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error reading persisted sanctuary web state: $e');
+    }
   }
 
   Future<void> _loadState() async {
@@ -85,6 +128,11 @@ class LocalStorageDb {
 
   Future<void> _saveMetadata() async {
     try {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('sanctuary_metadata', jsonEncode(_metadata));
+        return;
+      }
       if (_baseDir != null) {
         await _getFile('sanctuary_metadata.json').writeAsString(jsonEncode(_metadata));
       }
@@ -95,6 +143,12 @@ class LocalStorageDb {
 
   Future<void> _saveOutbox() async {
     try {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        final data = _outbox.map((e) => e.toJson()).toList();
+        await prefs.setString('sanctuary_outbox', jsonEncode(data));
+        return;
+      }
       if (_baseDir != null) {
         final data = _outbox.map((e) => e.toJson()).toList();
         await _getFile('sanctuary_outbox.json').writeAsString(jsonEncode(data));
@@ -106,6 +160,12 @@ class LocalStorageDb {
 
   Future<void> _saveConflicts() async {
     try {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        final data = _conflicts.map((e) => e.toJson()).toList();
+        await prefs.setString('sanctuary_conflicts', jsonEncode(data));
+        return;
+      }
       if (_baseDir != null) {
         final data = _conflicts.map((e) => e.toJson()).toList();
         await _getFile('sanctuary_conflicts.json').writeAsString(jsonEncode(data));
@@ -117,6 +177,12 @@ class LocalStorageDb {
 
   Future<void> _saveDownloads() async {
     try {
+      if (kIsWeb) {
+        final prefs = await SharedPreferences.getInstance();
+        final data = _downloads.map((k, v) => MapEntry(k, v.toJson()));
+        await prefs.setString('sanctuary_downloads', jsonEncode(data));
+        return;
+      }
       if (_baseDir != null) {
         final data = _downloads.map((k, v) => MapEntry(k, v.toJson()));
         await _getFile('sanctuary_downloads.json').writeAsString(jsonEncode(data));

@@ -258,11 +258,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      // Clear any prior cached session on the device so Google Play Services
+      // Clear any prior cached session on mobile so Google Play Services
       // re-prompts or fetches fresh tokens with the serverClientId audience.
-      try {
-        await _googleSignIn.signOut();
-      } catch (_) {}
+      if (!kIsWeb) {
+        try {
+          await _googleSignIn.signOut();
+        } catch (_) {}
+      }
 
       final account = await _googleSignIn.signIn();
       if (!mounted) return false;

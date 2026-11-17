@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../data/reading_progress_api.dart';
@@ -111,26 +112,40 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
   final String format;
 
   Timer? _saveDebounce;
+  bool _disposed = false;
 
   ReadingProgressNotifier({
     required ReadingProgressRepository repository,
     required this.bookFileId,
     required this.format,
   })  : _repository = repository,
-        super(ReadingProgressState(
-          bookFileId: bookFileId,
-          format: format,
-          isRestoring: true,
-          isLoading: true,
-        )) {
+        super(
+          ReadingProgressState(
+            bookFileId: bookFileId,
+            format: format,
+            isRestoring: true,
+            isLoading: true,
+          ),
+        ) {
     restoreProgress();
   }
 
+  bool get _canUpdateState => !_disposed && mounted;
+
   Future<void> restoreProgress() async {
-    state = state.copyWith(isLoading: true, isRestoring: true);
+    if (!_canUpdateState) return;
+
+    state = state.copyWith(
+      isLoading: true,
+      isRestoring: true,
+    );
 
     try {
       final saved = await _repository.getProgress(bookFileId);
+
+      // The reader might have been closed while the request was running.
+      if (!_canUpdateState) return;
+
       if (saved != null) {
         state = state.copyWith(
           currentPage: saved.currentPage ?? 1,
@@ -146,7 +161,12 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
         );
         return;
       }
-    } catch (_) {}
+    } catch (e) {
+      if (!_canUpdateState) return;
+      debugPrint('Reading progress restoration failed: $e');
+    }
+
+    if (!_canUpdateState) return;
 
     state = state.copyWith(
       isLoading: false,
@@ -159,11 +179,14 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
     required int totalPages,
     double scrollOffset = 0.0,
   }) {
-    if (state.isRestoring) return;
+    if (!_canUpdateState || state.isRestoring) return;
 
     final safeTotal = totalPages < 1 ? 1 : totalPages;
     final safePage = page.clamp(1, safeTotal);
-    final percentage = safeTotal == 1 ? 100.0 : ((safePage / safeTotal) * 100).clamp(0.0, 100.0);
+
+    final percentage = safeTotal == 1
+        ? 100.0
+        : ((safePage / safeTotal) * 100).clamp(0.0, 100.0);
 
     state = state.copyWith(
       currentPage: safePage,
@@ -172,13 +195,7 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
       format: 'PDF',
     );
 
-    // Save locally immediately
-    _repository.saveProgress(
-      bookFileId,
-      state.toReadingProgress(),
-      syncRemote: false,
-    );
-
+    _saveLocally();
     scheduleSave();
   }
 
@@ -189,23 +206,19 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
     int? pageNumber,
     int? totalPages,
   }) {
-    if (state.isRestoring) return;
+    if (!_canUpdateState || state.isRestoring) return;
 
     state = state.copyWith(
       chapterHref: chapterHref ?? state.chapterHref,
       epubCfi: cfi ?? state.epubCfi,
-      progressPercentage: progressPercentage ?? state.progressPercentage,
+      progressPercentage:
+          progressPercentage ?? state.progressPercentage,
       currentPage: pageNumber ?? state.currentPage,
       totalPages: totalPages ?? state.totalPages,
       format: 'EPUB',
     );
 
-    _repository.saveProgress(
-      bookFileId,
-      state.toReadingProgress(),
-      syncRemote: false,
-    );
-
+    _saveLocally();
     scheduleSave();
   }
 
@@ -213,7 +226,7 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
     required int positionMs,
     required int durationMs,
   }) {
-    if (state.isRestoring) return;
+    if (!_canUpdateState || state.isRestoring) return;
 
     final percentage = durationMs > 0
         ? ((positionMs / durationMs) * 100).clamp(0.0, 100.0)
@@ -226,39 +239,72 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
       format: format.isNotEmpty ? format : 'MP3',
     );
 
-    _repository.saveProgress(
-      bookFileId,
-      state.toReadingProgress(),
-      syncRemote: false,
-    );
-
+    _saveLocally();
     scheduleSave();
   }
 
+  void _saveLocally() {
+    if (!_canUpdateState || state.isRestoring) return;
+
+    final snapshot = state.toReadingProgress();
+
+    // Local persistence is independent of the widget lifecycle.
+    unawaited(
+      _repository.saveProgress(
+        bookFileId,
+        snapshot,
+        syncRemote: false,
+      ).catchError((Object error) {
+        debugPrint('Local reading progress save failed: $error');
+        return snapshot;
+      }),
+    );
+  }
+
   void scheduleSave() {
+    if (!_canUpdateState || state.isRestoring) return;
+
     _saveDebounce?.cancel();
-    _saveDebounce = Timer(const Duration(seconds: 2), () {
-      saveImmediately();
-    });
+
+    _saveDebounce = Timer(
+      const Duration(seconds: 2),
+      () {
+        if (_canUpdateState) {
+          unawaited(saveImmediately());
+        }
+      },
+    );
   }
 
   Future<void> saveImmediately() async {
+    if (!_canUpdateState || state.isRestoring) return;
+
     _saveDebounce?.cancel();
-    if (state.isRestoring) return;
+
+    // Capture the progress before awaiting the network.
+    final snapshot = state.toReadingProgress();
 
     state = state.copyWith(isSaving: true);
+
     try {
       final saved = await _repository.saveProgress(
         bookFileId,
-        state.toReadingProgress(),
+        snapshot,
         syncRemote: true,
       );
+
+      if (!_canUpdateState) return;
+
       state = state.copyWith(
         isSaving: false,
         lastSavedAt: saved.updatedAt ?? DateTime.now(),
         hasPendingSync: false,
       );
-    } catch (_) {
+    } catch (e) {
+      if (!_canUpdateState) return;
+
+      debugPrint('Remote reading progress save failed: $e');
+
       state = state.copyWith(
         isSaving: false,
         hasPendingSync: true,
@@ -267,7 +313,10 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
   }
 
   Future<void> resetProgress() async {
+    if (!_canUpdateState) return;
+
     _saveDebounce?.cancel();
+
     state = state.copyWith(
       currentPage: 1,
       chapterHref: null,
@@ -277,26 +326,51 @@ class ReadingProgressNotifier extends StateNotifier<ReadingProgressState> {
       isSaving: true,
     );
 
-    await _repository.resetProgress(bookFileId);
+    try {
+      await _repository.resetProgress(bookFileId);
 
-    state = state.copyWith(
-      isSaving: false,
-      hasPendingSync: false,
-      lastSavedAt: DateTime.now(),
-    );
+      if (!_canUpdateState) return;
+
+      state = state.copyWith(
+        isSaving: false,
+        hasPendingSync: false,
+        lastSavedAt: DateTime.now(),
+      );
+    } catch (e) {
+      if (!_canUpdateState) return;
+
+      state = state.copyWith(
+        isSaving: false,
+        hasPendingSync: true,
+      );
+
+      rethrow;
+    }
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _saveDebounce?.cancel();
+
+    // Capture the final state before StateNotifier is disposed.
+    // Do not try to update state after this point.
     if (!state.isRestoring) {
-      // Save synchronous/immediate local flush on dispose
-      _repository.saveProgress(
-        bookFileId,
-        state.toReadingProgress(),
-        syncRemote: true,
+      final snapshot = state.toReadingProgress();
+
+      unawaited(
+        _repository.saveProgress(
+          bookFileId,
+          snapshot,
+          syncRemote: true,
+        ).then<void>((_) {
+          // No state updates here.
+        }).catchError((Object error) {
+          debugPrint('Final reading progress save failed: $error');
+        }),
       );
     }
+
     super.dispose();
   }
 }

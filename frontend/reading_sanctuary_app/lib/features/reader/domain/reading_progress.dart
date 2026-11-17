@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class ReadingProgress {
   final String bookFileId;
   final String format;
@@ -58,9 +60,11 @@ class ReadingProgress {
       if (value is Map) return Map<String, dynamic>.from(value);
       if (value is String) {
         try {
-          return Map<String, dynamic>.from(
-            Map<dynamic, dynamic>.from(const {}),
-          );
+          final decoded = jsonDecode(value);
+          if (decoded is Map) {
+            return Map<String, dynamic>.from(decoded);
+          }
+          return {};
         } catch (_) {
           return {};
         }
@@ -94,7 +98,7 @@ class ReadingProgress {
       'audioPositionMs': audioPositionMs,
       'audioDurationMs': audioDurationMs,
       'progressPercentage': progressPercentage,
-      'positionData': positionData.isNotEmpty ? positionData.toString() : '{}',
+      'positionData': positionData.isNotEmpty ? jsonEncode(positionData) : '{}',
     };
   }
 

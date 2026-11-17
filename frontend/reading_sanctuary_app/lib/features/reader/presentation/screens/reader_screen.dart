@@ -1,6 +1,9 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../../analytics/application/analytics_providers.dart';
 import '../../../analytics/data/models/activity_session.dart';
 import '../../../annotations/domain/book_annotation.dart';
@@ -51,6 +54,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey<PdfReaderViewState> _pdfKey = GlobalKey<PdfReaderViewState>();
   final GlobalKey<EpubReaderViewState> _epubKey = GlobalKey<EpubReaderViewState>();
+  bool _sessionClosed = false;
+
+  Timer? _bookProgressDebounce;
+  double? _pendingBookProgress;
+
+  String? _webSelectedText;
+  String? _webSelectedCfi;
+  final TextEditingController _webNoteController = TextEditingController();
 
   ReaderDocumentArgs get _args => ReaderDocumentArgs(
         bookId: widget.bookId,
@@ -69,6 +80,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       ref.read(activityTrackingServiceProvider).startSession(
             activityType: ActivityType.READING,
             bookId: widget.bookId,
@@ -79,9 +91,13 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!mounted) return;
+
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
+      _bookProgressDebounce?.cancel();
+      _flushBookProgress();
       ref.read(readerPositionServiceProvider).flushPending();
       ref.read(activityTrackingServiceProvider).closeSession();
     } else if (state == AppLifecycleState.resumed) {
@@ -93,28 +109,120 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     }
   }
 
+  Future<void> _teardownSessionAndSave() async {
+    if (_sessionClosed) return;
+    _sessionClosed = true;
+
+    _bookProgressDebounce?.cancel();
+    await _flushBookProgress();
+
+    await ref.read(readerPositionServiceProvider).flushPending();
+    try {
+      final progressParams = ReadingProgressParams(
+        bookFileId: widget.fileId,
+        format: widget.fileFormat,
+      );
+      await ref.read(readingProgressNotifierProvider(progressParams).notifier).saveImmediately();
+    } catch (_) {}
+    await ref.read(activityTrackingServiceProvider).closeSession();
+  }
+
   @override
   void dispose() {
+    _webNoteController.dispose();
+    _bookProgressDebounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
-    ref.read(readerPositionServiceProvider).flushPending();
-    ref.read(activityTrackingServiceProvider).closeSession();
     super.dispose();
   }
 
   void _onPositionChanged(ReaderPosition position) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
       ref.read(readerCurrentPositionProvider.notifier).state = position;
+
       ref.read(readerPositionServiceProvider).onPositionChanged(
             bookId: widget.bookId,
             fileId: widget.fileId,
             position: position,
           );
+
       ref.read(activityTrackingServiceProvider).updateProgress(
             currentLocation: position.locationValue,
             currentPage: position.pageNumber,
           );
+
+      if (position.locationType == 'EPUB_CFI') {
+        final params = ReadingProgressParams(
+          bookFileId: widget.fileId,
+          format: 'EPUB',
+        );
+
+        ref
+            .read(readingProgressNotifierProvider(params).notifier)
+            .updateEpubPosition(
+              chapterHref: null,
+              cfi: position.locationValue,
+              progressPercentage: position.progressPercentage,
+              pageNumber: position.pageNumber,
+              totalPages: position.totalPages,
+            );
+
+        _scheduleBookProgressUpdate(
+          position.progressPercentage / 100.0,
+        );
+      } else if (position.locationType == 'PDF_PAGE') {
+        final params = ReadingProgressParams(
+          bookFileId: widget.fileId,
+          format: 'PDF',
+        );
+
+        if (position.pageNumber != null && position.totalPages != null) {
+          ref
+              .read(readingProgressNotifierProvider(params).notifier)
+              .updatePdfPage(
+                page: position.pageNumber!,
+                totalPages: position.totalPages!,
+              );
+        }
+
+        _scheduleBookProgressUpdate(
+          position.progressPercentage / 100.0,
+        );
+      }
     });
+  }
+
+  void _scheduleBookProgressUpdate(double progress) {
+    _pendingBookProgress = progress.clamp(0.0, 1.0);
+
+    _bookProgressDebounce?.cancel();
+
+    _bookProgressDebounce = Timer(
+      const Duration(seconds: 2),
+      _flushBookProgress,
+    );
+  }
+
+  Future<void> _flushBookProgress() async {
+    _bookProgressDebounce?.cancel();
+
+    final progress = _pendingBookProgress;
+
+    if (progress == null || !mounted) return;
+
+    _pendingBookProgress = null;
+
+    try {
+      await ref
+          .read(booksProvider.notifier)
+          .setProgress(widget.bookId, progress);
+
+      ref.invalidate(homeReadingProgressProvider);
+    } catch (error, stackTrace) {
+      debugPrint('Book progress update failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   Future<void> _handleToggleBookmark(List<ReaderBookmark> existingBookmarks) async {
@@ -171,6 +279,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               color: colorOption.hex,
               locationData: locationData,
             );
+
+        if (startLocation.isNotEmpty && _epubKey.currentState != null) {
+          await _epubKey.currentState?.addHighlight(
+            cfi: startLocation,
+            color: colorOption.color,
+          );
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -246,6 +362,221 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           );
         }
       },
+    ).whenComplete(() {
+      if (mounted) {
+        _epubKey.currentState?.clearSelection();
+      }
+    });
+  }
+
+  Widget _buildWebEpubAnnotationToolbar() {
+    if (_webSelectedText == null || _webSelectedCfi == null) {
+      return const SizedBox.shrink();
+    }
+
+    final selectedText = _webSelectedText!;
+    final cfi = _webSelectedCfi!;
+
+    return PointerInterceptor(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: const BoxDecoration(
+          color: Color(0xFF30251F),
+          border: Border(
+            bottom: BorderSide(
+              color: Color(0xFF8B7355),
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '“$selectedText”',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFFF5E6C8),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _epubAnnotationButton(
+                  'Gold',
+                  const Color(0xFFE5C07B),
+                  selectedText,
+                  cfi,
+                ),
+                _epubAnnotationButton(
+                  'Rose',
+                  const Color(0xFFE8A0A0),
+                  selectedText,
+                  cfi,
+                ),
+                _epubAnnotationButton(
+                  'Sage',
+                  const Color(0xFFA3B18A),
+                  selectedText,
+                  cfi,
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await _epubKey.currentState?.addUnderline(
+                      cfi: cfi,
+                    );
+
+                    if (mounted) {
+                      setState(() {
+                        _webSelectedText = null;
+                        _webSelectedCfi = null;
+                      });
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.format_underlined,
+                    color: Color(0xFFF5E6C8),
+                  ),
+                  label: const Text(
+                    'Underline',
+                    style: TextStyle(color: Color(0xFFF5E6C8)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _webNoteController,
+                    style: const TextStyle(
+                      color: Color(0xFFF5E6C8),
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: 'Write a note about this passage...',
+                      hintStyle: TextStyle(
+                        color: Colors.white54,
+                      ),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Save note',
+                  onPressed: () async {
+                    final note = _webNoteController.text.trim();
+
+                    if (note.isEmpty) return;
+
+                    final locationData = <String, dynamic>{
+                      'cfi': cfi,
+                      'startLocation': cfi,
+                      'endLocation': cfi,
+                    };
+
+                    await ref
+                        .read(
+                          bookFileAnnotationsProvider(
+                            _annotationParams,
+                          ).notifier,
+                        )
+                        .addNote(
+                          selectedText: selectedText,
+                          noteText: note,
+                          locationData: locationData,
+                        );
+
+                    _webNoteController.clear();
+
+                    await _epubKey.currentState?.clearSelection();
+
+                    if (mounted) {
+                      setState(() {
+                        _webSelectedText = null;
+                        _webSelectedCfi = null;
+                      });
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.save,
+                    color: Color(0xFFE5C07B),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Dismiss',
+                  onPressed: () async {
+                    await _epubKey.currentState?.clearSelection();
+
+                    if (mounted) {
+                      setState(() {
+                        _webSelectedText = null;
+                        _webSelectedCfi = null;
+                      });
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFFF5E6C8),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _epubAnnotationButton(
+    String label,
+    Color color,
+    String selectedText,
+    String cfi,
+  ) {
+    return TextButton(
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        backgroundColor: color.withValues(alpha: 0.12),
+      ),
+      onPressed: () async {
+        final hex = '#${(color.r * 255).round().toRadixString(16).padLeft(2, '0')}${(color.g * 255).round().toRadixString(16).padLeft(2, '0')}${(color.b * 255).round().toRadixString(16).padLeft(2, '0')}'.toUpperCase();
+
+        await ref
+            .read(
+              bookFileAnnotationsProvider(
+                _annotationParams,
+              ).notifier,
+            )
+            .addHighlight(
+              selectedText: selectedText,
+              color: hex,
+              locationData: {
+                'cfi': cfi,
+                'startLocation': cfi,
+                'endLocation': cfi,
+              },
+            );
+
+        await _epubKey.currentState?.addHighlight(
+          cfi: cfi,
+          color: color,
+        );
+
+        await _epubKey.currentState?.clearSelection();
+
+        if (mounted) {
+          setState(() {
+            _webSelectedText = null;
+            _webSelectedCfi = null;
+          });
+        }
+      },
+      child: Text(label),
     );
   }
 
@@ -319,6 +650,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
 
   @override
   Widget build(BuildContext context) {
+    final progressParams = ReadingProgressParams(
+      bookFileId: widget.fileId,
+      format: widget.fileFormat,
+    );
+    ref.watch(readingProgressNotifierProvider(progressParams));
+
     final docAsync = ref.watch(readerDocumentProvider(_args));
     final currentPosition = ref.watch(readerCurrentPositionProvider);
     final settings = ref.watch(readerSettingsProvider);
@@ -348,47 +685,53 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
         return PopScope(
           canPop: true,
           onPopInvokedWithResult: (didPop, result) {
-            ref.read(readerPositionServiceProvider).flushPending();
-            try {
-              final progressParams = ReadingProgressParams(
-                bookFileId: widget.fileId,
-                format: widget.fileFormat,
-              );
-              ref.read(readingProgressNotifierProvider(progressParams).notifier).saveImmediately();
-            } catch (_) {}
+            _bookProgressDebounce?.cancel();
+            if (mounted) {
+              _flushBookProgress();
+            }
+            if (!_sessionClosed) {
+              _sessionClosed = true;
+              ref.read(readerPositionServiceProvider).flushPending();
+              ref.read(activityTrackingServiceProvider).closeSession();
+              try {
+                final progressParams = ReadingProgressParams(
+                  bookFileId: widget.fileId,
+                  format: widget.fileFormat,
+                );
+                ref.read(readingProgressNotifierProvider(progressParams).notifier).saveImmediately();
+              } catch (_) {}
+            }
             ref.invalidate(booksProvider);
             ref.invalidate(homeReadingProgressProvider);
           },
           child: Scaffold(
             key: _scaffoldKey,
-            appBar: ReaderToolbar(
-              title: doc.bookTitle,
-              format: doc.fileFormat,
-              isBookmarked: isCurrentBookmarked,
-              onBack: () async {
-                final navigator = Navigator.of(context);
-                await ref.read(readerPositionServiceProvider).flushPending();
-                try {
-                  final progressParams = ReadingProgressParams(
-                    bookFileId: widget.fileId,
-                    format: widget.fileFormat,
-                  );
-                  await ref.read(readingProgressNotifierProvider(progressParams).notifier).saveImmediately();
-                } catch (_) {}
-                if (mounted) {
-                  ref.invalidate(booksProvider);
-                  ref.invalidate(homeReadingProgressProvider);
-                  navigator.maybePop();
-                }
-              },
-              onToggleBookmark: () => _handleToggleBookmark(bookmarks),
-              onOpenSettings: _openSettingsPanel,
-              onOpenAnnotations: () => _scaffoldKey.currentState?.openEndDrawer(),
-              onListenTts: () {
-                context.push(
-                  '/listen/${widget.bookId}/${widget.fileId}?mode=tts&title=${Uri.encodeComponent(doc.bookTitle)}&format=${doc.fileFormat}',
-                );
-              },
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight),
+              child: PointerInterceptor(
+                child: ReaderToolbar(
+                  title: doc.bookTitle,
+                  format: doc.fileFormat,
+                  isBookmarked: isCurrentBookmarked,
+                  onBack: () async {
+                    final navigator = Navigator.of(context);
+                    await _teardownSessionAndSave();
+                    if (mounted) {
+                      ref.invalidate(booksProvider);
+                      ref.invalidate(homeReadingProgressProvider);
+                      navigator.maybePop();
+                    }
+                  },
+                  onToggleBookmark: () => _handleToggleBookmark(bookmarks),
+                  onOpenSettings: _openSettingsPanel,
+                  onOpenAnnotations: () => _scaffoldKey.currentState?.openEndDrawer(),
+                  onListenTts: () {
+                    context.push(
+                      '/listen/${widget.bookId}/${widget.fileId}?mode=tts&title=${Uri.encodeComponent(doc.bookTitle)}&format=${doc.fileFormat}',
+                    );
+                  },
+                ),
+              ),
             ),
             drawer: ReaderSidebar(
               bookmarks: bookmarks,
@@ -428,25 +771,46 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               ),
             ),
             body: _buildReaderBody(fileType, doc, settings, annotations),
-            bottomNavigationBar: ReaderBottomBar(
-              currentPage: currentPosition?.pageNumber,
-              totalPages: currentPosition?.totalPages,
-              progressPercentage: currentPosition?.progressPercentage ?? 0.0,
-              onPageSelected: (page) {
-                if (fileType == ReaderFileType.pdf && _pdfKey.currentState != null) {
-                  _pdfKey.currentState!.goToPage(page);
-                }
-              },
-              onPrevious: () {
-                if (currentPosition?.pageNumber != null && _pdfKey.currentState != null) {
-                  _pdfKey.currentState!.goToPage(currentPosition!.pageNumber! - 1);
-                }
-              },
-              onNext: () {
-                if (currentPosition?.pageNumber != null && _pdfKey.currentState != null) {
-                  _pdfKey.currentState!.goToPage(currentPosition!.pageNumber! + 1);
-                }
-              },
+            bottomNavigationBar: PointerInterceptor(
+              child: ReaderBottomBar(
+                currentPage: fileType == ReaderFileType.epub
+                    ? null
+                    : currentPosition?.pageNumber,
+                totalPages: fileType == ReaderFileType.epub
+                    ? null
+                    : currentPosition?.totalPages,
+                progressPercentage: currentPosition?.progressPercentage ?? 0.0,
+                onSeek: fileType == ReaderFileType.epub
+                    ? (percentage) {
+                        _epubKey.currentState?.toProgressPercentage(percentage);
+                      }
+                    : null,
+                onPageSelected: (page) {
+                  if (fileType == ReaderFileType.pdf && _pdfKey.currentState != null) {
+                    _pdfKey.currentState!.goToPage(page);
+                  }
+                },
+                onPrevious: () {
+                  if (fileType == ReaderFileType.pdf) {
+                    final page = currentPosition?.pageNumber;
+                    if (page != null) {
+                      _pdfKey.currentState?.goToPage(page - 1);
+                    }
+                  } else if (fileType == ReaderFileType.epub) {
+                    _epubKey.currentState?.prev();
+                  }
+                },
+                onNext: () {
+                  if (fileType == ReaderFileType.pdf) {
+                    final page = currentPosition?.pageNumber;
+                    if (page != null) {
+                      _pdfKey.currentState?.goToPage(page + 1);
+                    }
+                  } else if (fileType == ReaderFileType.epub) {
+                    _epubKey.currentState?.next();
+                  }
+                },
+              ),
             ),
           ),
         );
@@ -484,24 +848,38 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           },
         );
       case ReaderFileType.epub:
-        return EpubReaderView(
-          key: _epubKey,
-          fileBytes: doc.fileBytes,
-          initialPosition: doc.initialPosition,
-          settings: settings,
-          annotations: annotations,
-          onPositionChanged: _onPositionChanged,
-          onAnnotationTap: (a) {
-            _scaffoldKey.currentState?.openEndDrawer();
-          },
-          onTextSelected: (text, start, end) {
-            _handleTextSelected(
-              selectedText: text,
-              startLocation: start,
-              endLocation: end,
-              pageNumber: null,
-            );
-          },
+        return Column(
+          children: [
+            _buildWebEpubAnnotationToolbar(),
+            Expanded(
+              child: EpubReaderView(
+                key: _epubKey,
+                fileBytes: doc.fileBytes,
+                initialPosition: doc.initialPosition,
+                settings: settings,
+                annotations: annotations,
+                onPositionChanged: _onPositionChanged,
+                onAnnotationTap: (annotation) {
+                  _scaffoldKey.currentState?.openEndDrawer();
+                },
+                onTextSelected: (text, start, end) {
+                  if (kIsWeb) {
+                    setState(() {
+                      _webSelectedText = text;
+                      _webSelectedCfi = start;
+                    });
+                  } else {
+                    _handleTextSelected(
+                      selectedText: text,
+                      startLocation: start,
+                      endLocation: end,
+                      pageNumber: null,
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
         );
       case ReaderFileType.docx:
         return DocxReaderView(

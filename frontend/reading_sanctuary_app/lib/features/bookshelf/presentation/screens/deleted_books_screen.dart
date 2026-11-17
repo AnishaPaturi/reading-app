@@ -317,9 +317,9 @@ class _DeletedBookCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAF7F2), // Warm Parchment
+        color: ClayColors.cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE5DDD3), width: 1.2),
+        border: Border.all(color: ClayColors.clayBorder, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/widgets/book_cover.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 
 Future<bool> showBookDeleteDialog(BuildContext context, Book book) async {
@@ -88,12 +89,12 @@ class _BookDeleteDialogState extends State<BookDeleteDialog>
           constraints: const BoxConstraints(maxWidth: 400),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFFFAF7F2), // Warm Parchment
+              color: ClayColors.cardBg,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFE4DAD1), width: 1.5),
+              border: Border.all(color: ClayColors.clayBorder, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
+                  color: const Color(0xFF382761).withValues(alpha: 0.16),
                   blurRadius: 24,
                   offset: const Offset(0, 10),
                 ),
@@ -196,7 +197,7 @@ class _BookDeleteDialogState extends State<BookDeleteDialog>
                       child: ElevatedButton(
                         onPressed: _isAnimating ? null : _handleConfirm,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8B2635), // Dark Academia Crimson
+                          backgroundColor: const Color(0xFFB5384D), // Crimson delete button
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           elevation: 2,

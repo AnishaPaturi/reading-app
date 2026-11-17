@@ -6,25 +6,13 @@ enum ReaderThemeMode {
   dark;
 
   Color get backgroundColor {
-    switch (this) {
-      case ReaderThemeMode.light:
-        return const Color(0xFFFAFAFA);
-      case ReaderThemeMode.sepia:
-        return const Color(0xFFFBF0D9);
-      case ReaderThemeMode.dark:
-        return const Color(0xFF1E1E1E);
-    }
+    // Single locked Porcelain Violet Clay theme: #F4F0FB
+    return const Color(0xFFF4F0FB);
   }
 
   Color get textColor {
-    switch (this) {
-      case ReaderThemeMode.light:
-        return const Color(0xFF212121);
-      case ReaderThemeMode.sepia:
-        return const Color(0xFF5F4B32);
-      case ReaderThemeMode.dark:
-        return const Color(0xFFE0E0E0);
-    }
+    // Single locked Deep Plum typography: #2E1A48
+    return const Color(0xFF2E1A48);
   }
 }
 

@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../analytics/application/analytics_providers.dart';
 import '../../../analytics/data/models/activity_session.dart';
 import '../../../annotations/domain/book_annotation.dart';
@@ -32,6 +33,24 @@ import '../widgets/reader_settings_panel.dart';
 import '../widgets/reader_sidebar.dart';
 import '../widgets/reader_toolbar.dart';
 
+class ReaderTextSelectionState {
+  final String selectedText;
+  final String startLocation;
+  final String endLocation;
+  final int? pageNumber;
+  final List<NormalizedRect> rectangles;
+  final Rect? targetRect;
+
+  const ReaderTextSelectionState({
+    required this.selectedText,
+    required this.startLocation,
+    required this.endLocation,
+    this.pageNumber,
+    this.rectangles = const [],
+    this.targetRect,
+  });
+}
+
 class ReaderScreen extends ConsumerStatefulWidget {
   final String bookId;
   final String fileId;
@@ -58,10 +77,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
 
   Timer? _bookProgressDebounce;
   double? _pendingBookProgress;
-
-  String? _webSelectedText;
-  String? _webSelectedCfi;
-  final TextEditingController _webNoteController = TextEditingController();
+  ReaderTextSelectionState? _activeSelection;
 
   ReaderDocumentArgs get _args => ReaderDocumentArgs(
         bookId: widget.bookId,
@@ -129,7 +145,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
 
   @override
   void dispose() {
-    _webNoteController.dispose();
     _bookProgressDebounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -257,326 +272,276 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     required String endLocation,
     int? pageNumber,
     List<NormalizedRect> rectangles = const [],
+    Rect? targetRect,
   }) {
-    AnnotationContextMenu.show(
-      context,
-      selectedText: selectedText,
-      pageNumber: pageNumber,
-      onHighlight: (colorOption) async {
-        final locationData = <String, dynamic>{
-          'startLocation': startLocation,
-          'endLocation': endLocation,
-          if (rectangles.isNotEmpty)
-            'rectangles': rectangles.map((r) => r.toJson()).toList(),
-        };
-        if (startLocation.contains('/6/') || startLocation.contains('epubcfi') || startLocation.contains(':')) {
-          locationData['cfi'] = startLocation;
-        }
-
-        await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addHighlight(
-              selectedText: selectedText,
-              pageNumber: pageNumber,
-              color: colorOption.hex,
-              locationData: locationData,
-            );
-
-        if (startLocation.isNotEmpty && _epubKey.currentState != null) {
-          await _epubKey.currentState?.addHighlight(
-            cfi: startLocation,
-            color: colorOption.color,
-          );
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Highlighted in ${colorOption.name}'),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      },
-      onAddNote: () async {
-        final note = await AddNoteDialog.show(
-          context,
-          selectedText: selectedText,
-          pageNumber: pageNumber,
-        );
-        if (note != null && note.trim().isNotEmpty && mounted) {
-          final locationData = <String, dynamic>{
-            'startLocation': startLocation,
-            'endLocation': endLocation,
-            if (rectangles.isNotEmpty)
-              'rectangles': rectangles.map((r) => r.toJson()).toList(),
-          };
-          if (startLocation.contains('/6/') || startLocation.contains('epubcfi') || startLocation.contains(':')) {
-            locationData['cfi'] = startLocation;
-          }
-
-          await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addNote(
-                noteText: note.trim(),
-                selectedText: selectedText,
-                pageNumber: pageNumber,
-                locationData: locationData,
-              );
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Note attached to passage'),
-                duration: Duration(seconds: 2),
-              ),
-            );
-          }
-        }
-      },
-      onSaveQuote: () async {
-        final locationData = <String, dynamic>{
-          'startLocation': startLocation,
-          'endLocation': endLocation,
-          if (rectangles.isNotEmpty)
-            'rectangles': rectangles.map((r) => r.toJson()).toList(),
-        };
-        if (startLocation.contains('/6/') || startLocation.contains('epubcfi') || startLocation.contains(':')) {
-          locationData['cfi'] = startLocation;
-        }
-
-        await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addQuote(
-              selectedText: selectedText,
-              pageNumber: pageNumber,
-              locationData: locationData,
-            );
-        try {
-          ref.read(quotesHighlightsProvider.notifier).addItem(
-                text: selectedText,
-                source: widget.bookTitle,
-                chapter: pageNumber != null ? 'Page $pageNumber' : 'Passage',
-                isQuote: true,
-              );
-        } catch (_) {}
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Saved to Quotes'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-      },
-    ).whenComplete(() {
-      if (mounted) {
-        _epubKey.currentState?.clearSelection();
-      }
+    setState(() {
+      _activeSelection = ReaderTextSelectionState(
+        selectedText: selectedText,
+        startLocation: startLocation,
+        endLocation: endLocation,
+        pageNumber: pageNumber,
+        rectangles: rectangles,
+        targetRect: targetRect,
+      );
     });
   }
 
-  Widget _buildWebEpubAnnotationToolbar() {
-    if (_webSelectedText == null || _webSelectedCfi == null) {
-      return const SizedBox.shrink();
+  Widget _buildFloatingAnnotationToolbarOverlay() {
+    final selection = _activeSelection;
+    if (selection == null) return const SizedBox.shrink();
+
+    final mediaQuery = MediaQuery.of(context);
+    final screenSize = mediaQuery.size;
+    final padding = mediaQuery.padding;
+
+    const double toolbarWidth = 350.0;
+    const double toolbarHeight = 175.0;
+
+    double left;
+    double top;
+
+    if (selection.targetRect != null && selection.targetRect != Rect.zero) {
+      final target = selection.targetRect!;
+      left = (target.center.dx - (toolbarWidth / 2))
+          .clamp(16.0, screenSize.width - toolbarWidth - 16.0);
+
+      final spaceAbove = target.top - padding.top;
+      if (spaceAbove >= toolbarHeight + 16.0) {
+        top = target.top - toolbarHeight - 12.0;
+      } else {
+        top = target.bottom + 12.0;
+        if (top + toolbarHeight > screenSize.height - padding.bottom - 16.0) {
+          top = (screenSize.height - toolbarHeight) / 2;
+        }
+      }
+    } else {
+      left = (screenSize.width - toolbarWidth) / 2;
+      top = padding.top + 70.0;
     }
 
-    final selectedText = _webSelectedText!;
-    final cfi = _webSelectedCfi!;
-
-    return PointerInterceptor(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: const BoxDecoration(
-          color: Color(0xFF30251F),
-          border: Border(
-            bottom: BorderSide(
-              color: Color(0xFF8B7355),
-            ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              setState(() {
+                _activeSelection = null;
+              });
+              _epubKey.currentState?.clearSelection();
+            },
+            child: Container(color: Colors.transparent),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '“$selectedText”',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFFF5E6C8),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _epubAnnotationButton(
-                  'Gold',
-                  const Color(0xFFE5C07B),
-                  selectedText,
-                  cfi,
-                ),
-                _epubAnnotationButton(
-                  'Rose',
-                  const Color(0xFFE8A0A0),
-                  selectedText,
-                  cfi,
-                ),
-                _epubAnnotationButton(
-                  'Sage',
-                  const Color(0xFFA3B18A),
-                  selectedText,
-                  cfi,
-                ),
-                TextButton.icon(
-                  onPressed: () async {
-                    await _epubKey.currentState?.addUnderline(
-                      cfi: cfi,
+        Positioned(
+          left: left,
+          top: top,
+          width: toolbarWidth,
+          child: PointerInterceptor(
+            child: Material(
+              color: Colors.transparent,
+              child: AnnotationContextMenu(
+                selectedText: selection.selectedText,
+                pageNumber: selection.pageNumber,
+                onHighlight: (colorOption) async {
+                  final startLoc = selection.startLocation;
+                  final endLoc = selection.endLocation;
+                  final locationData = <String, dynamic>{
+                    'startLocation': startLoc,
+                    'endLocation': endLoc,
+                    if (selection.rectangles.isNotEmpty)
+                      'rectangles': selection.rectangles.map((r) => r.toJson()).toList(),
+                  };
+                  if (startLoc.contains('/6/') || startLoc.contains('epubcfi') || startLoc.contains(':')) {
+                    locationData['cfi'] = startLoc;
+                  }
+
+                  await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addHighlight(
+                        selectedText: selection.selectedText,
+                        pageNumber: selection.pageNumber,
+                        color: colorOption.hex,
+                        locationData: locationData,
+                      );
+
+                  if (startLoc.isNotEmpty && _epubKey.currentState != null) {
+                    await _epubKey.currentState?.addHighlight(
+                      cfi: startLoc,
+                      color: colorOption.color,
                     );
+                  }
 
-                    if (mounted) {
-                      setState(() {
-                        _webSelectedText = null;
-                        _webSelectedCfi = null;
-                      });
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.format_underlined,
-                    color: Color(0xFFF5E6C8),
-                  ),
-                  label: const Text(
-                    'Underline',
-                    style: TextStyle(color: Color(0xFFF5E6C8)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _webNoteController,
-                    style: const TextStyle(
-                      color: Color(0xFFF5E6C8),
-                    ),
-                    decoration: const InputDecoration(
-                      hintText: 'Write a note about this passage...',
-                      hintStyle: TextStyle(
-                        color: Colors.white54,
+                  setState(() {
+                    _activeSelection = null;
+                  });
+                  _epubKey.currentState?.clearSelection();
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Highlighted in ${colorOption.name}'),
+                        duration: const Duration(seconds: 2),
                       ),
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Save note',
-                  onPressed: () async {
-                    final note = _webNoteController.text.trim();
+                    );
+                  }
+                },
+                onUnderline: (colorOption) async {
+                  final startLoc = selection.startLocation;
+                  final endLoc = selection.endLocation;
+                  final locationData = <String, dynamic>{
+                    'startLocation': startLoc,
+                    'endLocation': endLoc,
+                    'style': 'underline',
+                    if (selection.rectangles.isNotEmpty)
+                      'rectangles': selection.rectangles.map((r) => r.toJson()).toList(),
+                  };
+                  if (startLoc.contains('/6/') || startLoc.contains('epubcfi') || startLoc.contains(':')) {
+                    locationData['cfi'] = startLoc;
+                  }
 
-                    if (note.isEmpty) return;
+                  await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addHighlight(
+                        selectedText: selection.selectedText,
+                        pageNumber: selection.pageNumber,
+                        color: colorOption.hex,
+                        locationData: locationData,
+                      );
 
+                  if (startLoc.isNotEmpty && _epubKey.currentState != null) {
+                    await _epubKey.currentState?.addUnderline(cfi: startLoc);
+                  }
+
+                  setState(() {
+                    _activeSelection = null;
+                  });
+                  _epubKey.currentState?.clearSelection();
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Underlined passage'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                onAddNote: () async {
+                  final selText = selection.selectedText;
+                  final pageNum = selection.pageNumber;
+                  final startLoc = selection.startLocation;
+                  final endLoc = selection.endLocation;
+                  final rects = selection.rectangles;
+
+                  setState(() {
+                    _activeSelection = null;
+                  });
+
+                  final note = await AddNoteDialog.show(
+                    context,
+                    selectedText: selText,
+                    pageNumber: pageNum,
+                  );
+
+                  if (note != null && note.trim().isNotEmpty && mounted) {
                     final locationData = <String, dynamic>{
-                      'cfi': cfi,
-                      'startLocation': cfi,
-                      'endLocation': cfi,
+                      'startLocation': startLoc,
+                      'endLocation': endLoc,
+                      if (rects.isNotEmpty)
+                        'rectangles': rects.map((r) => r.toJson()).toList(),
                     };
+                    if (startLoc.contains('/6/') || startLoc.contains('epubcfi') || startLoc.contains(':')) {
+                      locationData['cfi'] = startLoc;
+                    }
 
-                    await ref
-                        .read(
-                          bookFileAnnotationsProvider(
-                            _annotationParams,
-                          ).notifier,
-                        )
-                        .addNote(
-                          selectedText: selectedText,
-                          noteText: note,
+                    await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addNote(
+                          noteText: note.trim(),
+                          selectedText: selText,
+                          pageNumber: pageNum,
                           locationData: locationData,
                         );
 
-                    _webNoteController.clear();
-
-                    await _epubKey.currentState?.clearSelection();
+                    _epubKey.currentState?.clearSelection();
 
                     if (mounted) {
-                      setState(() {
-                        _webSelectedText = null;
-                        _webSelectedCfi = null;
-                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Note attached to passage'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
                     }
-                  },
-                  icon: const Icon(
-                    Icons.save,
-                    color: Color(0xFFE5C07B),
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Dismiss',
-                  onPressed: () async {
-                    await _epubKey.currentState?.clearSelection();
+                  } else {
+                    _epubKey.currentState?.clearSelection();
+                  }
+                },
+                onSaveQuote: () async {
+                  final selText = selection.selectedText;
+                  final pageNum = selection.pageNumber;
+                  final startLoc = selection.startLocation;
+                  final endLoc = selection.endLocation;
+                  final rects = selection.rectangles;
 
-                    if (mounted) {
-                      setState(() {
-                        _webSelectedText = null;
-                        _webSelectedCfi = null;
-                      });
-                    }
-                  },
-                  icon: const Icon(
-                    Icons.close,
-                    color: Color(0xFFF5E6C8),
-                  ),
-                ),
-              ],
+                  final locationData = <String, dynamic>{
+                    'startLocation': startLoc,
+                    'endLocation': endLoc,
+                    if (rects.isNotEmpty)
+                      'rectangles': rects.map((r) => r.toJson()).toList(),
+                  };
+                  if (startLoc.contains('/6/') || startLoc.contains('epubcfi') || startLoc.contains(':')) {
+                    locationData['cfi'] = startLoc;
+                  }
+
+                  await ref.read(bookFileAnnotationsProvider(_annotationParams).notifier).addQuote(
+                        selectedText: selText,
+                        pageNumber: pageNum,
+                        locationData: locationData,
+                      );
+
+                  try {
+                    ref.read(quotesHighlightsProvider.notifier).addItem(
+                          text: selText,
+                          source: widget.bookTitle,
+                          chapter: pageNum != null ? 'Page $pageNum' : 'Passage',
+                          isQuote: true,
+                        );
+                  } catch (_) {}
+
+                  setState(() {
+                    _activeSelection = null;
+                  });
+                  _epubKey.currentState?.clearSelection();
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Saved to Quotes'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                onCopy: () {
+                  Clipboard.setData(ClipboardData(text: selection.selectedText));
+                  setState(() {
+                    _activeSelection = null;
+                  });
+                  _epubKey.currentState?.clearSelection();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Passage copied to clipboard'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                onDismiss: () {
+                  setState(() {
+                    _activeSelection = null;
+                  });
+                  _epubKey.currentState?.clearSelection();
+                },
+              ),
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _epubAnnotationButton(
-    String label,
-    Color color,
-    String selectedText,
-    String cfi,
-  ) {
-    return TextButton(
-      style: TextButton.styleFrom(
-        foregroundColor: color,
-        backgroundColor: color.withValues(alpha: 0.12),
-      ),
-      onPressed: () async {
-        final hex = '#${(color.r * 255).round().toRadixString(16).padLeft(2, '0')}${(color.g * 255).round().toRadixString(16).padLeft(2, '0')}${(color.b * 255).round().toRadixString(16).padLeft(2, '0')}'.toUpperCase();
-
-        await ref
-            .read(
-              bookFileAnnotationsProvider(
-                _annotationParams,
-              ).notifier,
-            )
-            .addHighlight(
-              selectedText: selectedText,
-              color: hex,
-              locationData: {
-                'cfi': cfi,
-                'startLocation': cfi,
-                'endLocation': cfi,
-              },
-            );
-
-        await _epubKey.currentState?.addHighlight(
-          cfi: cfi,
-          color: color,
-        );
-
-        await _epubKey.currentState?.clearSelection();
-
-        if (mounted) {
-          setState(() {
-            _webSelectedText = null;
-            _webSelectedCfi = null;
-          });
-        }
-      },
-      child: Text(label),
+      ],
     );
   }
 
@@ -706,6 +671,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           },
           child: Scaffold(
             key: _scaffoldKey,
+            backgroundColor: ClayColors.background,
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: PointerInterceptor(
@@ -768,9 +734,26 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     _epubKey.currentState!.toCfi(annotation.epubCfi!);
                   }
                 },
+                onSelectBookmark: (b) {
+                  Navigator.of(context).pop();
+                  if (b.pageNumber != null && _pdfKey.currentState != null) {
+                    _pdfKey.currentState!.goToPage(b.pageNumber!);
+                  } else if ((b.locationType == 'EPUB_CFI' ||
+                          b.locationValue.contains('epubcfi') ||
+                          b.locationValue.contains('/6/')) &&
+                      _epubKey.currentState != null) {
+                    _epubKey.currentState!.toCfi(b.locationValue);
+                  }
+                },
               ),
             ),
-            body: _buildReaderBody(fileType, doc, settings, annotations),
+            body: Stack(
+              children: [
+                _buildReaderBody(fileType, doc, settings, annotations),
+                if (_activeSelection != null)
+                  _buildFloatingAnnotationToolbarOverlay(),
+              ],
+            ),
             bottomNavigationBar: PointerInterceptor(
               child: ReaderBottomBar(
                 currentPage: fileType == ReaderFileType.epub
@@ -837,54 +820,38 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
             _pdfKey.currentState?.jumpToAnnotation(a);
             _scaffoldKey.currentState?.openEndDrawer();
           },
-          onTextSelected: (text, start, end, page, rects) {
+          onTextSelected: (text, start, end, page, rects, [targetRect]) {
             _handleTextSelected(
               selectedText: text,
               startLocation: start,
               endLocation: end,
               pageNumber: page,
               rectangles: rects,
+              targetRect: targetRect,
             );
           },
         );
       case ReaderFileType.epub:
-        return Column(
-          children: [
-            _buildWebEpubAnnotationToolbar(),
-            Expanded(
-              child: EpubReaderView(
-                key: _epubKey,
-                fileBytes: doc.fileBytes,
-                initialPosition: doc.initialPosition,
-                settings: settings,
-                annotations: annotations,
-                onPositionChanged: _onPositionChanged,
-                onAnnotationTap: (annotation) {
-                  _scaffoldKey.currentState?.openEndDrawer();
-                },
-                onTextSelected: (text, start, end) {
-                  debugPrint('READER SCREEN RECEIVED EPUB SELECTION');
-                  debugPrint('Text: $text');
-                  debugPrint('Start CFI: $start');
-                  debugPrint('End CFI: $end');
-
-                  if (kIsWeb) {
-                    setState(() {
-                      _webSelectedText = text;
-                      _webSelectedCfi = start;
-                    });
-                  } else {
-                    _handleTextSelected(
-                      selectedText: text,
-                      startLocation: start,
-                      endLocation: end,
-                      pageNumber: null,
-                    );
-                  }
-                },
-              ),
-            ),
-          ],
+        return EpubReaderView(
+          key: _epubKey,
+          fileBytes: doc.fileBytes,
+          initialPosition: doc.initialPosition,
+          settings: settings,
+          annotations: annotations,
+          onPositionChanged: _onPositionChanged,
+          onAnnotationTap: (annotation) {
+            _scaffoldKey.currentState?.openEndDrawer();
+          },
+          onTextSelected: (text, start, end, [targetRect]) {
+            _handleTextSelected(
+              selectedText: text,
+              startLocation: start,
+              endLocation: end,
+              pageNumber: null,
+              rectangles: const [],
+              targetRect: targetRect,
+            );
+          },
         );
       case ReaderFileType.docx:
         return DocxReaderView(

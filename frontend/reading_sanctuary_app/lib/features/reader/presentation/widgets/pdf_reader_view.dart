@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../annotations/domain/annotation_type.dart';
 import '../../../annotations/domain/book_annotation.dart';
 import '../../data/models/reader_position.dart';
@@ -18,8 +19,9 @@ class PdfReaderView extends StatefulWidget {
     String startLocation,
     String endLocation,
     int pageNumber,
-    List<NormalizedRect> rectangles,
-  )? onTextSelected;
+    List<NormalizedRect> rectangles, [
+    Rect? targetRect,
+  ])? onTextSelected;
   final ValueChanged<BookAnnotation>? onAnnotationTap;
 
   const PdfReaderView({
@@ -271,7 +273,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: widget.settings.themeMode.backgroundColor,
+      color: ClayColors.background,
       child: PdfViewer.data(
         widget.fileBytes,
         sourceName: 'Reading Sanctuary Document',
@@ -310,18 +312,18 @@ class PdfReaderViewState extends State<PdfReaderView> {
                 final baseColor = highlight.displayColor;
                 final paint = Paint()
                   ..color = isEmphasized
-                      ? (isQuote ? const Color(0xFFD4A373).withValues(alpha: 0.85) : baseColor.withValues(alpha: 0.70))
-                      : (isQuote ? const Color(0xFFE8D7C3).withValues(alpha: 0.55) : baseColor.withValues(alpha: 0.40))
+                      ? (isQuote ? ClayColors.softLilac.withValues(alpha: 0.85) : baseColor.withValues(alpha: 0.70))
+                      : (isQuote ? ClayColors.softLilac.withValues(alpha: 0.45) : baseColor.withValues(alpha: 0.40))
                   ..style = PaintingStyle.fill;
 
                 final borderPaint = isEmphasized
                     ? (Paint()
-                        ..color = isQuote ? const Color(0xFF9A6138) : const Color(0xFF533E85)
+                        ..color = isQuote ? ClayColors.primaryPurple : ClayColors.deepPurple
                         ..strokeWidth = 2.0
                         ..style = PaintingStyle.stroke)
                     : (isQuote
                         ? (Paint()
-                            ..color = const Color(0xFFC48B5E).withValues(alpha: 0.6)
+                            ..color = ClayColors.primaryPurple.withValues(alpha: 0.6)
                             ..strokeWidth = 1.0
                             ..style = PaintingStyle.stroke)
                         : null);
@@ -363,7 +365,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF533E85).withValues(alpha: 0.88),
+                        color: ClayColors.deepPurple.withValues(alpha: 0.90),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: const [
                           BoxShadow(
@@ -419,12 +421,32 @@ class PdfReaderViewState extends State<PdfReaderView> {
                         b: params.b,
                       );
 
+                      Rect? targetRect;
+                      if (rectangles.isNotEmpty && _controller.isReady && pageNum <= _controller.pages.length) {
+                        try {
+                          final pdfPage = _controller.pages[pageNum - 1];
+                          final first = rectangles.first;
+                          final totalRectInPage = Rect.fromLTRB(
+                            first.left * pdfPage.width,
+                            first.top * pdfPage.height,
+                            (first.left + first.width) * pdfPage.width,
+                            (first.top + first.height) * pdfPage.height,
+                          );
+                          final pdfRect = totalRectInPage.toPdfRect(page: pdfPage);
+                          targetRect = _controller.calcRectForRectInsidePage(
+                            pageNumber: pageNum,
+                            rect: pdfRect,
+                          );
+                        } catch (_) {}
+                      }
+
                       widget.onTextSelected!(
                         text.trim(),
                         'page=$pageNum',
                         'page=$pageNum',
                         pageNum,
                         rectangles,
+                        targetRect,
                       );
                     }
                   },

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_epub_viewer/flutter_epub_viewer.dart';
 
+import '../../../../core/widgets/clay_components.dart';
 import '../../../annotations/domain/annotation_type.dart';
 import '../../../annotations/domain/book_annotation.dart';
 import '../../data/models/reader_position.dart';
@@ -19,8 +20,9 @@ class EpubReaderView extends StatefulWidget {
   final void Function(
     String text,
     String startLocation,
-    String endLocation,
-  )? onTextSelected;
+    String endLocation, [
+    Rect? targetRect,
+  ])? onTextSelected;
 
   final ValueChanged<BookAnnotation>? onAnnotationTap;
 
@@ -251,7 +253,7 @@ class EpubReaderViewState extends State<EpubReaderView> {
           _controller.addHighlight(
             cfi: cfi,
             color: annotation.type == AnnotationType.quote
-                ? const Color(0xFFD4A373)
+                ? ClayColors.softLilac
                 : annotation.displayColor,
             opacity: annotation.type == AnnotationType.quote
                 ? 0.45
@@ -301,12 +303,9 @@ class EpubReaderViewState extends State<EpubReaderView> {
       },
     };
 
-    final bg = widget.settings.themeMode.backgroundColor;
-    final fg = widget.settings.themeMode.textColor;
-
     return EpubTheme.custom(
-      backgroundDecoration: BoxDecoration(color: bg),
-      foregroundColor: fg,
+      backgroundDecoration: const BoxDecoration(color: ClayColors.background),
+      foregroundColor: ClayColors.textDark,
       customCss: customCss,
     );
   }
@@ -342,7 +341,7 @@ class EpubReaderViewState extends State<EpubReaderView> {
         : EpubFlow.scrolled;
 
     return Container(
-      color: widget.settings.themeMode.backgroundColor,
+      color: ClayColors.background,
       child: EpubViewer(
         epubController: _controller,
 
@@ -413,6 +412,7 @@ class EpubReaderViewState extends State<EpubReaderView> {
             selectedText,
             cfiRange,
             cfiRange,
+            null,
           );
         },
 

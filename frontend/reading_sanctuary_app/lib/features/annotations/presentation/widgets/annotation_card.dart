@@ -44,12 +44,12 @@ class AnnotationCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isHighlight
                       ? color.withValues(alpha: 0.45)
-                      : (isQuote ? const Color(0xFFFAF0E6) : const Color(0xFFECE5FA)),
+                      : (isQuote ? const Color(0xFFEDE5F8) : const Color(0xFFECE5FA)),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isHighlight
                         ? color
-                        : (isQuote ? ClayColors.coral : ClayColors.primaryPurple),
+                        : (isQuote ? ClayColors.peachDark : ClayColors.primaryPurple),
                     width: 1,
                   ),
                 ),
@@ -62,8 +62,8 @@ class AnnotationCard extends StatelessWidget {
                           : (isQuote ? Icons.format_quote_rounded : Icons.edit_note_rounded),
                       size: 13,
                       color: isHighlight
-                          ? const Color(0xFF4C2A1E)
-                          : (isQuote ? ClayColors.coral : ClayColors.primaryPurple),
+                          ? ClayColors.deepPurple
+                          : (isQuote ? ClayColors.peachDark : ClayColors.primaryPurple),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -74,8 +74,8 @@ class AnnotationCard extends StatelessWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: isHighlight
-                            ? const Color(0xFF4C2A1E)
-                            : (isQuote ? ClayColors.coral : ClayColors.primaryPurple),
+                            ? ClayColors.deepPurple
+                            : (isQuote ? ClayColors.peachDark : ClayColors.primaryPurple),
                       ),
                     ),
                   ],

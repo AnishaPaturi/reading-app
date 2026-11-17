@@ -84,41 +84,7 @@ class LandingScreen extends StatelessWidget {
                       ],
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      children: [
-                        _buildSlide(context),
-
-                        // Top Navigation Controls (Skip)
-                        Positioned(
-                          top: 14,
-                          left: 18,
-                          right: 18,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.white.withValues(alpha: 0.7),
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                onPressed: () => _navigateToLogin(context),
-                                child: const Text(
-                                  'Skip',
-                                  style: TextStyle(
-                                    color: AuthPalette.textLink,
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                    child: _buildSlide(context),
                   ),
                 ),
               ),
@@ -142,13 +108,14 @@ class LandingScreen extends StatelessWidget {
               alignment: Alignment.topCenter,
             ),
 
-            // Interactive Button Overlay for "Let's go ➔"
+            // Interactive Button Overlay for "Let's go ➔" / "Get Started"
             Positioned(
               left: constraints.maxWidth * 0.10,
               right: constraints.maxWidth * 0.10,
               bottom: constraints.maxHeight * 0.02,
               height: constraints.maxHeight * 0.08,
               child: _InteractivePillButton(
+                key: const Key('first_landing_get_started'),
                 tooltip: "Let's go",
                 onTap: () => _navigateToLogin(context),
               ),
@@ -165,6 +132,7 @@ class _InteractivePillButton extends StatefulWidget {
   final VoidCallback onTap;
 
   const _InteractivePillButton({
+    super.key,
     required this.tooltip,
     required this.onTap,
   });
@@ -193,7 +161,12 @@ class _InteractivePillButtonState extends State<_InteractivePillButton> {
           child: AnimatedScale(
             scale: _isPressed ? 0.96 : 1.0,
             duration: const Duration(milliseconds: 100),
-            child: const SizedBox.expand(),
+            child: const Center(
+              child: Opacity(
+                opacity: 0.0,
+                child: Text('Get Started'),
+              ),
+            ),
           ),
         ),
       ),

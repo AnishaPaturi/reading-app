@@ -771,44 +771,46 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               ),
             ),
             body: _buildReaderBody(fileType, doc, settings, annotations),
-            bottomNavigationBar: ReaderBottomBar(
-              currentPage: fileType == ReaderFileType.epub
-                  ? null
-                  : currentPosition?.pageNumber,
-              totalPages: fileType == ReaderFileType.epub
-                  ? null
-                  : currentPosition?.totalPages,
-              progressPercentage: currentPosition?.progressPercentage ?? 0.0,
-              onSeek: fileType == ReaderFileType.epub
-                  ? (percentage) {
-                      _epubKey.currentState?.toProgressPercentage(percentage);
+            bottomNavigationBar: PointerInterceptor(
+              child: ReaderBottomBar(
+                currentPage: fileType == ReaderFileType.epub
+                    ? null
+                    : currentPosition?.pageNumber,
+                totalPages: fileType == ReaderFileType.epub
+                    ? null
+                    : currentPosition?.totalPages,
+                progressPercentage: currentPosition?.progressPercentage ?? 0.0,
+                onSeek: fileType == ReaderFileType.epub
+                    ? (percentage) {
+                        _epubKey.currentState?.toProgressPercentage(percentage);
+                      }
+                    : null,
+                onPageSelected: (page) {
+                  if (fileType == ReaderFileType.pdf && _pdfKey.currentState != null) {
+                    _pdfKey.currentState!.goToPage(page);
+                  }
+                },
+                onPrevious: () {
+                  if (fileType == ReaderFileType.epub) {
+                    _epubKey.currentState?.prev();
+                  } else if (fileType == ReaderFileType.pdf) {
+                    final page = currentPosition?.pageNumber;
+                    if (page != null) {
+                      _pdfKey.currentState?.goToPage(page - 1);
                     }
-                  : null,
-              onPageSelected: (page) {
-                if (fileType == ReaderFileType.pdf && _pdfKey.currentState != null) {
-                  _pdfKey.currentState!.goToPage(page);
-                }
-              },
-              onPrevious: () {
-                if (fileType == ReaderFileType.pdf) {
-                  final page = currentPosition?.pageNumber;
-                  if (page != null) {
-                    _pdfKey.currentState?.goToPage(page - 1);
                   }
-                } else if (fileType == ReaderFileType.epub) {
-                  _epubKey.currentState?.prev();
-                }
-              },
-              onNext: () {
-                if (fileType == ReaderFileType.pdf) {
-                  final page = currentPosition?.pageNumber;
-                  if (page != null) {
-                    _pdfKey.currentState?.goToPage(page + 1);
+                },
+                onNext: () {
+                  if (fileType == ReaderFileType.epub) {
+                    _epubKey.currentState?.next();
+                  } else if (fileType == ReaderFileType.pdf) {
+                    final page = currentPosition?.pageNumber;
+                    if (page != null) {
+                      _pdfKey.currentState?.goToPage(page + 1);
+                    }
                   }
-                } else if (fileType == ReaderFileType.epub) {
-                  _epubKey.currentState?.next();
-                }
-              },
+                },
+              ),
             ),
           ),
         );
@@ -861,6 +863,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                   _scaffoldKey.currentState?.openEndDrawer();
                 },
                 onTextSelected: (text, start, end) {
+                  debugPrint('READER SCREEN RECEIVED EPUB SELECTION');
+                  debugPrint('Text: $text');
+                  debugPrint('Start CFI: $start');
+                  debugPrint('End CFI: $end');
+
                   if (kIsWeb) {
                     setState(() {
                       _webSelectedText = text;

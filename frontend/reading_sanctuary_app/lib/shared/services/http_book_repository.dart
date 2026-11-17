@@ -126,14 +126,16 @@ class HttpBookRepository implements BookRepository {
           }
         }
 
-        await _saveToCache(serverBooks);
+        // Preserve any locally cached deleted books when saving library books
+        final cachedDeleted = cachedBooks.where((b) => b.status == ReadingStatus.deleted).toList();
+        await _saveToCache([...serverBooks, ...cachedDeleted]);
         return serverBooks;
       }
     } catch (_) {
       // Offline fallback: continue to return cached books
     }
 
-    return cachedBooks;
+    return cachedBooks.where((b) => b.status != ReadingStatus.deleted).toList();
   }
 
   @override
@@ -239,6 +241,171 @@ class HttpBookRepository implements BookRepository {
     } catch (_) {}
   }
 
+  @override
+  Future<List<Book>> getDeletedBooks() async {
+    try {
+      final response = await _apiClient.get(
+        '/books/deleted',
+        timeout: const Duration(seconds: 5),
+      );
+      if (response is List) {
+        final deletedBooks = <Book>[];
+        for (final item in response) {
+          if (item is Map<String, dynamic>) {
+            final bookId = item['id']?.toString() ?? '';
+            final prevStatusStr = item['previousReadingStatus']?.toString();
+            final previousStatus = prevStatusStr != null ? _mapReadingStatus(prevStatusStr) : null;
+            final deletedAt = item['deletedAt'] != null
+                ? DateTime.tryParse(item['deletedAt'].toString())
+                : null;
+
+            double progress = 0.0;
+            int totalPages = 250;
+            int currentPage = 0;
+            DateTime? dnfDate;
+            String? dnfReason;
+            String? dnfNotes;
+
+            try {
+              final readingRes = await _apiClient.get(
+                '/books/$bookId/reading',
+                timeout: const Duration(seconds: 2),
+              );
+              if (readingRes is Map<String, dynamic>) {
+                if (readingRes['progressPercentage'] is num) {
+                  progress = ((readingRes['progressPercentage'] as num) / 100.0).clamp(0.0, 1.0);
+                }
+                if (readingRes['totalPages'] is int) {
+                  totalPages = readingRes['totalPages'] as int;
+                }
+                if (readingRes['currentPage'] is int) {
+                  currentPage = readingRes['currentPage'] as int;
+                }
+                if (readingRes['dnfAt'] != null) {
+                  dnfDate = DateTime.tryParse(readingRes['dnfAt'].toString());
+                } else if (readingRes['dnfDate'] != null) {
+                  dnfDate = DateTime.tryParse(readingRes['dnfDate'].toString());
+                }
+                dnfReason = readingRes['dnfReason']?.toString();
+                dnfNotes = readingRes['dnfNotes']?.toString();
+              }
+            } catch (_) {}
+
+            List<BookFile> files = [];
+            if (item['files'] is List) {
+              files = (item['files'] as List)
+                  .whereType<Map<String, dynamic>>()
+                  .map((json) => BookFile.fromJson(json))
+                  .where((file) => file.id.trim().isNotEmpty)
+                  .toList();
+            }
+
+            if (files.isEmpty && bookId.isNotEmpty) {
+              try {
+                final filesResponse = await _apiClient.get(
+                  '/books/$bookId/files',
+                  timeout: const Duration(seconds: 5),
+                );
+                if (filesResponse is List) {
+                  files = filesResponse
+                      .whereType<Map<String, dynamic>>()
+                      .map((json) => BookFile.fromJson(json))
+                      .where((file) => file.id.trim().isNotEmpty)
+                      .toList();
+                }
+              } catch (_) {}
+            }
+
+            final colorList = _generateCoverColors(bookId);
+            final String? coverUrl = item['coverUrl']?.toString() ??
+                item['coverImageUrl']?.toString() ??
+                (item['coverStorageKey'] != null ? '/books/$bookId/cover' : null) ??
+                (item['hasCover'] == true ? '/books/$bookId/cover' : null);
+
+            deletedBooks.add(Book(
+              id: bookId,
+              title: item['title']?.toString() ?? 'Untitled',
+              author: item['publisher']?.toString() ?? 'Community Author',
+              genre: item['language']?.toString() ?? 'Fiction',
+              description: item['description']?.toString() ?? '',
+              status: ReadingStatus.deleted,
+              previousStatus: previousStatus,
+              deletedAt: deletedAt,
+              progress: progress > 0 ? progress : (currentPage > 0 ? (currentPage / totalPages) : 0.0),
+              pages: totalPages,
+              formats: const [BookFormat.ebook, BookFormat.audiobook],
+              files: files,
+              addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
+              coverColors: colorList,
+              coverImageUrl: coverUrl,
+              dnfDate: dnfDate,
+              dnfReason: dnfReason,
+              dnfNotes: dnfNotes,
+            ));
+          }
+        }
+        final cached = await _loadFromCache();
+        final nonDeleted = cached.where((b) => b.status != ReadingStatus.deleted).toList();
+        await _saveToCache([...nonDeleted, ...deletedBooks]);
+        return deletedBooks;
+      }
+    } catch (_) {}
+
+    final cached = await _loadFromCache();
+    return cached.where((b) => b.status == ReadingStatus.deleted).toList();
+  }
+
+  @override
+  Future<void> moveToDeleted(String id) async {
+    try {
+      await _apiClient.delete('/books/$id');
+    } catch (_) {}
+    final cached = await _loadFromCache();
+    final updated = [
+      for (final b in cached)
+        if (b.id == id)
+          b.copyWith(
+            status: ReadingStatus.deleted,
+            previousStatus: b.status,
+            deletedAt: DateTime.now(),
+          )
+        else
+          b
+    ];
+    await _saveToCache(updated);
+  }
+
+  @override
+  Future<void> restoreBook(String id) async {
+    try {
+      await _apiClient.post('/books/$id/restore');
+    } catch (_) {}
+    final cached = await _loadFromCache();
+    final updated = [
+      for (final b in cached)
+        if (b.id == id)
+          b.copyWith(
+            status: (b.previousStatus != null && b.previousStatus != ReadingStatus.deleted)
+                ? b.previousStatus!
+                : ReadingStatus.wantToRead,
+            clearDeletedMetadata: true,
+          )
+        else
+          b
+    ];
+    await _saveToCache(updated);
+  }
+
+  @override
+  Future<void> permanentlyDeleteBook(String id) async {
+    try {
+      await _apiClient.delete('/books/$id/permanent');
+    } catch (_) {}
+    final cached = await _loadFromCache();
+    final updated = cached.where((b) => b.id != id).toList();
+    await _saveToCache(updated);
+  }
+
   Future<List<Book>> _loadFromCache() async {
     try {
       final prefs = await SharedPreferences.getInstance().timeout(const Duration(milliseconds: 500));
@@ -269,6 +436,8 @@ class HttpBookRepository implements BookRepository {
 
   static ReadingStatus _mapReadingStatus(String status) {
     switch (status.toUpperCase()) {
+      case 'DELETED':
+        return ReadingStatus.deleted;
       case 'CURRENTLY_READING':
         return ReadingStatus.currentlyReading;
       case 'COMPLETED':
@@ -278,6 +447,7 @@ class HttpBookRepository implements BookRepository {
       case 'DNF':
         return ReadingStatus.dnf;
       case 'WANT_TO_READ':
+      case 'TO_READ':
       default:
         return ReadingStatus.wantToRead;
     }
@@ -285,6 +455,8 @@ class HttpBookRepository implements BookRepository {
 
   static String _statusToBackend(ReadingStatus status) {
     switch (status) {
+      case ReadingStatus.deleted:
+        return 'DELETED';
       case ReadingStatus.currentlyReading:
         return 'CURRENTLY_READING';
       case ReadingStatus.completed:
@@ -295,7 +467,7 @@ class HttpBookRepository implements BookRepository {
         return 'DNF';
       case ReadingStatus.wantToRead:
       case ReadingStatus.toRead:
-        return 'WANT_TO_READ';
+        return 'TO_READ';
     }
   }
 

@@ -22,6 +22,10 @@ public record BookResponse(
 
     OffsetDateTime createdAt,
 
-    OffsetDateTime updatedAt
+    OffsetDateTime updatedAt,
+
+    String previousReadingStatus,
+
+    OffsetDateTime deletedAt
 
 ) {}

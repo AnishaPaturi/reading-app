@@ -4,6 +4,7 @@ import '../../../../core/widgets/clay_components.dart';
 
 class LibraryHeader extends StatelessWidget {
   final VoidCallback? onMenuTap;
+  final VoidCallback? onTrashTap;
   final bool showMenuButton;
   final String title;
   final String subtitle;
@@ -11,6 +12,7 @@ class LibraryHeader extends StatelessWidget {
   const LibraryHeader({
     super.key,
     this.onMenuTap,
+    this.onTrashTap,
     this.showMenuButton = false,
     this.title = 'My Library',
     this.subtitle = 'A little world of stories',
@@ -91,6 +93,37 @@ class LibraryHeader extends StatelessWidget {
               ],
             ),
           ),
+          if (onTrashTap != null) ...[
+            const SizedBox(width: 12),
+            Tooltip(
+              message: 'Deleted Books',
+              child: InkWell(
+                onTap: onTrashTap,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: ClayColors.clayBorder),
+                    boxShadow: [
+                      BoxShadow(
+                        color: ClayColors.deepPurple.withValues(alpha: 0.06),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: ClayColors.textDark,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

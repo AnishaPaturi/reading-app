@@ -569,7 +569,9 @@ public class BookUploadService {
                 book.getPublicationDate(),
                 book.getIsbn(),
                 book.getCreatedAt(),
-                book.getUpdatedAt()
+                book.getUpdatedAt(),
+                book.getPreviousReadingStatus() != null ? book.getPreviousReadingStatus().name() : null,
+                book.getDeletedAt()
         );
     }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ReadingStatus { currentlyReading, wantToRead, toRead, completed, onHold, dnf }
+enum ReadingStatus { currentlyReading, wantToRead, toRead, completed, onHold, dnf, deleted }
 
 extension ReadingStatusX on ReadingStatus {
   String get label => switch (this) {
@@ -10,6 +10,7 @@ extension ReadingStatusX on ReadingStatus {
         ReadingStatus.completed => 'Completed',
         ReadingStatus.onHold => 'On Hold',
         ReadingStatus.dnf => 'Did Not Finish',
+        ReadingStatus.deleted => 'Deleted',
       };
 
   String get shortLabel => switch (this) {
@@ -19,6 +20,7 @@ extension ReadingStatusX on ReadingStatus {
         ReadingStatus.completed => 'Completed',
         ReadingStatus.onHold => 'Paused',
         ReadingStatus.dnf => 'DNF',
+        ReadingStatus.deleted => 'Deleted',
       };
 }
 
@@ -144,6 +146,8 @@ class Book {
     this.dnfDate,
     this.dnfReason,
     this.dnfNotes,
+    this.previousStatus,
+    this.deletedAt,
   });
 
   final String id;
@@ -167,6 +171,8 @@ class Book {
   final DateTime? dnfDate;
   final String? dnfReason;
   final String? dnfNotes;
+  final ReadingStatus? previousStatus;
+  final DateTime? deletedAt;
 
   String? get effectiveCoverUrl {
     if (coverImageUrl != null && coverImageUrl!.trim().isNotEmpty) {
@@ -199,17 +205,25 @@ class Book {
         if (dnfDate != null) 'dnfDate': dnfDate!.toIso8601String(),
         if (dnfReason != null) 'dnfReason': dnfReason,
         if (dnfNotes != null) 'dnfNotes': dnfNotes,
+        if (previousStatus != null) 'previousStatus': previousStatus!.name,
+        if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
       };
 
   factory Book.fromJson(Map<String, dynamic> json) {
     ReadingStatus parseStatus(dynamic val) {
       if (val == null) return ReadingStatus.wantToRead;
       final str = val.toString().toLowerCase();
+      if (str.contains('delete')) return ReadingStatus.deleted;
       if (str.contains('currently') || str.contains('reading')) return ReadingStatus.currentlyReading;
       if (str.contains('completed')) return ReadingStatus.completed;
       if (str.contains('hold')) return ReadingStatus.onHold;
       if (str.contains('dnf')) return ReadingStatus.dnf;
       return ReadingStatus.wantToRead;
+    }
+
+    ReadingStatus? parseNullableStatus(dynamic val) {
+      if (val == null) return null;
+      return parseStatus(val);
     }
 
     List<BookFormat> parseFormats(dynamic val) {
@@ -275,6 +289,8 @@ class Book {
           : (json['dnfAt'] != null ? DateTime.tryParse(json['dnfAt'].toString()) : null),
       dnfReason: json['dnfReason']?.toString(),
       dnfNotes: json['dnfNotes']?.toString(),
+      previousStatus: parseNullableStatus(json['previousStatus'] ?? json['previousReadingStatus']),
+      deletedAt: json['deletedAt'] != null ? DateTime.tryParse(json['deletedAt'].toString()) : null,
     );
   }
 
@@ -301,6 +317,9 @@ class Book {
     String? dnfReason,
     String? dnfNotes,
     bool clearDnf = false,
+    ReadingStatus? previousStatus,
+    DateTime? deletedAt,
+    bool clearDeletedMetadata = false,
   }) =>
       Book(
         id: id ?? this.id,
@@ -324,5 +343,7 @@ class Book {
         dnfDate: clearDnf ? null : (dnfDate ?? this.dnfDate),
         dnfReason: clearDnf ? null : (dnfReason ?? this.dnfReason),
         dnfNotes: clearDnf ? null : (dnfNotes ?? this.dnfNotes),
+        previousStatus: clearDeletedMetadata ? null : (previousStatus ?? this.previousStatus),
+        deletedAt: clearDeletedMetadata ? null : (deletedAt ?? this.deletedAt),
       );
 }

@@ -8,5 +8,7 @@ public enum ReadingStatus {
 
     COMPLETED,
 
-    DNF
+    DNF,
+
+    DELETED
 }

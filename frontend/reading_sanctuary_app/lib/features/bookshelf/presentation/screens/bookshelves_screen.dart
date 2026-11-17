@@ -358,6 +358,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                   subtitle: 'A little world of stories',
                                   showMenuButton: !isWide,
                                   onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+                                  onTrashTap: () => context.push('/library/deleted'),
                                 ),
                               ),
                             ),

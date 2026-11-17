@@ -5,6 +5,10 @@ import '../models/book.dart';
 /// HTTP-backed implementation (Spring Boot) without touching the UI.
 abstract class BookRepository {
   Future<List<Book>> getBooks();
+  Future<List<Book>> getDeletedBooks();
+  Future<void> moveToDeleted(String id);
+  Future<void> restoreBook(String id);
+  Future<void> permanentlyDeleteBook(String id);
   Future<void> updateStatus(
     String id,
     ReadingStatus status, {
@@ -23,7 +27,49 @@ class MockBookRepository implements BookRepository {
   @override
   Future<List<Book>> getBooks() async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
-    return List.unmodifiable(_books);
+    return List.unmodifiable(_books.where((b) => b.status != ReadingStatus.deleted).toList());
+  }
+
+  @override
+  Future<List<Book>> getDeletedBooks() async {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    return List.unmodifiable(_books.where((b) => b.status == ReadingStatus.deleted).toList());
+  }
+
+  @override
+  Future<void> moveToDeleted(String id) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == id)
+          b.copyWith(
+            status: ReadingStatus.deleted,
+            previousStatus: b.status,
+            deletedAt: DateTime.now(),
+          )
+        else
+          b
+    ];
+  }
+
+  @override
+  Future<void> restoreBook(String id) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == id)
+          b.copyWith(
+            status: (b.previousStatus != null && b.previousStatus != ReadingStatus.deleted)
+                ? b.previousStatus!
+                : ReadingStatus.wantToRead,
+            clearDeletedMetadata: true,
+          )
+        else
+          b
+    ];
+  }
+
+  @override
+  Future<void> permanentlyDeleteBook(String id) async {
+    _books = _books.where((b) => b.id != id).toList();
   }
 
   @override

@@ -16,6 +16,7 @@ import '../features/authentication/presentation/screens/login_screen.dart';
 import '../features/authentication/presentation/screens/signup_screen.dart';
 import '../features/bookshelf/presentation/screens/bookshelves_screen.dart';
 import '../features/bookshelf/presentation/screens/bookshelf_detail_screen.dart';
+import '../features/bookshelf/presentation/screens/deleted_books_screen.dart';
 import '../features/book_details/book_details_screen.dart';
 import '../features/cloud_storage/presentation/screens/storage_management_screen.dart';
 import '../core/sync/presentation/screens/sync_settings_screen.dart';
@@ -105,6 +106,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/audiobooks/:id',
             pageBuilder: (c, s) => _page(s, AudiobookDetailsPage(audiobookId: s.pathParameters['id']!)),
+          ),
+          GoRoute(
+            path: '/library/deleted',
+            pageBuilder: (c, s) => _page(s, const DeletedBooksScreen()),
           ),
           GoRoute(
             path: '/library/add',

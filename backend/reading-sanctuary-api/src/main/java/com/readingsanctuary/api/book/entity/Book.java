@@ -109,6 +109,13 @@ public class Book {
     @Column(name = "dnf_notes", columnDefinition = "TEXT")
     private String dnfNotes;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "previous_reading_status", length = 40)
+    private ReadingStatus previousReadingStatus;
+
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+
     // Required by JPA
     public Book() {
     }
@@ -313,5 +320,21 @@ public class Book {
 
     public void setDnfNotes(String dnfNotes) {
         this.dnfNotes = dnfNotes;
+    }
+
+    public ReadingStatus getPreviousReadingStatus() {
+        return previousReadingStatus;
+    }
+
+    public void setPreviousReadingStatus(ReadingStatus previousReadingStatus) {
+        this.previousReadingStatus = previousReadingStatus;
+    }
+
+    public OffsetDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(OffsetDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }

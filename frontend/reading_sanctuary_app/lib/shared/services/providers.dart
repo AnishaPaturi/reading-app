@@ -41,9 +41,35 @@ class BooksNotifier extends AsyncNotifier<List<Book>> {
     await repo.updateProgress(id, progress);
     state = AsyncData(await repo.getBooks());
   }
+
+  Future<void> moveToDeleted(String id) async {
+    final repo = ref.read(bookRepositoryProvider);
+    await repo.moveToDeleted(id);
+    state = AsyncData(await repo.getBooks());
+    ref.invalidate(deletedBooksProvider);
+  }
+
+  Future<void> restoreBook(String id) async {
+    final repo = ref.read(bookRepositoryProvider);
+    await repo.restoreBook(id);
+    state = AsyncData(await repo.getBooks());
+    ref.invalidate(deletedBooksProvider);
+  }
+
+  Future<void> permanentlyDeleteBook(String id) async {
+    final repo = ref.read(bookRepositoryProvider);
+    await repo.permanentlyDeleteBook(id);
+    state = AsyncData(await repo.getBooks());
+    ref.invalidate(deletedBooksProvider);
+  }
 }
 
 final booksProvider = AsyncNotifierProvider<BooksNotifier, List<Book>>(BooksNotifier.new);
+
+final deletedBooksProvider = FutureProvider<List<Book>>((ref) async {
+  final repo = ref.watch(bookRepositoryProvider);
+  return repo.getDeletedBooks();
+});
 
 class SidebarCollapsed extends Notifier<bool> {
   @override

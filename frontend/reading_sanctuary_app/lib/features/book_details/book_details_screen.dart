@@ -9,6 +9,7 @@ import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
 import '../../shared/utils/book_file_navigation.dart';
+import '../bookshelf/presentation/widgets/book_delete_dialog.dart';
 import '../dnf/screens/dnf_cinematic_screen.dart';
 import '../offline/presentation/widgets/offline_download_button.dart';
 
@@ -24,6 +25,46 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
   final Map<String, int> _ratings = {'Spice': 0, 'Fluff': 0, 'Tear': 0, 'Humor': 0};
   int _format = 0;
   bool? _readAgain;
+
+  Future<void> _handleDeleteBook(BuildContext context, Book book) async {
+    final confirmed = await BookDeleteDialog.show(context, book);
+    if (confirmed == true && context.mounted) {
+      try {
+        await ref.read(booksProvider.notifier).moveToDeleted(book.id);
+        if (context.mounted) {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/library');
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('"${book.title}" moved to Deleted'),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              action: SnackBarAction(
+                label: 'Undo',
+                textColor: ClayColors.primaryPurple,
+                onPressed: () {
+                  ref.read(booksProvider.notifier).restoreBook(book.id);
+                },
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete book: $e'),
+              backgroundColor: const Color(0xFF8B2635),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +157,11 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
               ),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, color: ClayColors.textDark),
+                tooltip: 'Move to Deleted',
+                onPressed: () => _handleDeleteBook(context, b),
+              ),
               IconButton(
                 icon: Icon(
                   (b.rating ?? 0) >= 4.0 ? Icons.favorite_rounded : Icons.favorite_border_rounded,

@@ -416,6 +416,8 @@ class _AddBooksSheetState extends ConsumerState<AddBooksSheet> {
         return 'On Hold';
       case ReadingStatus.dnf:
         return 'DNF';
+      case ReadingStatus.deleted:
+        return 'Deleted';
     }
   }
 }

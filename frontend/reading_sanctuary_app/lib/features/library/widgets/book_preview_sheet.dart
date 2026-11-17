@@ -114,7 +114,64 @@ class BookPreviewSheet extends ConsumerWidget {
               ],
             ),
 
-            const SizedBox(height: 20),
+            // Move to Deleted Action Button before Reading Progress
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () async {
+                  final confirmed = await showBookDeleteDialog(context, book);
+                  if (!confirmed || !context.mounted) return;
+
+                  try {
+                    await ref.read(booksProvider.notifier).moveToDeleted(book.id);
+
+                    if (!context.mounted) return;
+
+                    Navigator.of(context).pop();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('"${book.title}" moved to Deleted'),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        action: SnackBarAction(
+                          label: 'Undo',
+                          textColor: BookshelfTheme.purpleAccent,
+                          onPressed: () {
+                            ref.read(booksProvider.notifier).restoreBook(book.id);
+                          },
+                        ),
+                      ),
+                    );
+                  } catch (error) {
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Could not delete book: $error'),
+                        backgroundColor: const Color(0xFF8B2635),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFF8B2635), size: 18),
+                label: Text(
+                  'Move to Deleted',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF8B2635),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
 
             // Reading Progress
             Column(
@@ -272,57 +329,6 @@ class BookPreviewSheet extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
-
-          const SizedBox(height: 12),
-
-          Center(
-            child: TextButton.icon(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                final confirmed = await BookDeleteDialog.show(context, book);
-                if (confirmed == true && context.mounted) {
-                  try {
-                    await ref.read(booksProvider.notifier).moveToDeleted(book.id);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('"${book.title}" moved to Deleted'),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          action: SnackBarAction(
-                            label: 'Undo',
-                            textColor: BookshelfTheme.purpleAccent,
-                            onPressed: () {
-                              ref.read(booksProvider.notifier).restoreBook(book.id);
-                            },
-                          ),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to delete book: $e'),
-                          backgroundColor: const Color(0xFF8B2635),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  }
-                }
-              },
-              icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Color(0xFF8B2635)),
-              label: Text(
-                'Move to Deleted',
-                style: GoogleFonts.inter(
-                  color: const Color(0xFF8B2635),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ),
           ),
         ],
       ),

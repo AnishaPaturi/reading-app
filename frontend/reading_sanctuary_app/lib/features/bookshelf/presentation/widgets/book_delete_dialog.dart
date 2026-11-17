@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/widgets/book_cover.dart';
-import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
+
+Future<bool> showBookDeleteDialog(BuildContext context, Book book) async {
+  final result = await BookDeleteDialog.show(context, book);
+  return result == true;
+}
 
 class BookDeleteDialog extends StatefulWidget {
   final Book book;
@@ -76,8 +80,6 @@ class _BookDeleteDialogState extends State<BookDeleteDialog>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),

@@ -27,42 +27,43 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
   bool? _readAgain;
 
   Future<void> _handleDeleteBook(BuildContext context, Book book) async {
-    final confirmed = await BookDeleteDialog.show(context, book);
-    if (confirmed == true && context.mounted) {
-      try {
-        await ref.read(booksProvider.notifier).moveToDeleted(book.id);
-        if (context.mounted) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/library');
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('"${book.title}" moved to Deleted'),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              action: SnackBarAction(
-                label: 'Undo',
-                textColor: ClayColors.primaryPurple,
-                onPressed: () {
-                  ref.read(booksProvider.notifier).restoreBook(book.id);
-                },
-              ),
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete book: $e'),
-              backgroundColor: const Color(0xFF8B2635),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+    final confirmed = await showBookDeleteDialog(context, book);
+    if (!confirmed || !context.mounted) return;
+
+    try {
+      await ref.read(booksProvider.notifier).moveToDeleted(book.id);
+      if (!context.mounted) return;
+
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/library');
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('"${book.title}" moved to Deleted'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          action: SnackBarAction(
+            label: 'Undo',
+            textColor: ClayColors.primaryPurple,
+            onPressed: () {
+              ref.read(booksProvider.notifier).restoreBook(book.id);
+            },
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not delete book: $error'),
+          backgroundColor: const Color(0xFF8B2635),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -158,7 +159,10 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: ClayColors.textDark),
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: ClayColors.coral,
+                ),
                 tooltip: 'Move to Deleted',
                 onPressed: () => _handleDeleteBook(context, b),
               ),

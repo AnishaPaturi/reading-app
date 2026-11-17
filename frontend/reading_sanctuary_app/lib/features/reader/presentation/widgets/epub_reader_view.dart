@@ -89,12 +89,24 @@ class EpubReaderViewState extends State<EpubReaderView> {
   }
 
   Future<void> toProgressPercentage(double percentage) async {
-    if (!_isEpubLoaded || !_locationsReady || _isDisposed) {
+    if (!_isEpubLoaded || _isDisposed) {
+      debugPrint('EPUB seek ignored: reader not loaded.');
+      return;
+    }
+
+    if (!_locationsReady) {
+      debugPrint(
+        'EPUB seek ignored: location generation is not complete.',
+      );
       return;
     }
 
     final safePercentage =
-        (percentage.clamp(0.0, 100.0)) / 100.0;
+        percentage.clamp(0.0, 100.0) / 100.0;
+
+    debugPrint(
+      'EPUB seek requested: ${(safePercentage * 100).toStringAsFixed(1)}%',
+    );
 
     try {
       _controller.toProgressPercentage(safePercentage);
@@ -383,6 +395,8 @@ class EpubReaderViewState extends State<EpubReaderView> {
         // TEXT SELECTION
         // ---------------------------------------------------
 
+        suppressNativeContextMenu: true,
+
         onTextSelected: (selection) {
           final selectedText = selection.selectedText.trim();
           final cfiRange = selection.selectionCfi;
@@ -392,24 +406,11 @@ class EpubReaderViewState extends State<EpubReaderView> {
           }
 
           debugPrint('EPUB selection detected.');
-          debugPrint('Text: $selectedText');
-          debugPrint('CFI: $cfiRange');
+          debugPrint('Selected text: $selectedText');
+          debugPrint('Selection CFI: $cfiRange');
 
           widget.onTextSelected?.call(
             selectedText,
-            cfiRange,
-            cfiRange,
-          );
-        },
-
-        onSelection: (selectedText, cfiRange, selectionRect, viewRect) {
-          final trimmed = selectedText.trim();
-          if (trimmed.isEmpty || cfiRange.isEmpty) {
-            return;
-          }
-
-          widget.onTextSelected?.call(
-            trimmed,
             cfiRange,
             cfiRange,
           );

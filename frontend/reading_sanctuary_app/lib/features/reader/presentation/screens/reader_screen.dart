@@ -771,46 +771,44 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               ),
             ),
             body: _buildReaderBody(fileType, doc, settings, annotations),
-            bottomNavigationBar: PointerInterceptor(
-              child: ReaderBottomBar(
-                currentPage: fileType == ReaderFileType.epub
-                    ? null
-                    : currentPosition?.pageNumber,
-                totalPages: fileType == ReaderFileType.epub
-                    ? null
-                    : currentPosition?.totalPages,
-                progressPercentage: currentPosition?.progressPercentage ?? 0.0,
-                onSeek: fileType == ReaderFileType.epub
-                    ? (percentage) {
-                        _epubKey.currentState?.toProgressPercentage(percentage);
-                      }
-                    : null,
-                onPageSelected: (page) {
-                  if (fileType == ReaderFileType.pdf && _pdfKey.currentState != null) {
-                    _pdfKey.currentState!.goToPage(page);
-                  }
-                },
-                onPrevious: () {
-                  if (fileType == ReaderFileType.pdf) {
-                    final page = currentPosition?.pageNumber;
-                    if (page != null) {
-                      _pdfKey.currentState?.goToPage(page - 1);
+            bottomNavigationBar: ReaderBottomBar(
+              currentPage: fileType == ReaderFileType.epub
+                  ? null
+                  : currentPosition?.pageNumber,
+              totalPages: fileType == ReaderFileType.epub
+                  ? null
+                  : currentPosition?.totalPages,
+              progressPercentage: currentPosition?.progressPercentage ?? 0.0,
+              onSeek: fileType == ReaderFileType.epub
+                  ? (percentage) {
+                      _epubKey.currentState?.toProgressPercentage(percentage);
                     }
-                  } else if (fileType == ReaderFileType.epub) {
-                    _epubKey.currentState?.prev();
+                  : null,
+              onPageSelected: (page) {
+                if (fileType == ReaderFileType.pdf && _pdfKey.currentState != null) {
+                  _pdfKey.currentState!.goToPage(page);
+                }
+              },
+              onPrevious: () {
+                if (fileType == ReaderFileType.pdf) {
+                  final page = currentPosition?.pageNumber;
+                  if (page != null) {
+                    _pdfKey.currentState?.goToPage(page - 1);
                   }
-                },
-                onNext: () {
-                  if (fileType == ReaderFileType.pdf) {
-                    final page = currentPosition?.pageNumber;
-                    if (page != null) {
-                      _pdfKey.currentState?.goToPage(page + 1);
-                    }
-                  } else if (fileType == ReaderFileType.epub) {
-                    _epubKey.currentState?.next();
+                } else if (fileType == ReaderFileType.epub) {
+                  _epubKey.currentState?.prev();
+                }
+              },
+              onNext: () {
+                if (fileType == ReaderFileType.pdf) {
+                  final page = currentPosition?.pageNumber;
+                  if (page != null) {
+                    _pdfKey.currentState?.goToPage(page + 1);
                   }
-                },
-              ),
+                } else if (fileType == ReaderFileType.epub) {
+                  _epubKey.currentState?.next();
+                }
+              },
             ),
           ),
         );

@@ -571,7 +571,22 @@ public class BookUploadService {
                 book.getCreatedAt(),
                 book.getUpdatedAt(),
                 book.getPreviousReadingStatus() != null ? book.getPreviousReadingStatus().name() : null,
-                book.getDeletedAt()
+                book.getDeletedAt(),
+                book.getRating(),
+                book.getRatingOutOf100(),
+                book.getSpiceRating(),
+                book.getMood(),
+                book.getRecommendation(),
+                book.getPurchasePrice(),
+                book.getCurrency(),
+                book.getAcquisitionMethod(),
+                book.getPurchaseDate(),
+                book.getTropes(),
+                book.getReadingStatus() != null ? book.getReadingStatus().name() : null,
+                book.getCurrentPage(),
+                book.getTotalPages(),
+                book.getStartedAt(),
+                book.getCompletedAt()
         );
     }
 

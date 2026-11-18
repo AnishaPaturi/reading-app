@@ -2,11 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../authentication/presentation/theme/auth_palette.dart';
 
-class LandingScreen extends StatelessWidget {
+class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
 
-  void _navigateToLogin(BuildContext context) {
+  @override
+  State<LandingScreen> createState() => _LandingScreenState();
+}
+
+class _LandingScreenState extends State<LandingScreen> {
+  late final PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  void _goToNextPage() {
+    _pageController.animateToPage(
+      1,
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  void _navigateToLogin() {
     context.go('/login');
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -84,7 +112,58 @@ class LandingScreen extends StatelessWidget {
                       ],
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: _buildSlide(context),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            // Horizontal Swipeable Landing Slides
+                            PageView(
+                              controller: _pageController,
+                              physics: const BouncingScrollPhysics(),
+                              onPageChanged: (index) {
+                                setState(() {
+                                  _currentPage = index;
+                                });
+                              },
+                              children: [
+                                _buildSlide1(context, constraints),
+                                _buildSlide2(context, constraints),
+                              ],
+                            ),
+
+                            // Page Indicators placed neatly in the card
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: constraints.maxHeight * 0.108,
+                              child: IgnorePointer(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(2, (index) {
+                                    final isActive = _currentPage == index;
+                                    return AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 250),
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 4),
+                                      height: 6,
+                                      width: isActive ? 22 : 6,
+                                      decoration: BoxDecoration(
+                                        color: isActive
+                                            ? const Color(0xFF8B65C5)
+                                            : const Color(0xFFD1C4E9),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -95,34 +174,53 @@ class LandingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSlide(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            // Slide Graphic
-            Image.asset(
-              'assets/images/landing/landing_slide_1.png',
-              fit: BoxFit.contain,
-              alignment: Alignment.topCenter,
-            ),
+  // SLIDE 1: Existing Landing Slide
+  Widget _buildSlide1(BuildContext context, BoxConstraints constraints) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/landing/landing_slide_1.png',
+          fit: BoxFit.contain,
+          alignment: Alignment.topCenter,
+        ),
+        Positioned(
+          left: constraints.maxWidth * 0.10,
+          right: constraints.maxWidth * 0.10,
+          bottom: constraints.maxHeight * 0.02,
+          height: constraints.maxHeight * 0.08,
+          child: _InteractivePillButton(
+            key: const Key('first_landing_get_started'),
+            tooltip: "Let's go",
+            onTap: _goToNextPage,
+          ),
+        ),
+      ],
+    );
+  }
 
-            // Interactive Button Overlay for "Let's go ➔" / "Get Started"
-            Positioned(
-              left: constraints.maxWidth * 0.10,
-              right: constraints.maxWidth * 0.10,
-              bottom: constraints.maxHeight * 0.02,
-              height: constraints.maxHeight * 0.08,
-              child: _InteractivePillButton(
-                key: const Key('first_landing_get_started'),
-                tooltip: "Let's go",
-                onTap: () => _navigateToLogin(context),
-              ),
-            ),
-          ],
-        );
-      },
+  // SLIDE 2: New 3D Feature Cards Landing Slide
+  Widget _buildSlide2(BuildContext context, BoxConstraints constraints) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/landing/landing_slide_2.png',
+          fit: BoxFit.contain,
+          alignment: Alignment.topCenter,
+        ),
+        Positioned(
+          left: constraints.maxWidth * 0.10,
+          right: constraints.maxWidth * 0.10,
+          bottom: constraints.maxHeight * 0.02,
+          height: constraints.maxHeight * 0.08,
+          child: _InteractivePillButton(
+            key: const Key('second_landing_get_started'),
+            tooltip: "Get Started",
+            onTap: _navigateToLogin,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -161,10 +259,10 @@ class _InteractivePillButtonState extends State<_InteractivePillButton> {
           child: AnimatedScale(
             scale: _isPressed ? 0.96 : 1.0,
             duration: const Duration(milliseconds: 100),
-            child: const Center(
+            child: Center(
               child: Opacity(
                 opacity: 0.0,
-                child: Text('Get Started'),
+                child: Text(widget.tooltip),
               ),
             ),
           ),

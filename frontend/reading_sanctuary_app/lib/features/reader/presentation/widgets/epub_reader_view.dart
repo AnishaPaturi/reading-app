@@ -6,6 +6,7 @@ import 'package:flutter_epub_viewer/flutter_epub_viewer.dart';
 import '../../../../core/widgets/clay_components.dart';
 import '../../../annotations/domain/annotation_type.dart';
 import '../../../annotations/domain/book_annotation.dart';
+import '../../data/models/reader_chapter.dart';
 import '../../data/models/reader_position.dart';
 import '../../data/models/reader_settings.dart';
 
@@ -16,6 +17,7 @@ class EpubReaderView extends StatefulWidget {
   final List<BookAnnotation> annotations;
 
   final ValueChanged<ReaderPosition> onPositionChanged;
+  final ValueChanged<List<ReaderChapter>>? onChaptersLoaded;
 
   final void Function(
     String text,
@@ -33,6 +35,7 @@ class EpubReaderView extends StatefulWidget {
     required this.settings,
     this.annotations = const [],
     required this.onPositionChanged,
+    this.onChaptersLoaded,
     this.onTextSelected,
     this.onAnnotationTap,
   });
@@ -126,6 +129,33 @@ class EpubReaderViewState extends State<EpubReaderView> {
     } catch (error, stackTrace) {
       debugPrint('EPUB CFI navigation failed: $error');
     }
+  }
+
+  Future<List<EpubSearchResult>> search(String query) async {
+    if (!_isEpubLoaded || _isDisposed || query.trim().isEmpty) return [];
+    try {
+      return await _controller.search(query: query.trim());
+    } catch (e) {
+      debugPrint('EPUB search failed: $e');
+      return [];
+    }
+  }
+
+  void jumpToSearchResult(EpubSearchResult result) {
+    if (!_isEpubLoaded || _isDisposed) return;
+    try {
+      _controller.display(cfi: result.cfi);
+    } catch (e) {
+      debugPrint('EPUB jump to search result failed: $e');
+    }
+  }
+
+  ReaderChapter _convertEpubChapter(EpubChapter ch) {
+    return ReaderChapter(
+      title: ch.title.trim().isNotEmpty ? ch.title.trim() : 'Chapter',
+      href: ch.href,
+      subchapters: ch.subitems.map(_convertEpubChapter).toList(),
+    );
   }
 
   // ---------------------------------------------------------
@@ -378,6 +408,12 @@ class EpubReaderViewState extends State<EpubReaderView> {
 
         onLoadError: (error) {
           debugPrint('EPUB loading error: ${error.message}');
+        },
+
+        onChaptersLoaded: (rawChapters) {
+          if (_isDisposed) return;
+          final chapters = rawChapters.map(_convertEpubChapter).toList();
+          widget.onChaptersLoaded?.call(chapters);
         },
 
         onLocationLoaded: _onLocationsLoaded,

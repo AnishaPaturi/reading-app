@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_epub_viewer/flutter_epub_viewer.dart' show EpubSearchResult;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -16,6 +17,7 @@ import '../../../home/presentation/providers/home_reading_progress_provider.dart
 import '../../../tracker/application/quotes_highlights_provider.dart';
 import 'package:reading_sanctuary_app/shared/services/providers.dart';
 import '../../data/models/reader_annotations.dart';
+import '../../data/models/reader_chapter.dart';
 import '../../data/models/reader_document.dart';
 import '../../data/models/reader_position.dart';
 import '../../data/models/reader_settings.dart';
@@ -29,6 +31,7 @@ import '../widgets/pdf_reader_view.dart';
 import '../widgets/reader_bottom_bar.dart';
 import '../widgets/reader_error.dart';
 import '../widgets/reader_loading.dart';
+import '../widgets/reader_search_bar.dart';
 import '../widgets/reader_settings_panel.dart';
 import '../widgets/reader_sidebar.dart';
 import '../widgets/reader_toolbar.dart';
@@ -78,6 +81,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   Timer? _bookProgressDebounce;
   double? _pendingBookProgress;
   ReaderTextSelectionState? _activeSelection;
+  List<ReaderChapter> _chapters = const [];
+
+  bool _isSearchOpen = false;
+  final TextEditingController _searchController = TextEditingController();
+  int _searchMatchIndex = 0;
+  int _totalSearchMatches = 0;
+  bool _isSearching = false;
+  List<EpubSearchResult> _epubSearchResults = const [];
 
   ReaderDocumentArgs get _args => ReaderDocumentArgs(
         bookId: widget.bookId,
@@ -146,8 +157,86 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   @override
   void dispose() {
     _bookProgressDebounce?.cancel();
+    _searchController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _onSearchQueryChanged(String query) {
+    if (_pdfKey.currentState != null) {
+      final searcher = _pdfKey.currentState!.textSearcher;
+      _pdfKey.currentState!.startSearch(query);
+      setState(() {
+        _isSearching = searcher.isSearching;
+        _totalSearchMatches = searcher.matches.length;
+        _searchMatchIndex = searcher.currentIndex ?? 0;
+      });
+    } else if (_epubKey.currentState != null) {
+      if (query.trim().isEmpty) {
+        setState(() {
+          _epubSearchResults = const [];
+          _totalSearchMatches = 0;
+          _searchMatchIndex = 0;
+          _isSearching = false;
+        });
+      } else {
+        setState(() => _isSearching = true);
+        _epubKey.currentState!.search(query).then((results) {
+          if (!mounted) return;
+          setState(() {
+            _epubSearchResults = results;
+            _totalSearchMatches = results.length;
+            _searchMatchIndex = 0;
+            _isSearching = false;
+          });
+          if (results.isNotEmpty && _epubKey.currentState != null) {
+            _epubKey.currentState!.jumpToSearchResult(results.first);
+          }
+        });
+      }
+    }
+  }
+
+  void _onNextSearchMatch() {
+    if (_pdfKey.currentState != null) {
+      _pdfKey.currentState!.nextSearchMatch();
+      final searcher = _pdfKey.currentState!.textSearcher;
+      setState(() {
+        _searchMatchIndex = searcher.currentIndex ?? 0;
+        _totalSearchMatches = searcher.matches.length;
+      });
+    } else if (_epubSearchResults.isNotEmpty) {
+      final nextIdx = (_searchMatchIndex + 1) % _epubSearchResults.length;
+      setState(() => _searchMatchIndex = nextIdx);
+      _epubKey.currentState?.jumpToSearchResult(_epubSearchResults[nextIdx]);
+    }
+  }
+
+  void _onPrevSearchMatch() {
+    if (_pdfKey.currentState != null) {
+      _pdfKey.currentState!.prevSearchMatch();
+      final searcher = _pdfKey.currentState!.textSearcher;
+      setState(() {
+        _searchMatchIndex = searcher.currentIndex ?? 0;
+        _totalSearchMatches = searcher.matches.length;
+      });
+    } else if (_epubSearchResults.isNotEmpty) {
+      final prevIdx = (_searchMatchIndex - 1 + _epubSearchResults.length) % _epubSearchResults.length;
+      setState(() => _searchMatchIndex = prevIdx);
+      _epubKey.currentState?.jumpToSearchResult(_epubSearchResults[prevIdx]);
+    }
+  }
+
+  void _closeSearch() {
+    _searchController.clear();
+    _pdfKey.currentState?.clearSearch();
+    setState(() {
+      _isSearchOpen = false;
+      _totalSearchMatches = 0;
+      _searchMatchIndex = 0;
+      _isSearching = false;
+      _epubSearchResults = const [];
+    });
   }
 
   void _onPositionChanged(ReaderPosition position) {
@@ -679,6 +768,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                   title: doc.bookTitle,
                   format: doc.fileFormat,
                   isBookmarked: isCurrentBookmarked,
+                  onOpenTableOfContents: () => _scaffoldKey.currentState?.openDrawer(),
                   onBack: () async {
                     final navigator = Navigator.of(context);
                     await _teardownSessionAndSave();
@@ -689,6 +779,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     }
                   },
                   onToggleBookmark: () => _handleToggleBookmark(bookmarks),
+                  onSearch: () => setState(() => _isSearchOpen = !_isSearchOpen),
                   onOpenSettings: _openSettingsPanel,
                   onOpenAnnotations: () => _scaffoldKey.currentState?.openEndDrawer(),
                   onListenTts: () {
@@ -700,7 +791,16 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
               ),
             ),
             drawer: ReaderSidebar(
+              chapters: _chapters,
               bookmarks: bookmarks,
+              currentPage: currentPosition?.pageNumber,
+              onSelectChapter: (chapter) {
+                if (chapter.pageNumber != null && _pdfKey.currentState != null) {
+                  _pdfKey.currentState!.goToPage(chapter.pageNumber!);
+                } else if (chapter.href != null && _epubKey.currentState != null) {
+                  _epubKey.currentState!.toCfi(chapter.href!);
+                }
+              },
               onSelectBookmark: (b) {
                 if (b.pageNumber != null && _pdfKey.currentState != null) {
                   _pdfKey.currentState!.goToPage(b.pageNumber!);
@@ -750,6 +850,24 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
             body: Stack(
               children: [
                 _buildReaderBody(fileType, doc, settings, annotations),
+                if (_isSearchOpen)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: PointerInterceptor(
+                      child: ReaderSearchBar(
+                        controller: _searchController,
+                        onQueryChanged: _onSearchQueryChanged,
+                        onNextMatch: _onNextSearchMatch,
+                        onPrevMatch: _onPrevSearchMatch,
+                        onClose: _closeSearch,
+                        currentMatchIndex: _searchMatchIndex,
+                        totalMatches: _totalSearchMatches,
+                        isSearching: _isSearching,
+                      ),
+                    ),
+                  ),
                 if (_activeSelection != null)
                   _buildFloatingAnnotationToolbarOverlay(),
               ],
@@ -816,6 +934,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           settings: settings,
           annotations: annotations,
           onPositionChanged: _onPositionChanged,
+          onChaptersLoaded: (chapters) {
+            if (mounted) setState(() => _chapters = chapters);
+          },
           onAnnotationTap: (a) {
             _pdfKey.currentState?.jumpToAnnotation(a);
             _scaffoldKey.currentState?.openEndDrawer();
@@ -839,6 +960,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           settings: settings,
           annotations: annotations,
           onPositionChanged: _onPositionChanged,
+          onChaptersLoaded: (chapters) {
+            if (mounted) setState(() => _chapters = chapters);
+          },
           onAnnotationTap: (annotation) {
             _scaffoldKey.currentState?.openEndDrawer();
           },

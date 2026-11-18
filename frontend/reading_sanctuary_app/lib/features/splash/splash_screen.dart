@@ -20,8 +20,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _initApp() async {
-    final restoreFuture = ref.read(authNotifierProvider.notifier).restoreSession();
-    final delayFuture = Future<void>.delayed(const Duration(milliseconds: 1600));
+    final restoreFuture =
+        ref.read(authNotifierProvider.notifier).restoreSession();
+    final delayFuture =
+        Future<void>.delayed(const Duration(milliseconds: 1600));
 
     await Future.wait([restoreFuture, delayFuture]);
 
@@ -51,14 +53,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: 1),
                     duration: const Duration(milliseconds: 900),
                     curve: Curves.easeOut,
                     builder: (context, t, child) => Opacity(
                       opacity: t,
-                      child: Transform.translate(offset: Offset(0, 16 * (1 - t)), child: child),
+                      child: Transform.translate(
+                          offset: Offset(0, 16 * (1 - t)), child: child),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -72,7 +76,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: ClayColors.primaryPurple.withValues(alpha: 0.22),
+                                color: ClayColors.primaryPurple
+                                    .withValues(alpha: 0.22),
                                 blurRadius: 24,
                                 offset: const Offset(0, 10),
                               ),
@@ -112,7 +117,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                           width: 48,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: ClayColors.primaryPurple.withValues(alpha: 0.4),
+                            color:
+                                ClayColors.primaryPurple.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),

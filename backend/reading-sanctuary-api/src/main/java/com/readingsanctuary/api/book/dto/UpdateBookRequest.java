@@ -1,5 +1,6 @@
 package com.readingsanctuary.api.book.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;
@@ -22,6 +23,48 @@ public record UpdateBookRequest(
     LocalDate publicationDate,
 
     @Size(max = 20, message = "ISBN cannot exceed 20 characters")
-    String isbn
+    String isbn,
 
-) {}
+    Double rating,
+
+    Integer ratingOutOf100,
+
+    Integer spiceRating,
+
+    String mood,
+
+    String recommendation,
+
+    BigDecimal purchasePrice,
+
+    String currency,
+
+    String acquisitionMethod,
+
+    LocalDate purchaseDate,
+
+    String tropes,
+
+    String readingStatus,
+
+    Integer currentPage,
+
+    Integer totalPages,
+
+    LocalDate startedAt,
+
+    LocalDate completedAt
+
+) {
+    public UpdateBookRequest(
+        String title,
+        String description,
+        String language,
+        String publisher,
+        LocalDate publicationDate,
+        String isbn
+    ) {
+        this(title, description, language, publisher, publicationDate, isbn,
+             null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+}

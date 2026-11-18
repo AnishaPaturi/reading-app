@@ -42,6 +42,18 @@ class BooksNotifier extends AsyncNotifier<List<Book>> {
     state = AsyncData(await repo.getBooks());
   }
 
+  Future<void> setPage(String id, int page) async {
+    final repo = ref.read(bookRepositoryProvider);
+    await repo.setPage(id, page);
+    state = AsyncData(await repo.getBooks());
+  }
+
+  Future<void> updateBookDetails(Book book) async {
+    final repo = ref.read(bookRepositoryProvider);
+    await repo.updateBookDetails(book);
+    state = AsyncData(await repo.getBooks());
+  }
+
   Future<void> moveToDeleted(String id) async {
     final repo = ref.read(bookRepositoryProvider);
     await repo.moveToDeleted(id);

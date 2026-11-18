@@ -5,6 +5,7 @@ import 'package:pdfrx/pdfrx.dart';
 import '../../../../core/widgets/clay_components.dart';
 import '../../../annotations/domain/annotation_type.dart';
 import '../../../annotations/domain/book_annotation.dart';
+import '../../data/models/reader_chapter.dart';
 import '../../data/models/reader_position.dart';
 import '../../data/models/reader_settings.dart';
 
@@ -14,6 +15,7 @@ class PdfReaderView extends StatefulWidget {
   final ReaderSettings settings;
   final List<BookAnnotation> annotations;
   final void Function(ReaderPosition position) onPositionChanged;
+  final ValueChanged<List<ReaderChapter>>? onChaptersLoaded;
   final void Function(
     String text,
     String startLocation,
@@ -31,6 +33,7 @@ class PdfReaderView extends StatefulWidget {
     required this.settings,
     this.annotations = const [],
     required this.onPositionChanged,
+    this.onChaptersLoaded,
     this.onTextSelected,
     this.onAnnotationTap,
   });
@@ -41,6 +44,7 @@ class PdfReaderView extends StatefulWidget {
 
 class PdfReaderViewState extends State<PdfReaderView> {
   late final PdfViewerController _controller;
+  late final PdfTextSearcher _textSearcher;
   int _pageNumber = 1;
   int _pageCount = 1;
   String? _emphasizedAnnotationId;
@@ -50,8 +54,31 @@ class PdfReaderViewState extends State<PdfReaderView> {
   void initState() {
     super.initState();
     _controller = PdfViewerController();
+    _textSearcher = PdfTextSearcher(_controller);
     _pageNumber = widget.initialPosition?.pageNumber ?? 1;
   }
+
+  @override
+  void dispose() {
+    _textSearcher.dispose();
+    super.dispose();
+  }
+
+  PdfTextSearcher get textSearcher => _textSearcher;
+
+  void startSearch(String query) {
+    if (query.trim().isEmpty) {
+      _textSearcher.resetTextSearch();
+    } else {
+      _textSearcher.startTextSearch(query.trim());
+    }
+  }
+
+  void nextSearchMatch() => _textSearcher.goToNextMatch();
+
+  void prevSearchMatch() => _textSearcher.goToPrevMatch();
+
+  void clearSearch() => _textSearcher.resetTextSearch();
 
   @override
   void didUpdateWidget(covariant PdfReaderView oldWidget) {
@@ -302,6 +329,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
           onPageChanged: _handlePageChanged,
           pagePaintCallbacks: [
             (canvas, pageRect, page) {
+              _textSearcher.paintMatches(canvas, pageRect, page);
               final pageHighlights = widget.annotations.where(
                 (a) => a.pageNumber == page.pageNumber &&
                     (a.type == AnnotationType.highlight || a.type == AnnotationType.quote),
@@ -454,7 +482,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
               );
             }
           },
-          onViewerReady: (document, controller) {
+          onViewerReady: (document, controller) async {
             setState(() {
               _pageCount = document.pages.length;
             });
@@ -463,6 +491,25 @@ class PdfReaderViewState extends State<PdfReaderView> {
             }
             _handlePageChanged(_pageNumber);
             _resolveMissingAnnotationGeometries();
+
+            if (widget.onChaptersLoaded != null) {
+              try {
+                final outlineNodes = await document.loadOutline();
+                if (outlineNodes.isNotEmpty && mounted) {
+                  ReaderChapter convertNode(PdfOutlineNode node) {
+                    return ReaderChapter(
+                      title: node.title.trim().isNotEmpty ? node.title.trim() : 'Section',
+                      pageNumber: node.dest?.pageNumber,
+                      subchapters: node.children.map(convertNode).toList(),
+                    );
+                  }
+
+                  widget.onChaptersLoaded!(outlineNodes.map(convertNode).toList());
+                }
+              } catch (e) {
+                debugPrint('Failed to load PDF outline: $e');
+              }
+            }
           },
         ),
       ),

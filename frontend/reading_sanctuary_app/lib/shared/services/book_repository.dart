@@ -17,7 +17,9 @@ abstract class BookRepository {
     String? dnfNotes,
   });
   Future<void> updateProgress(String id, double progress);
+  Future<void> setPage(String id, int page);
   Future<void> addBook(Book book);
+  Future<void> updateBookDetails(Book book);
 }
 
 class MockBookRepository implements BookRepository {
@@ -117,6 +119,35 @@ class MockBookRepository implements BookRepository {
           )
         else
           b
+    ];
+  }
+
+  @override
+  Future<void> setPage(String id, int page) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == id)
+          () {
+            final validPage = page.clamp(0, b.pages);
+            final p = b.pages > 0 ? (validPage / b.pages).clamp(0.0, 1.0) : 0.0;
+            return b.copyWith(
+              progress: p,
+              lastOpenedAt: DateTime.now(),
+              status: b.status == ReadingStatus.wantToRead && p > 0
+                  ? ReadingStatus.currentlyReading
+                  : b.status,
+            );
+          }()
+        else
+          b
+    ];
+  }
+
+  @override
+  Future<void> updateBookDetails(Book book) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == book.id) book else b
     ];
   }
 

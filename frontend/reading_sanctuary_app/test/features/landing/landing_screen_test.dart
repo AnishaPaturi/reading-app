@@ -31,7 +31,7 @@ void main() {
 
   group('LandingScreen Tests', () {
     testWidgets(
-        'renders existing landing slide and verifies Skip is completely removed',
+        'renders first landing slide and verifies Skip is completely removed',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
@@ -44,12 +44,12 @@ void main() {
       // Verify Skip button does NOT exist
       expect(find.text('Skip'), findsNothing);
 
-      // Verify Page 1 Get Started / Let's go button exists
+      // Verify Slide 1 Get Started / Let's go button exists
       expect(
           find.byKey(const Key('first_landing_get_started')), findsOneWidget);
       expect(find.byTooltip("Let's go"), findsOneWidget);
 
-      // Verify removed notification slide elements are NOT present
+      // Verify removed notification elements are NOT present
       expect(find.byTooltip('Turn on notifications'), findsNothing);
       expect(
           find.text("Don't miss what your friends are reading."), findsNothing);
@@ -57,7 +57,7 @@ void main() {
     });
 
     testWidgets(
-        'first landing page Get Started button transitions to second landing page',
+        'first landing slide button transitions to second landing slide',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
@@ -67,23 +67,30 @@ void main() {
       await tester.pumpWidget(_buildLandingTestApp(navigatedRoutes: routes));
       await tester.pumpAndSettle();
 
-      // Tap first page's Get Started button
+      // Tap first page's button
       await tester.tap(find.byKey(const Key('first_landing_get_started')));
       await tester.pumpAndSettle();
 
-      // Verify we transitioned to page 2 (Why Choose Us?)
-      expect(find.text('Why Choose Us?'), findsOneWidget);
-      expect(find.text("We're Here For You 💜"), findsOneWidget);
-      expect(find.text('Reading Dashboard'), findsOneWidget);
-      expect(find.text('3D Custom Bookshelves'), findsOneWidget);
-      expect(find.text('Smart Library'), findsOneWidget);
-      expect(find.text('Reading Stats & Goals'), findsOneWidget);
+      // Verify Slide 2 is now visible
+      final slide2Finder = find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName ==
+                'assets/images/landing/landing_slide_2.png',
+      );
+      expect(slide2Finder, findsOneWidget);
 
-      // Verify login wasn't triggered yet
+      // Verify Slide 2 Get Started button exists
+      expect(
+          find.byKey(const Key('second_landing_get_started')), findsOneWidget);
+
+      // Verify login was not triggered yet
       expect(routes, isEmpty);
     });
 
-    testWidgets('can swipe horizontally between landing pages', (tester) async {
+    testWidgets('can swipe horizontally between landing slides',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -92,18 +99,18 @@ void main() {
       await tester.pumpWidget(_buildLandingTestApp(navigatedRoutes: routes));
       await tester.pumpAndSettle();
 
-      // Initially on Page 1
+      // Initially on Slide 1
       expect(
           find.byKey(const Key('first_landing_get_started')), findsOneWidget);
-      expect(find.text('Why Choose Us?'), findsNothing);
 
-      // Swipe left to go to Page 2
+      // Swipe left to go to Slide 2
       await tester.drag(find.byType(PageView), const Offset(-500, 0));
       await tester.pumpAndSettle();
 
-      expect(find.text('Why Choose Us?'), findsOneWidget);
+      expect(
+          find.byKey(const Key('second_landing_get_started')), findsOneWidget);
 
-      // Swipe right to return to Page 1
+      // Swipe right to return to Slide 1
       await tester.drag(find.byType(PageView), const Offset(500, 0));
       await tester.pumpAndSettle();
 
@@ -111,7 +118,7 @@ void main() {
           find.byKey(const Key('first_landing_get_started')), findsOneWidget);
     });
 
-    testWidgets('second landing page Get Started button navigates to /login',
+    testWidgets('second landing slide Get Started button navigates to /login',
         (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
@@ -121,13 +128,11 @@ void main() {
       await tester.pumpWidget(_buildLandingTestApp(navigatedRoutes: routes));
       await tester.pumpAndSettle();
 
-      // Go to page 2
+      // Go to slide 2
       await tester.tap(find.byKey(const Key('first_landing_get_started')));
       await tester.pumpAndSettle();
 
-      // Tap second landing Get Started
-      await tester
-          .ensureVisible(find.byKey(const Key('second_landing_get_started')));
+      // Tap second slide Get Started button
       await tester.tap(find.byKey(const Key('second_landing_get_started')));
       await tester.pumpAndSettle();
 
@@ -135,31 +140,8 @@ void main() {
       expect(find.text('Login Screen Mock'), findsOneWidget);
     });
 
-    testWidgets('second landing page Login button navigates to /login',
-        (tester) async {
-      tester.view.physicalSize = const Size(800, 1400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
-
-      final routes = <String>[];
-      await tester.pumpWidget(_buildLandingTestApp(navigatedRoutes: routes));
-      await tester.pumpAndSettle();
-
-      // Go to page 2
-      await tester.tap(find.byKey(const Key('first_landing_get_started')));
-      await tester.pumpAndSettle();
-
-      // Tap second landing Login
-      await tester.ensureVisible(find.byKey(const Key('second_landing_login')));
-      await tester.tap(find.byKey(const Key('second_landing_login')));
-      await tester.pumpAndSettle();
-
-      expect(routes, contains('/login'));
-      expect(find.text('Login Screen Mock'), findsOneWidget);
-    });
-
     testWidgets(
-        "Let's go button hitbox is aligned with visible button artwork at bottom of slide",
+        "Let's go button hitbox is aligned with visible button artwork at bottom of slide 1",
         (tester) async {
       tester.view.physicalSize = const Size(800, 1400);
       tester.view.devicePixelRatio = 1.0;
@@ -196,8 +178,55 @@ void main() {
       await tester.tapAt(visibleButtonPoint);
       await tester.pumpAndSettle();
 
-      // Now moves to Page 2
-      expect(find.text('Why Choose Us?'), findsOneWidget);
+      // Now on Slide 2
+      expect(
+          find.byKey(const Key('second_landing_get_started')), findsOneWidget);
+    });
+
+    testWidgets(
+        "Get Started button hitbox is aligned with visible button artwork at bottom of slide 2",
+        (tester) async {
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final routes = <String>[];
+      await tester.pumpWidget(_buildLandingTestApp(navigatedRoutes: routes));
+      await tester.pumpAndSettle();
+
+      // Move to slide 2
+      await tester.tap(find.byKey(const Key('first_landing_get_started')));
+      await tester.pumpAndSettle();
+
+      final buttonFinder = find.byKey(const Key('second_landing_get_started'));
+      expect(buttonFinder, findsOneWidget);
+
+      final buttonRect = tester.getRect(buttonFinder);
+      final slide2Finder = find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName ==
+                'assets/images/landing/landing_slide_2.png',
+      );
+      expect(slide2Finder, findsOneWidget);
+      final slide2Rect = tester.getRect(slide2Finder);
+
+      // Verify hitbox is aligned near the bottom of slide 2 artwork
+      final bottomOffset = slide2Rect.bottom - buttonRect.bottom;
+      final bottomRatio = bottomOffset / slide2Rect.height;
+      expect(bottomRatio, closeTo(0.02, 0.015));
+
+      // Tapping at 5% from the bottom of slide 2 navigates to login
+      final visibleButtonPoint = Offset(
+        slide2Rect.center.dx,
+        slide2Rect.bottom - (slide2Rect.height * 0.05),
+      );
+      await tester.tapAt(visibleButtonPoint);
+      await tester.pumpAndSettle();
+
+      expect(routes, contains('/login'));
+      expect(find.text('Login Screen Mock'), findsOneWidget);
     });
   });
 }

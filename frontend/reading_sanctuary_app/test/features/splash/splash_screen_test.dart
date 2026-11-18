@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,13 @@ import 'package:reading_sanctuary_app/features/splash/splash_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    dotenv.testLoad(
+      fileInput:
+          'GOOGLE_WEB_CLIENT_ID=dummy-client-id\nGOOGLE_SERVER_CLIENT_ID=dummy-server-id\nAPI_BASE_URL=http://localhost:8080',
+    );
+  });
 
   const mockUser = AuthUser(
     id: 'user-777',
@@ -54,12 +62,15 @@ void main() {
     );
   }
 
-  testWidgets('SplashScreen navigates to /home when user has an existing session', (tester) async {
+  testWidgets(
+      'SplashScreen navigates to /home when user has an existing session',
+      (tester) async {
     final storage = InMemoryAuthSessionStorage();
     await storage.saveSession(token: mockUser.token!, user: mockUser);
     final routes = <String>[];
 
-    await tester.pumpWidget(buildRouterApp(storage: storage, navigatedRoutes: routes));
+    await tester
+        .pumpWidget(buildRouterApp(storage: storage, navigatedRoutes: routes));
     expect(find.text('Reading Sanctuary'), findsOneWidget);
 
     // Advance past the 1600ms splash delay and settle animations
@@ -70,11 +81,14 @@ void main() {
     expect(find.text('Home Screen Content'), findsOneWidget);
   });
 
-  testWidgets('SplashScreen navigates to /landing when user has no stored session', (tester) async {
+  testWidgets(
+      'SplashScreen navigates to /landing when user has no stored session',
+      (tester) async {
     final storage = InMemoryAuthSessionStorage();
     final routes = <String>[];
 
-    await tester.pumpWidget(buildRouterApp(storage: storage, navigatedRoutes: routes));
+    await tester
+        .pumpWidget(buildRouterApp(storage: storage, navigatedRoutes: routes));
     expect(find.text('Reading Sanctuary'), findsOneWidget);
 
     // Advance past the 1600ms splash delay and settle animations

@@ -73,6 +73,53 @@ public class BookService {
         book.setPublisher(request.publisher());
         book.setPublicationDate(request.publicationDate());
         book.setIsbn(request.isbn());
+        if (request.rating() != null) {
+            book.setRating(request.rating());
+        }
+        if (request.ratingOutOf100() != null) {
+            book.setRatingOutOf100(request.ratingOutOf100());
+        }
+        if (request.spiceRating() != null) {
+            book.setSpiceRating(request.spiceRating());
+        }
+        if (request.mood() != null) {
+            book.setMood(request.mood());
+        }
+        if (request.recommendation() != null) {
+            book.setRecommendation(request.recommendation());
+        }
+        if (request.purchasePrice() != null) {
+            book.setPurchasePrice(request.purchasePrice());
+        }
+        if (request.currency() != null) {
+            book.setCurrency(request.currency());
+        }
+        if (request.acquisitionMethod() != null) {
+            book.setAcquisitionMethod(request.acquisitionMethod());
+        }
+        if (request.purchaseDate() != null) {
+            book.setPurchaseDate(request.purchaseDate());
+        }
+        if (request.tropes() != null) {
+            book.setTropes(request.tropes());
+        }
+        if (request.readingStatus() != null) {
+            try {
+                book.setReadingStatus(ReadingStatus.valueOf(request.readingStatus().toUpperCase()));
+            } catch (Exception ignored) {}
+        }
+        if (request.currentPage() != null) {
+            book.setCurrentPage(request.currentPage());
+        }
+        if (request.totalPages() != null) {
+            book.setTotalPages(request.totalPages());
+        }
+        if (request.startedAt() != null) {
+            book.setStartedAt(request.startedAt());
+        }
+        if (request.completedAt() != null) {
+            book.setCompletedAt(request.completedAt());
+        }
         book.setCreatedBy(user);
 
         Book savedBook = bookRepository.save(book);
@@ -131,6 +178,53 @@ public class BookService {
         book.setPublisher(request.publisher());
         book.setPublicationDate(request.publicationDate());
         book.setIsbn(request.isbn());
+        if (request.rating() != null) {
+            book.setRating(request.rating());
+        }
+        if (request.ratingOutOf100() != null) {
+            book.setRatingOutOf100(request.ratingOutOf100());
+        }
+        if (request.spiceRating() != null) {
+            book.setSpiceRating(request.spiceRating());
+        }
+        if (request.mood() != null) {
+            book.setMood(request.mood());
+        }
+        if (request.recommendation() != null) {
+            book.setRecommendation(request.recommendation());
+        }
+        if (request.purchasePrice() != null) {
+            book.setPurchasePrice(request.purchasePrice());
+        }
+        if (request.currency() != null) {
+            book.setCurrency(request.currency());
+        }
+        if (request.acquisitionMethod() != null) {
+            book.setAcquisitionMethod(request.acquisitionMethod());
+        }
+        if (request.purchaseDate() != null) {
+            book.setPurchaseDate(request.purchaseDate());
+        }
+        if (request.tropes() != null) {
+            book.setTropes(request.tropes());
+        }
+        if (request.readingStatus() != null) {
+            try {
+                book.setReadingStatus(ReadingStatus.valueOf(request.readingStatus().toUpperCase()));
+            } catch (Exception ignored) {}
+        }
+        if (request.currentPage() != null) {
+            book.setCurrentPage(request.currentPage());
+        }
+        if (request.totalPages() != null) {
+            book.setTotalPages(request.totalPages());
+        }
+        if (request.startedAt() != null) {
+            book.setStartedAt(request.startedAt());
+        }
+        if (request.completedAt() != null) {
+            book.setCompletedAt(request.completedAt());
+        }
 
         Book updatedBook = bookRepository.save(book);
         BookResponse response = mapToResponse(updatedBook);
@@ -252,7 +346,22 @@ public class BookService {
                 book.getCreatedAt(),
                 book.getUpdatedAt(),
                 book.getPreviousReadingStatus() != null ? book.getPreviousReadingStatus().name() : null,
-                book.getDeletedAt()
+                book.getDeletedAt(),
+                book.getRating(),
+                book.getRatingOutOf100(),
+                book.getSpiceRating(),
+                book.getMood(),
+                book.getRecommendation(),
+                book.getPurchasePrice(),
+                book.getCurrency(),
+                book.getAcquisitionMethod(),
+                book.getPurchaseDate(),
+                book.getTropes(),
+                book.getReadingStatus() != null ? book.getReadingStatus().name() : null,
+                book.getCurrentPage(),
+                book.getTotalPages(),
+                book.getStartedAt(),
+                book.getCompletedAt()
         );
     }
 }

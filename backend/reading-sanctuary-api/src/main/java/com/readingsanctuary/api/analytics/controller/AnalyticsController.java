@@ -21,14 +21,24 @@ public class AnalyticsController {
     private final AnalyticsService analyticsService;
     private final ReadingStreakService streakService;
     private final ReadingWrapUpService wrapUpService;
+    private final com.readingsanctuary.api.analytics.service.ReadingCalendarService calendarService;
 
     public AnalyticsController(
             AnalyticsService analyticsService,
             ReadingStreakService streakService,
             ReadingWrapUpService wrapUpService) {
+        this(analyticsService, streakService, wrapUpService, null);
+    }
+
+    public AnalyticsController(
+            AnalyticsService analyticsService,
+            ReadingStreakService streakService,
+            ReadingWrapUpService wrapUpService,
+            com.readingsanctuary.api.analytics.service.ReadingCalendarService calendarService) {
         this.analyticsService = analyticsService;
         this.streakService = streakService;
         this.wrapUpService = wrapUpService;
+        this.calendarService = calendarService;
     }
 
     @GetMapping("/overview")
@@ -122,6 +132,39 @@ public class AnalyticsController {
         UUID userId = UUID.fromString(jwt.getSubject());
         int targetYear = (year != null) ? year : LocalDate.now().getYear();
         return ResponseEntity.ok(wrapUpService.generateWrapUp(userId, targetYear));
+    }
+
+    @GetMapping("/calendar")
+    public ResponseEntity<CalendarMonthResponse> getCalendar(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String timezone) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        ZoneId zone = resolveZoneId(timezone);
+        return ResponseEntity.ok(calendarService.getMonthCalendar(userId, year, month, zone));
+    }
+
+    @PostMapping("/freeze")
+    public ResponseEntity<StreakResponse> toggleStreakFreeze(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) LocalDate date,
+            @RequestParam(required = false) String timezone) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        ZoneId zone = resolveZoneId(timezone);
+        return ResponseEntity.ok(streakService.toggleStreakFreeze(userId, date, zone));
+    }
+
+    @PostMapping("/mark-today-complete")
+    public ResponseEntity<StreakResponse> markTodayComplete(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) String timezone) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        ZoneId zone = resolveZoneId(timezone);
+        return ResponseEntity.ok(streakService.markTodayComplete(userId, zone));
     }
 
     private ZoneId resolveZoneId(String timezone) {

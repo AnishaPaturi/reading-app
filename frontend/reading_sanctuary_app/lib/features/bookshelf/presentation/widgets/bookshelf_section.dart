@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../data/models/bookshelf_model.dart';
+import '../providers/book_size_provider.dart';
 import 'bookshelf_book_item.dart';
+import 'bookshelf_book_spine.dart';
 import 'bookshelf_decoration.dart';
 
-/// Reusable horizontal bookshelf component matching Reading Sanctuary's
-/// Soft Lilac pastel 3D Clay aesthetic.
-///
-/// Displays:
-/// 1. Shelf title, icon, and book count.
-/// 2. Horizontally scrollable book covers standing upright on an illustrated shelf.
-/// 3. Tactile 3D soft lilac shelf plank.
-/// 4. Optional end-of-shelf decoration (plant, lamp, stacked books).
-/// 5. Graceful empty state with add action.
-class BookshelfSection extends StatelessWidget {
+class BookshelfSection extends ConsumerWidget {
   final String title;
   final int bookCount;
   final List<Book> books;
@@ -49,7 +44,6 @@ class BookshelfSection extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(vertical: 14),
   });
 
-  /// Convenience constructor to render from a [BookshelfModel]
   factory BookshelfSection.fromModel({
     Key? key,
     required BookshelfModel shelf,
@@ -80,25 +74,22 @@ class BookshelfSection extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final count = bookCount > 0 ? bookCount : books.length;
     final primaryAccent = accentColor ?? ClayColors.primaryPurple;
+    final sizeSettings = ref.watch(bookSizeProvider);
 
     return Padding(
       padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Shelf Heading
           _buildShelfHeader(context, count, primaryAccent),
-
           const SizedBox(height: 12),
-
-          // 2. Horizontal Shelf Row + 3. Soft Lilac Shelf Plank
           if (books.isEmpty)
             _buildEmptyShelf(context)
           else
-            _buildActiveShelf(context),
+            _buildActiveShelf(context, ref, sizeSettings),
         ],
       ),
     );
@@ -147,7 +138,7 @@ class BookshelfSection extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: ClayColors.textDark,
                               height: 1.1,
@@ -188,8 +179,6 @@ class BookshelfSection extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Action buttons (Add books / Manage / Arrow)
               if (onAddBooksTap != null)
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
@@ -211,37 +200,85 @@ class BookshelfSection extends StatelessWidget {
     );
   }
 
-  Widget _buildActiveShelf(BuildContext context) {
+  Widget _buildActiveShelf(
+    BuildContext context,
+    WidgetRef ref,
+    BookSizeSettings sizeSettings,
+  ) {
     final hasDecoration = decorationType != null;
     final totalItems = books.length + (hasDecoration ? 1 : 0);
+    final isSpines = sizeSettings.viewMode == 'spines';
+
+    // Maximum shelf container height to accommodate resized books without clipping
+    final double maxShelfHeight = (bookHeight * 1.45) + 8;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Upright Book Covers standing on the shelf
         SizedBox(
-          height: bookHeight + 4,
+          height: maxShelfHeight,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 8),
             itemCount: totalItems,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, __) => SizedBox(width: isSpines ? 6 : 14),
             itemBuilder: (context, index) {
               if (index < books.length) {
                 final book = books[index];
+                final factor = sizeSettings.factorFor(book.id);
+                final isSelected = sizeSettings.selectedBookId == book.id;
+
+                final currentH = bookHeight * factor;
+                final currentW = isSpines ? (36 * factor) : (bookWidth * factor);
+
                 return Align(
                   alignment: Alignment.bottomCenter,
-                  child: BookshelfBookItem(
-                    book: book,
-                    width: bookWidth,
-                    height: bookHeight,
-                    onTap: () => onBookTap(book),
-                    onLongPress: onBookLongPress != null ? () => onBookLongPress!(book) : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    decoration: isSelected && !isSpines
+                        ? BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFFFB300), width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFFB300).withValues(alpha: 0.5),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          )
+                        : null,
+                    child: isSpines
+                        ? BookshelfBookSpine(
+                            book: book,
+                            width: currentW,
+                            height: currentH,
+                            isSelected: isSelected,
+                            onTap: () {
+                              if (sizeSettings.isResizeModeActive) {
+                                ref.read(bookSizeProvider.notifier).selectBook(book.id);
+                              } else {
+                                onBookTap(book);
+                              }
+                            },
+                            onLongPress: onBookLongPress != null ? () => onBookLongPress!(book) : null,
+                          )
+                        : BookshelfBookItem(
+                            book: book,
+                            width: currentW,
+                            height: currentH,
+                            onTap: () {
+                              if (sizeSettings.isResizeModeActive) {
+                                ref.read(bookSizeProvider.notifier).selectBook(book.id);
+                              } else {
+                                onBookTap(book);
+                              }
+                            },
+                            onLongPress: onBookLongPress != null ? () => onBookLongPress!(book) : null,
+                          ),
                   ),
                 );
               } else {
-                // Shelf end decoration
                 return Align(
                   alignment: Alignment.bottomCenter,
                   child: BookshelfDecoration(
@@ -279,99 +316,88 @@ class BookshelfSection extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (decorationType != null) ...[
-                BookshelfDecoration(type: decorationType!, scale: 0.75),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'No books on this shelf yet',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: ClayColors.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Organise your sanctuary with your favorite reads',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        color: ClayColors.textMuted,
-                      ),
-                    ),
-                  ],
+              Icon(
+                Icons.auto_stories_outlined,
+                size: 26,
+                color: ClayColors.textMuted.withValues(alpha: 0.5),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'This shelf is empty',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: ClayColors.textMuted,
                 ),
               ),
               if (onAddBooksTap != null) ...[
-                const SizedBox(width: 8),
-                ElevatedButton(
+                const SizedBox(width: 10),
+                TextButton(
                   onPressed: onAddBooksTap,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ClayColors.primaryPurple,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                  child: Text(
+                    '+ Add Books',
+                    style: GoogleFonts.inter(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: ClayColors.primaryPurple,
                     ),
                   ),
-                  child: const Text('Add Books', style: TextStyle(fontSize: 11)),
                 ),
               ],
             ],
           ),
         ),
-
-        // Shelf plank
         _buildLilacShelfPlank(),
       ],
     );
   }
 
-  /// 3D Tactile Shelf Plank using Soft Lilac & Pastel clay tokens
   Widget _buildLilacShelfPlank() {
-    return Container(
-      height: 14,
-      margin: const EdgeInsets.only(top: 2),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE9E0FA), // Top highlight
-            Color(0xFFDDD2F5), // Surface lilac
-            Color(0xFFC7B2F0), // Bottom bevel
-          ],
-        ),
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.8),
-          width: 0.8,
-        ),
-        boxShadow: [
-          // Soft purple-grey drop shadow
-          BoxShadow(
-            color: const Color(0xFF6C5791).withValues(alpha: 0.18),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          height: 10,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFE4DAF5),
+                Color(0xFFD6C7EE),
+              ],
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+            border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.7), width: 1.0),
+              left: const BorderSide(color: Color(0xFFC7B8E8), width: 0.5),
+              right: const BorderSide(color: Color(0xFFC7B8E8), width: 0.5),
+            ),
           ),
-          // Subtle top light rim
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.7),
-            blurRadius: 2,
-            offset: const Offset(0, -1),
+        ),
+        Container(
+          height: 8,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFBCAAE2),
+                Color(0xFFA58FD4),
+              ],
+            ),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(5)),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x334B3869),
+                blurRadius: 10,
+                offset: Offset(0, 5),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -38,6 +38,12 @@ class TestBookRepository implements BookRepository {
   Future<void> updateProgress(String id, double progress) async {}
 
   @override
+  Future<void> setPage(String id, int page) async {}
+
+  @override
+  Future<void> updateBookDetails(Book book) async {}
+
+  @override
   Future<void> addBook(Book book) async {
     activeBooks = [...activeBooks, book];
   }

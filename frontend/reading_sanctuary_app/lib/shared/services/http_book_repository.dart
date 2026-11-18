@@ -122,6 +122,24 @@ class HttpBookRepository implements BookRepository {
               dnfDate: dnfDate,
               dnfReason: dnfReason,
               dnfNotes: dnfNotes,
+              rating: item['rating'] != null ? (item['rating'] as num).toDouble() : null,
+              ratingOutOf100: item['ratingOutOf100'] is num ? (item['ratingOutOf100'] as num).toInt() : null,
+              spiceRating: item['spiceRating'] is num ? (item['spiceRating'] as num).toInt() : null,
+              mood: item['mood']?.toString(),
+              recommendation: item['recommendation']?.toString(),
+              purchasePrice: item['purchasePrice'] is num ? (item['purchasePrice'] as num).toDouble() : null,
+              currency: item['currency']?.toString() ?? 'INR',
+              acquisitionMethod: item['acquisitionMethod']?.toString(),
+              purchaseDate: item['purchaseDate'] != null ? DateTime.tryParse(item['purchaseDate'].toString()) : null,
+              startDate: item['startedAt'] != null ? DateTime.tryParse(item['startedAt'].toString()) : null,
+              completionDate: item['completedAt'] != null ? DateTime.tryParse(item['completedAt'].toString()) : null,
+              publisher: item['publisher']?.toString(),
+              isbn: item['isbn']?.toString(),
+              tropes: item['tropes'] is List
+                  ? (item['tropes'] as List).map((t) => t.toString()).toList()
+                  : (item['tropes'] is String && (item['tropes'] as String).isNotEmpty
+                      ? (item['tropes'] as String).split(',').map((t) => t.trim()).toList()
+                      : const []),
             ));
           }
         }
@@ -209,6 +227,73 @@ class HttpBookRepository implements BookRepository {
         'currentPage': currentBook.currentPage,
         'totalPages': currentBook.pages,
         'status': _statusToBackend(currentBook.status),
+      });
+    } catch (_) {}
+  }
+
+  @override
+  Future<void> setPage(String id, int page) async {
+    final books = await _loadFromCache();
+    final updated = [
+      for (final b in books)
+        if (b.id == id)
+          () {
+            final validPage = page.clamp(0, b.pages);
+            final p = b.pages > 0 ? (validPage / b.pages).clamp(0.0, 1.0) : 0.0;
+            return b.copyWith(
+              progress: p,
+              lastOpenedAt: DateTime.now(),
+              status: b.status == ReadingStatus.wantToRead && p > 0
+                  ? ReadingStatus.currentlyReading
+                  : (p >= 1.0 ? ReadingStatus.completed : b.status),
+            );
+          }()
+        else
+          b
+    ];
+    await _saveToCache(updated);
+
+    try {
+      final currentBook = updated.firstWhere((b) => b.id == id);
+      await _apiClient.patch('/books/$id/reading', body: {
+        'currentPage': currentBook.currentPage,
+        'totalPages': currentBook.pages,
+        'status': _statusToBackend(currentBook.status),
+      });
+    } catch (_) {}
+  }
+
+  @override
+  Future<void> updateBookDetails(Book book) async {
+    final books = await _loadFromCache();
+    final updated = [
+      for (final b in books)
+        if (b.id == book.id) book else b
+    ];
+    await _saveToCache(updated);
+
+    try {
+      await _apiClient.put('/books/${book.id}', body: {
+        'title': book.title,
+        'description': book.description,
+        'language': book.genre,
+        'publisher': book.publisher ?? book.author,
+        'isbn': book.isbn,
+        'rating': book.rating,
+        'ratingOutOf100': book.ratingOutOf100,
+        'spiceRating': book.spiceRating,
+        'mood': book.mood,
+        'recommendation': book.recommendation,
+        'purchasePrice': book.purchasePrice,
+        'currency': book.currency,
+        'acquisitionMethod': book.acquisitionMethod,
+        if (book.purchaseDate != null) 'purchaseDate': book.purchaseDate!.toIso8601String().split('T').first,
+        if (book.startDate != null) 'startedAt': book.startDate!.toIso8601String().split('T').first,
+        if (book.completionDate != null) 'completedAt': book.completionDate!.toIso8601String().split('T').first,
+        'tropes': book.tropes.join(','),
+        'readingStatus': _statusToBackend(book.status),
+        'currentPage': book.currentPage,
+        'totalPages': book.pages,
       });
     } catch (_) {}
   }

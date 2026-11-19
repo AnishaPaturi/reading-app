@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.readingsanctuary.api.analytics.dto.*;
 import com.readingsanctuary.api.analytics.service.AnalyticsService;
+import com.readingsanctuary.api.analytics.service.ReadingCalendarService;
 import com.readingsanctuary.api.analytics.service.ReadingStreakService;
 import com.readingsanctuary.api.analytics.service.ReadingWrapUpService;
 
@@ -21,7 +23,7 @@ public class AnalyticsController {
     private final AnalyticsService analyticsService;
     private final ReadingStreakService streakService;
     private final ReadingWrapUpService wrapUpService;
-    private final com.readingsanctuary.api.analytics.service.ReadingCalendarService calendarService;
+    private final ReadingCalendarService calendarService;
 
     public AnalyticsController(
             AnalyticsService analyticsService,
@@ -30,11 +32,12 @@ public class AnalyticsController {
         this(analyticsService, streakService, wrapUpService, null);
     }
 
+    @Autowired
     public AnalyticsController(
             AnalyticsService analyticsService,
             ReadingStreakService streakService,
             ReadingWrapUpService wrapUpService,
-            com.readingsanctuary.api.analytics.service.ReadingCalendarService calendarService) {
+            ReadingCalendarService calendarService) {
         this.analyticsService = analyticsService;
         this.streakService = streakService;
         this.wrapUpService = wrapUpService;

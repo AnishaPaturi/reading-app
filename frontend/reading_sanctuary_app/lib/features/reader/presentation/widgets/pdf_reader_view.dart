@@ -329,7 +329,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
           onPageChanged: _handlePageChanged,
           pagePaintCallbacks: [
             (canvas, pageRect, page) {
-              _textSearcher.paintMatches(canvas, pageRect, page);
+              _textSearcher.pageTextMatchPaintCallback(canvas, pageRect, page);
               final pageHighlights = widget.annotations.where(
                 (a) => a.pageNumber == page.pageNumber &&
                     (a.type == AnnotationType.highlight || a.type == AnnotationType.quote),

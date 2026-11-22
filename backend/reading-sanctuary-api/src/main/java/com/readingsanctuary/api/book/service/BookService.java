@@ -19,6 +19,7 @@ import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.bookfile.entity.BookFile;
 import com.readingsanctuary.api.bookfile.repository.BookFileRepository;
 import com.readingsanctuary.api.bookfile.service.LocalFileStorageService;
+import com.readingsanctuary.api.bookmetadata.cover.service.BookCoverService;
 import com.readingsanctuary.api.sync.service.SyncChangePublisher;
 import com.readingsanctuary.api.user.entity.User;
 import com.readingsanctuary.api.user.repository.UserRepository;
@@ -32,18 +33,19 @@ public class BookService {
     private final BookFileRepository bookFileRepository;
     private final BookStorageService bookStorageService;
     private final LocalFileStorageService localStorageService;
+    private final BookCoverService bookCoverService;
 
     public BookService(
             BookRepository bookRepository,
             UserRepository userRepository) {
-        this(bookRepository, userRepository, null, null, null, null);
+        this(bookRepository, userRepository, null, null, null, null, null);
     }
 
     public BookService(
             BookRepository bookRepository,
             UserRepository userRepository,
             SyncChangePublisher changePublisher) {
-        this(bookRepository, userRepository, changePublisher, null, null, null);
+        this(bookRepository, userRepository, changePublisher, null, null, null, null);
     }
 
     @Autowired
@@ -53,13 +55,15 @@ public class BookService {
             @Autowired(required = false) SyncChangePublisher changePublisher,
             @Autowired(required = false) BookFileRepository bookFileRepository,
             @Autowired(required = false) BookStorageService bookStorageService,
-            @Autowired(required = false) LocalFileStorageService localStorageService) {
+            @Autowired(required = false) LocalFileStorageService localStorageService,
+            @Autowired(required = false) BookCoverService bookCoverService) {
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
         this.changePublisher = changePublisher;
         this.bookFileRepository = bookFileRepository;
         this.bookStorageService = bookStorageService;
         this.localStorageService = localStorageService;
+        this.bookCoverService = bookCoverService;
     }
 
     // Create a new book
@@ -348,6 +352,11 @@ public class BookService {
 
     // Convert entity into response DTO
     private BookResponse mapToResponse(Book book) {
+        if ((book.getCoverStorageKey() == null || book.getCoverStorageKey().isBlank()) && bookCoverService != null) {
+            try {
+                bookCoverService.recoverCover(book);
+            } catch (Exception ignored) {}
+        }
         boolean hasCover = book.getCoverStorageKey() != null && !book.getCoverStorageKey().isBlank();
         String coverUrl = hasCover ? "/api/v1/books/" + book.getId() + "/cover" : null;
         OffsetDateTime coverUpdatedAt = book.getCoverUpdatedAt();

@@ -205,8 +205,8 @@ class Book {
   final String? isbn;
 
   String? get effectiveCoverUrl {
-    // If book explicitly has no cover, only allow data URIs (e.g. temporary upload preview)
-    if (!hasCover && (coverImageUrl == null || !coverImageUrl!.trim().startsWith('data:'))) {
+    // If book explicitly has no cover and no cover URL provided, return null for styled fallback
+    if (!hasCover && (coverImageUrl == null || coverImageUrl!.trim().isEmpty)) {
       return null;
     }
 
@@ -333,7 +333,8 @@ class Book {
     }
 
     final bool hasCover = json['hasCover'] == true ||
-        (json['coverStorageKey'] != null && json['coverStorageKey'].toString().isNotEmpty);
+        (json['coverStorageKey'] != null && json['coverStorageKey'].toString().isNotEmpty) ||
+        (json['coverUrl'] != null && json['coverUrl'].toString().trim().isNotEmpty);
 
     final DateTime? coverUpdatedAt = json['coverUpdatedAt'] != null
         ? DateTime.tryParse(json['coverUpdatedAt'].toString())

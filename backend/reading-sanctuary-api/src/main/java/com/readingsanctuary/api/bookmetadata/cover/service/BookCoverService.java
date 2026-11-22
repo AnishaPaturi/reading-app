@@ -8,8 +8,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,6 +32,8 @@ import com.readingsanctuary.api.bookfile.service.LocalFileStorageService;
 
 @Service
 public class BookCoverService {
+
+    private static final Logger log = LoggerFactory.getLogger(BookCoverService.class);
 
     public record CoverDownload(
             Resource resource,
@@ -154,7 +160,7 @@ public class BookCoverService {
 
         if (book.getCoverStorageKey() == null) {
             try {
-                recoverCover(userId, bookId);
+                recoverCover(book);
                 book = getOwnedBook(bookId, userId);
             } catch (Exception ignored) {
                 // If recovery fails, fall through to 404
@@ -193,23 +199,42 @@ public class BookCoverService {
     @Transactional
     public void recoverCover(UUID userId, UUID bookId) {
         Book book = getOwnedBook(bookId, userId);
-
-        if (fileRepository == null || extractionService == null) {
+        boolean recovered = recoverCover(book);
+        if (!recovered && book.getCoverStorageKey() == null) {
             throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "Cover recovery service not configured");
+                    HttpStatus.NOT_FOUND, "No cover could be extracted for book");
+        }
+    }
+
+    /**
+     * Safely recovers or backfills the cover for a book record using its original stored file.
+     * Does not overwrite an existing valid cover.
+     * Does not create duplicate book records or reset reading progress / annotations.
+     */
+    @Transactional
+    public boolean recoverCover(Book book) {
+        if (book == null || (book.getCoverStorageKey() != null && !book.getCoverStorageKey().isBlank())) {
+            return false;
         }
 
-        List<BookFile> files = fileRepository.findAllByBook_Id(bookId);
+        if (fileRepository == null || extractionService == null) {
+            log.warn("Cover recovery skipped: repository or extraction service not configured");
+            return false;
+        }
+
+        List<BookFile> files = fileRepository.findAllByBook_Id(book.getId());
         if (files.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "No files found for book");
+            return false;
         }
 
         BookFile targetFile = files.stream()
                 .filter(f -> "EPUB".equalsIgnoreCase(f.getFileFormat()) || "PDF".equalsIgnoreCase(f.getFileFormat()))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "No PDF or EPUB file found for book"));
+                .orElse(null);
+
+        if (targetFile == null || targetFile.getStorageKey() == null) {
+            return false;
+        }
 
         Path filePath = null;
         if (bookStorageService != null) {
@@ -231,8 +256,8 @@ public class BookCoverService {
         }
 
         if (filePath == null || !java.nio.file.Files.exists(filePath)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Book file not found on disk");
+            log.warn("Cover recovery: Book file not found on disk for book {}", book.getId());
+            return false;
         }
 
         ExtractedBookMetadata metadata;
@@ -242,14 +267,13 @@ public class BookCoverService {
                     targetFile.getFileName(),
                     targetFile.getFileFormat().toLowerCase(Locale.ROOT)
             );
-        } catch (IOException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "Failed to extract metadata: " + e.getMessage());
+        } catch (Exception e) {
+            log.warn("Failed to extract metadata during cover recovery for book {}: {}", book.getId(), e.getMessage());
+            return false;
         }
 
         if (metadata == null || metadata.coverBase64() == null || metadata.coverBase64().isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "No cover found in book file");
+            return false;
         }
 
         String coverData = metadata.coverBase64().trim();
@@ -257,35 +281,39 @@ public class BookCoverService {
         String extension = "jpg";
 
         if (coverData.startsWith("data:")) {
-            int semi = coverData.indexOf(';');
             int comma = coverData.indexOf(',');
-            if (semi > 5 && comma > semi) {
-                contentType = coverData.substring(5, semi).toLowerCase(Locale.ROOT);
+            if (comma > 0) {
+                String meta = coverData.substring(5, comma).toLowerCase(Locale.ROOT);
                 coverData = coverData.substring(comma + 1);
-                extension = switch (contentType) {
-                    case "image/png" -> "png";
-                    case "image/webp" -> "webp";
-                    default -> "jpg";
-                };
+                if (meta.contains("image/png")) {
+                    extension = "png";
+                    contentType = "image/png";
+                } else if (meta.contains("image/webp")) {
+                    extension = "webp";
+                    contentType = "image/webp";
+                } else {
+                    extension = "jpg";
+                    contentType = "image/jpeg";
+                }
             }
         }
 
         byte[] coverBytes;
         try {
-            coverBytes = Base64.getDecoder().decode(coverData);
+            coverBytes = Base64.getDecoder().decode(coverData.trim());
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "Corrupted cover data in book file");
+            log.warn("Corrupted cover base64 data for book {}: {}", book.getId(), e.getMessage());
+            return false;
         }
 
         if (coverBytes.length == 0 || coverBytes.length > maxSize) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Extracted cover exceeds maximum size limit");
+            log.warn("Extracted cover for book {} rejected due to invalid length {}", book.getId(), coverBytes.length);
+            return false;
         }
 
         if (!isValidImageBytes(coverBytes, extension)) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Extracted cover signature is invalid");
+            log.warn("Extracted cover for book {} rejected: byte signature does not match {}", book.getId(), extension);
+            return false;
         }
 
         String oldStorageKey = book.getCoverStorageKey();
@@ -300,20 +328,46 @@ public class BookCoverService {
             book.setCoverUpdatedAt(OffsetDateTime.now());
 
             bookRepository.save(book);
+            log.info("Successfully recovered cover for book {} ({})", book.getId(), book.getTitle());
+            return true;
         } catch (IOException e) {
             if (newStorageKey != null) {
                 try {
                     storageService.delete(newStorageKey);
                 } catch (IOException ignored) {}
             }
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store recovered cover image");
+            log.error("Failed to store recovered cover image for book {}: {}", book.getId(), e.getMessage());
+            return false;
         }
+    }
 
-        if (oldStorageKey != null && !oldStorageKey.equals(newStorageKey)) {
-            try {
-                storageService.delete(oldStorageKey);
-            } catch (IOException ignored) {}
+    /**
+     * Automatic startup backfill: regenerates covers for any existing stored books missing covers.
+     * Runs safely in the background when the application finishes booting.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void backfillMissingCoversOnStartup() {
+        try {
+            List<Book> booksWithoutCover = bookRepository.findAllByCoverStorageKeyIsNull();
+            if (booksWithoutCover == null || booksWithoutCover.isEmpty()) {
+                return;
+            }
+            log.info("Checking {} book(s) for missing cover backfill...", booksWithoutCover.size());
+            int recovered = 0;
+            for (Book book : booksWithoutCover) {
+                try {
+                    if (recoverCover(book)) {
+                        recovered++;
+                    }
+                } catch (Exception ex) {
+                    log.warn("Could not backfill cover for book {}: {}", book.getId(), ex.getMessage());
+                }
+            }
+            if (recovered > 0) {
+                log.info("Successfully backfilled covers for {} existing book(s).", recovered);
+            }
+        } catch (Throwable e) {
+            log.warn("Cover backfill on startup skipped or encountered an issue: {}", e.getMessage());
         }
     }
 

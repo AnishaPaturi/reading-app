@@ -189,6 +189,59 @@ class BookCoverServiceTest {
 
         assertThatThrownBy(() -> coverService.recoverCover(userId, bookId))
                 .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("No files found");
+                .hasMessageContaining("No cover could be extracted for book");
+    }
+
+    @Test
+    void recoverCover_skipsBookIfCoverAlreadyPresent() {
+        testBook.setCoverStorageKey("covers/existing.jpg");
+
+        boolean recovered = coverService.recoverCover(testBook);
+
+        assertThat(recovered).isFalse();
+        assertThat(testBook.getCoverStorageKey()).isEqualTo("covers/existing.jpg");
+    }
+
+    @Test
+    void backfillMissingCoversOnStartup_recoversAllBooksWithoutCovers() throws IOException {
+        testBook.setCoverStorageKey(null);
+
+        Path dummyPdf = tempDir.resolve("backfill.pdf");
+        Files.write(dummyPdf, new byte[]{0x25, 0x50, 0x44, 0x46});
+
+        BookFile pdfFile = new BookFile();
+        pdfFile.setBook(testBook);
+        pdfFile.setFileName("backfill.pdf");
+        pdfFile.setFileFormat("PDF");
+        pdfFile.setStorageKey("books/backfill.pdf");
+
+        when(bookRepository.findAllByCoverStorageKeyIsNull()).thenReturn(List.of(testBook));
+        when(fileRepository.findAllByBook_Id(bookId)).thenReturn(List.of(pdfFile));
+        when(bookStorageService.getPath("books/backfill.pdf")).thenReturn(dummyPdf);
+
+        byte[] fakeJpeg = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 0, 0, 0};
+        String base64Cover = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(fakeJpeg);
+
+        ExtractedBookMetadata metadata = new ExtractedBookMetadata(
+                "The Bone Year",
+                "Author",
+                "Fiction",
+                "Description",
+                "123",
+                100,
+                null,
+                "en",
+                base64Cover
+        );
+
+        when(extractionService.extractMetadata(any(File.class), eq("backfill.pdf"), eq("pdf")))
+                .thenReturn(metadata);
+        when(storageService.storeBytes(any(byte[].class), eq("jpg")))
+                .thenReturn("covers/backfilled.jpg");
+
+        coverService.backfillMissingCoversOnStartup();
+
+        assertThat(testBook.getCoverStorageKey()).isEqualTo("covers/backfilled.jpg");
+        verify(bookRepository).save(testBook);
     }
 }

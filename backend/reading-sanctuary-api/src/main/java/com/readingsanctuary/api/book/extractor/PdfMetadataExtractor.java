@@ -99,8 +99,19 @@ public class PdfMetadataExtractor implements BookMetadataExtractor {
     private String renderFirstPageAsCover(PDDocument document, String originalFileName) {
         try {
             PDFRenderer renderer = new PDFRenderer(document);
-            // Render first page at 120 DPI in RGB
-            BufferedImage rawImage = renderer.renderImageWithDPI(0, RENDER_DPI, ImageType.RGB);
+            // Render first page at 120 DPI. Try RGB first; fall back to ARGB or default if color model issues occur.
+            BufferedImage rawImage = null;
+            try {
+                rawImage = renderer.renderImageWithDPI(0, RENDER_DPI, ImageType.RGB);
+            } catch (Exception e) {
+                log.warn("RGB render failed for {}, attempting ARGB fallback: {}", originalFileName, e.getMessage());
+                try {
+                    rawImage = renderer.renderImageWithDPI(0, RENDER_DPI, ImageType.ARGB);
+                } catch (Exception e2) {
+                    rawImage = renderer.renderImage(0, 1.0f);
+                }
+            }
+
             if (rawImage == null) {
                 return null;
             }
@@ -119,6 +130,8 @@ public class PdfMetadataExtractor implements BookMetadataExtractor {
             int targetWidth = Math.max(1, (int) Math.round(width * ratio));
             int targetHeight = Math.max(1, (int) Math.round(height * ratio));
 
+            // Normalize every rendered image into TYPE_INT_RGB with an opaque white background.
+            // This prevents Java ImageIO JPEG encoding crashes with grayscale, CMYK, or alpha rasters.
             BufferedImage cleanImage = new BufferedImage(
                     targetWidth,
                     targetHeight,
@@ -138,24 +151,37 @@ public class PdfMetadataExtractor implements BookMetadataExtractor {
             }
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
-            if (writers.hasNext()) {
-                ImageWriter writer = writers.next();
-                try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
-                    writer.setOutput(ios);
-                    ImageWriteParam param = writer.getDefaultWriteParam();
-                    if (param.canWriteCompressed()) {
-                        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-                        param.setCompressionQuality(0.85f);
+            try {
+                Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
+                if (writers.hasNext()) {
+                    ImageWriter writer = writers.next();
+                    try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
+                        writer.setOutput(ios);
+                        ImageWriteParam param = writer.getDefaultWriteParam();
+                        if (param.canWriteCompressed()) {
+                            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                            param.setCompressionQuality(0.85f);
+                        }
+                        writer.write(null, new IIOImage(cleanImage, null, null), param);
+                    } finally {
+                        writer.dispose();
                     }
-                    writer.write(null, new IIOImage(cleanImage, null, null), param);
-                } finally {
-                    writer.dispose();
+                } else {
+                    boolean written = ImageIO.write(cleanImage, "jpeg", baos);
+                    if (!written) {
+                        ImageIO.write(cleanImage, "jpg", baos);
+                    }
                 }
-            } else {
-                boolean written = ImageIO.write(cleanImage, "jpeg", baos);
-                if (!written) {
-                    ImageIO.write(cleanImage, "jpg", baos);
+            } catch (Exception encodeEx) {
+                log.warn("JPEG encoding failed for {}, falling back to PNG: {}", originalFileName, encodeEx.getMessage());
+                baos.reset();
+            }
+
+            // Fallback to PNG if JPEG produced 0 bytes or threw an encoding exception
+            if (baos.size() == 0) {
+                ImageIO.write(cleanImage, "png", baos);
+                if (baos.size() > 0 && baos.size() <= MAX_COVER_BYTES) {
+                    return "data:image/png;base64," + Base64.getEncoder().encodeToString(baos.toByteArray());
                 }
             }
 

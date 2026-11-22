@@ -29,6 +29,8 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
         ReadingStatus readingStatus
     );
 
+    List<Book> findAllByCoverStorageKeyIsNull();
+
     long countByCreatedBy_Id(UUID userId);
 
     long countByCreatedBy_IdAndReadingStatus(UUID userId, ReadingStatus readingStatus);

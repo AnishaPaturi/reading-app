@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import '../../features/authentication/presentation/providers/auth_provider.dart';
 import '../../features/reader/presentation/providers/reader_provider.dart';
 import '../network/api_config.dart';
 import '../../shared/models/book.dart';
@@ -329,7 +330,7 @@ class _AuthenticatedCoverImageState extends ConsumerState<_AuthenticatedCoverIma
     }
 
     try {
-      final token = ref.read(authTokenProvider);
+      final token = ref.read(authTokenProvider) ?? ref.read(authNotifierProvider).user?.token;
       final headers = <String, String>{
         'Accept': 'image/*',
         if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',

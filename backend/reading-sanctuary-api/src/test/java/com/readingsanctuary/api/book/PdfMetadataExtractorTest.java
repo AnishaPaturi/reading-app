@@ -145,4 +145,42 @@ class PdfMetadataExtractorTest {
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> extractor.extract(brokenFile, "corrupted.pdf"))
                 .isInstanceOf(IOException.class);
     }
+
+    @Test
+    void extract_PdfWithTransparency_RendersOnWhiteBackground(@TempDir File tempDir) throws IOException {
+        File pdfFile = new File(tempDir, "transparent.pdf");
+        try (PDDocument doc = new PDDocument()) {
+            PDPage page = new PDPage();
+            doc.addPage(page);
+
+            try (org.apache.pdfbox.pdmodel.PDPageContentStream content =
+                         new org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page)) {
+                content.setNonStrokingColor(0.8f, 0.2f, 0.2f);
+                content.addRect(20, 20, 300, 400);
+                content.fill();
+            }
+
+            PDDocumentInformation info = new PDDocumentInformation();
+            info.setTitle("Transparent Graphic");
+            doc.setDocumentInformation(info);
+            doc.save(pdfFile);
+        }
+
+        ExtractedBookMetadata metadata = extractor.extract(pdfFile, "transparent.pdf");
+        assertThat(metadata.title()).isEqualTo("Transparent Graphic");
+        assertThat(metadata.coverBase64()).isNotNull();
+        assertThat(metadata.coverBase64()).startsWith("data:image/jpeg;base64,");
+    }
+
+    @Test
+    void testBoneYearExtraction() throws Exception {
+        File boneYear = new File("reading-sanctuary-storage/books/874bb8e5-26fe-4764-ae5c-b614168b158a.pdf");
+        if (boneYear.exists()) {
+            ExtractedBookMetadata result = extractor.extract(boneYear, "Bone Year.pdf");
+            assertThat(result.title()).isEqualTo("Bone Year");
+            assertThat(result.pages()).isGreaterThan(0);
+            assertThat(result.coverBase64()).isNotNull();
+            assertThat(result.coverBase64()).startsWith("data:image/jpeg;base64,");
+        }
+    }
 }

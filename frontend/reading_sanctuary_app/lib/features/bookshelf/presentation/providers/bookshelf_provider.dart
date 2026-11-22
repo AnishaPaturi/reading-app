@@ -26,8 +26,10 @@ class BookshelfListNotifier extends StateNotifier<AsyncValue<List<BookshelfModel
   Future<void> loadShelves({bool forceRefresh = false}) async {
     try {
       final shelves = await _repository.getShelves(forceRefresh: forceRefresh);
+      if (!mounted) return;
       state = AsyncValue.data(shelves);
     } catch (e, st) {
+      if (!mounted) return;
       state = AsyncValue.error(e, st);
     }
   }
@@ -56,6 +58,7 @@ class BookshelfListNotifier extends StateNotifier<AsyncValue<List<BookshelfModel
       isFavorite: isFavorite,
       sortOrder: sortOrder,
     );
+    if (!mounted) return created;
     final current = state.valueOrNull ?? [];
     state = AsyncValue.data([...current, created]);
     return created;
@@ -87,6 +90,7 @@ class BookshelfListNotifier extends StateNotifier<AsyncValue<List<BookshelfModel
       isFavorite: isFavorite,
       sortOrder: sortOrder,
     );
+    if (!mounted) return updated;
     final current = state.valueOrNull ?? [];
     final next = current.map((s) => s.id == shelfId ? updated : s).toList();
     state = AsyncValue.data(next);
@@ -95,12 +99,14 @@ class BookshelfListNotifier extends StateNotifier<AsyncValue<List<BookshelfModel
 
   Future<void> deleteShelf(String shelfId) async {
     await _repository.deleteShelf(shelfId);
+    if (!mounted) return;
     final current = state.valueOrNull ?? [];
     state = AsyncValue.data(current.where((s) => s.id != shelfId).toList());
   }
 
   Future<void> addBookToShelf(String shelfId, String bookId) async {
     await _repository.addBookToShelf(shelfId, bookId);
+    if (!mounted) return;
     final current = state.valueOrNull ?? [];
     final next = current.map((s) {
       if (s.id == shelfId) {
@@ -116,6 +122,7 @@ class BookshelfListNotifier extends StateNotifier<AsyncValue<List<BookshelfModel
 
   Future<void> removeBookFromShelf(String shelfId, String bookId) async {
     await _repository.removeBookFromShelf(shelfId, bookId);
+    if (!mounted) return;
     final current = state.valueOrNull ?? [];
     final next = current.map((s) {
       if (s.id == shelfId) {

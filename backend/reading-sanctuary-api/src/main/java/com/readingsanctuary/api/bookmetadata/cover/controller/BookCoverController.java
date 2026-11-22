@@ -36,6 +36,18 @@ public class BookCoverController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/extract")
+    public ResponseEntity<Void> extractCover(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID bookId) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+
+        coverService.recoverCover(userId, bookId);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     public ResponseEntity<Resource> getCover(
             @AuthenticationPrincipal Jwt jwt,
@@ -46,8 +58,12 @@ public class BookCoverController {
         BookCoverService.CoverDownload cover =
                 coverService.getCover(userId, bookId);
 
-        MediaType mediaType =
-                MediaType.parseMediaType(cover.contentType());
+        MediaType mediaType;
+        try {
+            mediaType = MediaType.parseMediaType(cover.contentType());
+        } catch (Exception e) {
+            mediaType = MediaType.IMAGE_JPEG;
+        }
 
         return ResponseEntity.ok()
                 .contentType(mediaType)

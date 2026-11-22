@@ -205,8 +205,8 @@ class Book {
   final String? isbn;
 
   String? get effectiveCoverUrl {
-    // If book explicitly has no cover, return null so styled fallback renders
-    if (!hasCover && (coverImageUrl == null || coverImageUrl!.trim().isEmpty)) {
+    // If book explicitly has no cover, only allow data URIs (e.g. temporary upload preview)
+    if (!hasCover && (coverImageUrl == null || !coverImageUrl!.trim().startsWith('data:'))) {
       return null;
     }
 

@@ -377,6 +377,10 @@ public class BookUploadService {
                 saveExtractedCover(book, pending.getCoverBase64());
                 book = bookRepository.save(book);
             }
+
+            if (changePublisher != null) {
+                changePublisher.publishUpdate(userId, "BOOK", book.getId().toString(), 2L, toBookResponse(book));
+            }
         } else {
             // Create a brand new Book record
             book = new Book();
@@ -516,12 +520,38 @@ public class BookUploadService {
             book.setCoverContentType(contentType);
             book.setCoverUpdatedAt(OffsetDateTime.now());
 
-            // If replacing an old cover, delete old physical file
-            if (oldStorageKey != null && !oldStorageKey.isBlank() && !oldStorageKey.equals(coverStorageKey)) {
-                try {
-                    localStorageService.delete(oldStorageKey);
-                } catch (IOException ignored) {
-                    log.warn("Could not delete superseded cover file: {}", oldStorageKey);
+            // Register transaction synchronization to guarantee storage safety
+            if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+                org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                        new org.springframework.transaction.support.TransactionSynchronization() {
+                            @Override
+                            public void afterCompletion(int status) {
+                                if (status != org.springframework.transaction.support.TransactionSynchronization.STATUS_COMMITTED) {
+                                    try {
+                                        localStorageService.delete(coverStorageKey);
+                                    } catch (IOException ignored) {}
+                                }
+                            }
+
+                            @Override
+                            public void afterCommit() {
+                                if (oldStorageKey != null && !oldStorageKey.isBlank() && !oldStorageKey.equals(coverStorageKey)) {
+                                    try {
+                                        localStorageService.delete(oldStorageKey);
+                                    } catch (IOException ignored) {
+                                        log.warn("Could not delete superseded cover file: {}", oldStorageKey);
+                                    }
+                                }
+                            }
+                        }
+                );
+            } else {
+                if (oldStorageKey != null && !oldStorageKey.isBlank() && !oldStorageKey.equals(coverStorageKey)) {
+                    try {
+                        localStorageService.delete(oldStorageKey);
+                    } catch (IOException ignored) {
+                        log.warn("Could not delete superseded cover file: {}", oldStorageKey);
+                    }
                 }
             }
         } catch (Exception e) {

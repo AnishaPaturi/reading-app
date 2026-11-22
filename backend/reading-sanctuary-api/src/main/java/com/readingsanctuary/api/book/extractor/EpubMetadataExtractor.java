@@ -216,7 +216,7 @@ public class EpubMetadataExtractor implements BookMetadataExtractor {
                 }
             }
 
-            // Fallback: search items for id or href containing 'cover' and raster image media-type
+            // Fallback 1: search items for id or href containing 'cover' and raster image media-type
             if (coverHref == null) {
                 for (int i = 0; i < items.getLength(); i++) {
                     Element item = (Element) items.item(i);
@@ -232,6 +232,57 @@ public class EpubMetadataExtractor implements BookMetadataExtractor {
                 }
             }
 
+            // Fallback 2: check if an XHTML cover page references an image
+            if (coverHref == null) {
+                for (int i = 0; i < items.getLength(); i++) {
+                    Element item = (Element) items.item(i);
+                    String href = item.getAttribute("href");
+                    String id = item.getAttribute("id");
+                    String mediaType = item.getAttribute("media-type");
+                    boolean isCoverPage = (href != null && href.toLowerCase(Locale.ROOT).contains("cover")) ||
+                            (id != null && id.toLowerCase(Locale.ROOT).contains("cover"));
+                    boolean isHtml = mediaType != null && (mediaType.contains("xhtml") || mediaType.contains("html"));
+
+                    if (isCoverPage && isHtml && href != null) {
+                        String htmlPath = resolveRelativePath(opfPath, href);
+                        ZipEntry htmlEntry = zip.getEntry(htmlPath);
+                        if (htmlEntry == null) htmlEntry = findZipEntryIgnoreCase(zip, htmlPath);
+                        if (htmlEntry != null) {
+                            try (InputStream in = zip.getInputStream(htmlEntry)) {
+                                String content = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                                Pattern imgPattern = Pattern.compile("<(?:img|image)[^>]+(?:src|href|xlink:href)=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
+                                Matcher m = imgPattern.matcher(content);
+                                while (m.find()) {
+                                    String candidateImg = m.group(1);
+                                    if (isSupportedRasterImage(null, candidateImg)) {
+                                        coverHref = resolveRelativePath(htmlPath, candidateImg);
+                                        // coverHref is now already relative to ZIP root, adjust so resolveRelativePath below handles it
+                                        coverMediaType = guessMimeType(candidateImg);
+                                        break;
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                    if (coverHref != null) break;
+                }
+            }
+
+            // Fallback 3: search zip entries directly for standalone cover files
+            if (coverHref == null) {
+                Enumeration<? extends ZipEntry> allEntries = zip.entries();
+                while (allEntries.hasMoreElements()) {
+                    ZipEntry e = allEntries.nextElement();
+                    String name = e.getName();
+                    String simpleName = name.substring(name.lastIndexOf('/') + 1).toLowerCase(Locale.ROOT);
+                    if (simpleName.startsWith("cover.") && isSupportedRasterImage(null, simpleName)) {
+                        coverHref = name;
+                        coverMediaType = guessMimeType(simpleName);
+                        break;
+                    }
+                }
+            }
+
             if (coverHref == null) return null;
 
             // Handle URL-encoded paths (e.g. "cover%20art.jpg")
@@ -239,20 +290,9 @@ public class EpubMetadataExtractor implements BookMetadataExtractor {
                 coverHref = URLDecoder.decode(coverHref, StandardCharsets.UTF_8);
             } catch (Exception ignored) {}
 
-            // Resolve path relative to OPF file
-            String coverPath;
-            int lastSlash = opfPath.lastIndexOf('/');
-            if (lastSlash >= 0) {
-                coverPath = opfPath.substring(0, lastSlash + 1) + coverHref;
-            } else {
-                coverPath = coverHref;
-            }
-
-            // Normalize path (handle ../ and Windows slashes)
-            coverPath = java.nio.file.Path.of(coverPath).normalize().toString().replace('\\', '/');
+            String coverPath = resolveRelativePath(opfPath, coverHref);
             ZipEntry coverEntry = zip.getEntry(coverPath);
             if (coverEntry == null) {
-                // Try case-insensitive search
                 coverEntry = findZipEntryIgnoreCase(zip, coverPath);
             }
 
@@ -260,7 +300,7 @@ public class EpubMetadataExtractor implements BookMetadataExtractor {
                 try (InputStream in = zip.getInputStream(coverEntry)) {
                     byte[] bytes = in.readAllBytes();
                     if (bytes.length > 0 && bytes.length <= 5 * 1024 * 1024) { // max 5MB
-                        String mime = (coverMediaType != null && !coverMediaType.isBlank()) ? coverMediaType : "image/jpeg";
+                        String mime = (coverMediaType != null && !coverMediaType.isBlank()) ? coverMediaType : guessMimeType(coverPath);
                         return "data:" + mime + ";base64," + Base64.getEncoder().encodeToString(bytes);
                     }
                 }
@@ -269,6 +309,46 @@ public class EpubMetadataExtractor implements BookMetadataExtractor {
             log.warn("Error extracting cover image from EPUB: {}", e.getMessage());
         }
         return null;
+    }
+
+    private String resolveRelativePath(String basePath, String relativePath) {
+        if (relativePath == null) return "";
+        if (relativePath.startsWith("/")) {
+            relativePath = relativePath.substring(1);
+        }
+        String combined;
+        int lastSlash = basePath != null ? basePath.lastIndexOf('/') : -1;
+        if (lastSlash >= 0) {
+            combined = basePath.substring(0, lastSlash + 1) + relativePath;
+        } else {
+            combined = relativePath;
+        }
+        return normalizePath(combined);
+    }
+
+    private String normalizePath(String path) {
+        if (path == null) return "";
+        String[] parts = path.replace('\\', '/').split("/");
+        java.util.List<String> segments = new java.util.ArrayList<>();
+        for (String part : parts) {
+            if (part.isEmpty() || part.equals(".")) continue;
+            if (part.equals("..")) {
+                if (!segments.isEmpty()) {
+                    segments.remove(segments.size() - 1);
+                }
+            } else {
+                segments.add(part);
+            }
+        }
+        return String.join("/", segments);
+    }
+
+    private String guessMimeType(String fileName) {
+        if (fileName == null) return "image/jpeg";
+        String lower = fileName.toLowerCase(Locale.ROOT);
+        if (lower.endsWith(".png")) return "image/png";
+        if (lower.endsWith(".webp")) return "image/webp";
+        return "image/jpeg";
     }
 
     private boolean isSupportedRasterImage(String mediaType, String href) {

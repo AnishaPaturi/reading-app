@@ -10,7 +10,7 @@ import '../../shared/models/book.dart';
 import 'clay_components.dart';
 
 /// LRU in-memory cache for loaded cover image bytes to prevent re-fetching.
-class _CoverImageMemoryCache {
+class CoverImageCache {
   static final Map<String, Uint8List> _cache = {};
   static final List<String> _order = [];
   static const int _maxSize = 120;
@@ -30,6 +30,16 @@ class _CoverImageMemoryCache {
     }
     _order.add(url);
     _cache[url] = bytes;
+  }
+
+  static void evict(String urlPrefix) {
+    _cache.removeWhere((key, _) => key.contains(urlPrefix));
+    _order.removeWhere((key) => key.contains(urlPrefix));
+  }
+
+  static void clear() {
+    _cache.clear();
+    _order.clear();
   }
 }
 
@@ -298,7 +308,7 @@ class _AuthenticatedCoverImageState extends ConsumerState<_AuthenticatedCoverIma
     _loadedUrl = targetUrl;
 
     // Check memory cache first
-    final cached = _CoverImageMemoryCache.get(targetUrl);
+    final cached = CoverImageCache.get(targetUrl);
     if (cached != null) {
       if (mounted) {
         setState(() {
@@ -329,7 +339,7 @@ class _AuthenticatedCoverImageState extends ConsumerState<_AuthenticatedCoverIma
       if (_loadedUrl != targetUrl || !mounted) return;
 
       if (response.statusCode >= 200 && response.statusCode < 300 && response.bodyBytes.isNotEmpty) {
-        _CoverImageMemoryCache.set(targetUrl, response.bodyBytes);
+        CoverImageCache.set(targetUrl, response.bodyBytes);
         setState(() {
           _bytes = response.bodyBytes;
           _isLoading = false;
@@ -353,6 +363,12 @@ class _AuthenticatedCoverImageState extends ConsumerState<_AuthenticatedCoverIma
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<String?>(authTokenProvider, (previous, next) {
+      if (previous != next && next != null && next.isNotEmpty && (_hasError || _bytes == null)) {
+        _loadImage();
+      }
+    });
+
     if (_bytes != null) {
       return Image.memory(
         _bytes!,
@@ -362,6 +378,9 @@ class _AuthenticatedCoverImageState extends ConsumerState<_AuthenticatedCoverIma
     }
     if (_hasError) {
       return widget.fallbackBuilder(context);
+    }
+    if (_isLoading) {
+      return widget.loadingBuilder(context);
     }
     return widget.loadingBuilder(context);
   }

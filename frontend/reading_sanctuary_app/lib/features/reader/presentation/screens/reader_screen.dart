@@ -163,14 +163,22 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   }
 
   void _onSearchQueryChanged(String query) {
-    if (_pdfKey.currentState != null) {
-      final searcher = _pdfKey.currentState!.textSearcher;
-      _pdfKey.currentState!.startSearch(query);
+    final pdfReader = _pdfKey.currentState;
+
+    if (pdfReader != null) {
+      pdfReader.startSearch(query);
+
+      final searcher = pdfReader.textSearcher;
+
+      if (!mounted) return;
+
       setState(() {
-        _isSearching = searcher.isSearching;
-        _totalSearchMatches = searcher.matches.length;
-        _searchMatchIndex = searcher.currentIndex ?? 0;
+        _isSearching = searcher?.isSearching ?? false;
+        _totalSearchMatches = searcher?.matches.length ?? 0;
+        _searchMatchIndex = searcher?.currentIndex ?? 0;
       });
+
+      return;
     } else if (_epubKey.currentState != null) {
       if (query.trim().isEmpty) {
         setState(() {
@@ -198,13 +206,20 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   }
 
   void _onNextSearchMatch() {
-    if (_pdfKey.currentState != null) {
-      _pdfKey.currentState!.nextSearchMatch();
-      final searcher = _pdfKey.currentState!.textSearcher;
+    final pdfReader = _pdfKey.currentState;
+    final searcher = pdfReader?.textSearcher;
+
+    if (pdfReader != null && searcher != null) {
+      pdfReader.nextSearchMatch();
+
+      if (!mounted) return;
+
       setState(() {
         _searchMatchIndex = searcher.currentIndex ?? 0;
         _totalSearchMatches = searcher.matches.length;
       });
+
+      return;
     } else if (_epubSearchResults.isNotEmpty) {
       final nextIdx = (_searchMatchIndex + 1) % _epubSearchResults.length;
       setState(() => _searchMatchIndex = nextIdx);
@@ -213,13 +228,20 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
   }
 
   void _onPrevSearchMatch() {
-    if (_pdfKey.currentState != null) {
-      _pdfKey.currentState!.prevSearchMatch();
-      final searcher = _pdfKey.currentState!.textSearcher;
+    final pdfReader = _pdfKey.currentState;
+    final searcher = pdfReader?.textSearcher;
+
+    if (pdfReader != null && searcher != null) {
+      pdfReader.prevSearchMatch();
+
+      if (!mounted) return;
+
       setState(() {
         _searchMatchIndex = searcher.currentIndex ?? 0;
         _totalSearchMatches = searcher.matches.length;
       });
+
+      return;
     } else if (_epubSearchResults.isNotEmpty) {
       final prevIdx = (_searchMatchIndex - 1 + _epubSearchResults.length) % _epubSearchResults.length;
       setState(() => _searchMatchIndex = prevIdx);
@@ -363,6 +385,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     List<NormalizedRect> rectangles = const [],
     Rect? targetRect,
   }) {
+    if (selectedText.trim().isEmpty) {
+      if (_activeSelection != null) {
+        setState(() {
+          _activeSelection = null;
+        });
+      }
+      return;
+    }
     setState(() {
       _activeSelection = ReaderTextSelectionState(
         selectedText: selectedText,
@@ -375,7 +405,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
     });
   }
 
-  Widget _buildFloatingAnnotationToolbarOverlay() {
+  Widget _buildFloatingAnnotationToolbarOverlay([ReaderFileType? fileType]) {
     final selection = _activeSelection;
     if (selection == null) return const SizedBox.shrink();
 
@@ -418,6 +448,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                 _activeSelection = null;
               });
               _epubKey.currentState?.clearSelection();
+              _pdfKey.currentState?.clearSelection();
             },
             child: Container(color: Colors.transparent),
           ),
@@ -427,6 +458,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
           top: top,
           width: toolbarWidth,
           child: PointerInterceptor(
+            intercepting: fileType == null || fileType == ReaderFileType.epub,
             child: Material(
               color: Colors.transparent,
               child: AnnotationContextMenu(
@@ -463,6 +495,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     _activeSelection = null;
                   });
                   _epubKey.currentState?.clearSelection();
+                  _pdfKey.currentState?.clearSelection();
 
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -502,6 +535,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     _activeSelection = null;
                   });
                   _epubKey.currentState?.clearSelection();
+                  _pdfKey.currentState?.clearSelection();
 
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -548,6 +582,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                         );
 
                     _epubKey.currentState?.clearSelection();
+                    _pdfKey.currentState?.clearSelection();
 
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -559,6 +594,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     }
                   } else {
                     _epubKey.currentState?.clearSelection();
+                    _pdfKey.currentState?.clearSelection();
                   }
                 },
                 onSaveQuote: () async {
@@ -597,6 +633,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     _activeSelection = null;
                   });
                   _epubKey.currentState?.clearSelection();
+                  _pdfKey.currentState?.clearSelection();
 
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -613,6 +650,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     _activeSelection = null;
                   });
                   _epubKey.currentState?.clearSelection();
+                  _pdfKey.currentState?.clearSelection();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Passage copied to clipboard'),
@@ -625,6 +663,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     _activeSelection = null;
                   });
                   _epubKey.currentState?.clearSelection();
+                  _pdfKey.currentState?.clearSelection();
                 },
               ),
             ),
@@ -764,6 +803,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: PointerInterceptor(
+                intercepting: fileType == ReaderFileType.epub,
                 child: ReaderToolbar(
                   title: doc.bookTitle,
                   format: doc.fileFormat,
@@ -856,6 +896,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     left: 0,
                     right: 0,
                     child: PointerInterceptor(
+                      intercepting: fileType == ReaderFileType.epub,
                       child: ReaderSearchBar(
                         controller: _searchController,
                         onQueryChanged: _onSearchQueryChanged,
@@ -869,10 +910,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> with WidgetsBinding
                     ),
                   ),
                 if (_activeSelection != null)
-                  _buildFloatingAnnotationToolbarOverlay(),
+                  _buildFloatingAnnotationToolbarOverlay(fileType),
               ],
             ),
             bottomNavigationBar: PointerInterceptor(
+              intercepting: fileType == ReaderFileType.epub,
               child: ReaderBottomBar(
                 currentPage: fileType == ReaderFileType.epub
                     ? null

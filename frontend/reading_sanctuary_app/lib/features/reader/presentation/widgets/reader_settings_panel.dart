@@ -56,17 +56,40 @@ class ReaderSettingsPanel extends StatelessWidget {
             ),
             const Divider(color: Color(0xFFEDE5F8), height: 20),
 
-            // Theme Selector
+            // Theme Indicator (Unified Porcelain Violet Clay)
             Text('Theme', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13.5, color: ClayColors.textDark)),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                _buildThemeButton('Light', ReaderThemeMode.light, const Color(0xFFFAFAFA), Colors.black),
-                const SizedBox(width: 12),
-                _buildThemeButton('Sepia', ReaderThemeMode.sepia, const Color(0xFFFBF0D9), const Color(0xFF5F4B32)),
-                const SizedBox(width: 12),
-                _buildThemeButton('Dark', ReaderThemeMode.dark, const Color(0xFF1E1E1E), Colors.white),
-              ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDE5F8),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFDDD2F5), width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: const BoxDecoration(
+                      color: ClayColors.primaryPurple,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check_rounded, size: 14, color: Colors.white),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Porcelain Violet Clay',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: ClayColors.deepPurple,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Icon(Icons.lock_outline_rounded, size: 16, color: ClayColors.textMuted),
+                ],
+              ),
             ),
             const SizedBox(height: 18),
 
@@ -180,32 +203,6 @@ class ReaderSettingsPanel extends StatelessWidget {
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildThemeButton(String label, ReaderThemeMode mode, Color bg, Color fg) {
-    final isSelected = settings.themeMode == mode;
-    return Expanded(
-      child: InkWell(
-        onTap: () => onThemeChanged(mode),
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isSelected ? ClayColors.deepPurple : Colors.grey.withValues(alpha: 0.3),
-              width: isSelected ? 2.5 : 1.0,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: GoogleFonts.inter(color: fg, fontWeight: FontWeight.bold),
-          ),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/clay_components.dart';
 
 class HighlightColorOption {
   final String name;
@@ -12,61 +13,188 @@ class HighlightColorOption {
   });
 }
 
+enum HighlightStyle {
+  solid,
+  underline,
+  wavy;
+
+  String get label {
+    switch (this) {
+      case HighlightStyle.solid:
+        return 'Solid';
+      case HighlightStyle.underline:
+        return 'Underline';
+      case HighlightStyle.wavy:
+        return 'Wavy';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case HighlightStyle.solid:
+        return Icons.format_color_fill_rounded;
+      case HighlightStyle.underline:
+        return Icons.format_underlined_rounded;
+      case HighlightStyle.wavy:
+        return Icons.gesture_rounded;
+    }
+  }
+}
+
 class HighlightColors {
   static const List<HighlightColorOption> options = [
-    HighlightColorOption(name: 'Warm Yellow', hex: '#F5E7A8', color: Color(0xFFF5E7A8)),
-    HighlightColorOption(name: 'Dusty Rose', hex: '#FAD4D8', color: Color(0xFFFAD4D8)),
-    HighlightColorOption(name: 'Soft Lavender', hex: '#E6DEF8', color: Color(0xFFE6DEF8)),
-    HighlightColorOption(name: 'Sage Green', hex: '#D2E8D4', color: Color(0xFFD2E8D4)),
-    HighlightColorOption(name: 'Muted Blue', hex: '#C8E2F8', color: Color(0xFFC8E2F8)),
+    HighlightColorOption(name: 'Lavender', hex: '#EDE5F8', color: Color(0xFFEDE5F8)),
+    HighlightColorOption(name: 'Lilac', hex: '#C7B2F0', color: Color(0xFFC7B2F0)),
+    HighlightColorOption(name: 'Rose', hex: '#FAD4D8', color: Color(0xFFFAD4D8)),
+    HighlightColorOption(name: 'Butter', hex: '#FDF0AA', color: Color(0xFFFDF0AA)),
+    HighlightColorOption(name: 'Mint', hex: '#A4DFD0', color: Color(0xFFA4DFD0)),
+    HighlightColorOption(name: 'Sky', hex: '#B4D8F8', color: Color(0xFFB4D8F8)),
   ];
 
   static HighlightColorOption get defaultColor => options[0];
+
+  /// Helper to find matching option or fallback to default
+  static HighlightColorOption fromHex(String? hex) {
+    if (hex == null) return defaultColor;
+    return options.firstWhere(
+      (opt) => opt.hex.toUpperCase() == hex.toUpperCase(),
+      orElse: () => defaultColor,
+    );
+  }
 }
 
 class HighlightColorPicker extends StatelessWidget {
   final String? selectedHex;
+  final HighlightStyle selectedStyle;
+  final bool showStyles;
   final ValueChanged<HighlightColorOption> onColorSelected;
+  final ValueChanged<HighlightStyle>? onStyleSelected;
 
   const HighlightColorPicker({
     super.key,
     this.selectedHex,
+    this.selectedStyle = HighlightStyle.solid,
+    this.showStyles = false,
     required this.onColorSelected,
+    this.onStyleSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: HighlightColors.options.map((opt) {
-        final isSelected = selectedHex?.toUpperCase() == opt.hex.toUpperCase();
-        return GestureDetector(
-          onTap: () => onColorSelected(opt),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 6),
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: opt.color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? const Color(0xFF2D234A) : Colors.black12,
-                width: isSelected ? 2.5 : 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: opt.color.withValues(alpha: 0.5),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Color row
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: HighlightColors.options.map((opt) {
+            final isSelected = selectedHex != null &&
+                selectedHex!.toUpperCase() == opt.hex.toUpperCase();
+
+            return Tooltip(
+              message: opt.name,
+              child: GestureDetector(
+                onTap: () => onColorSelected(opt),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: opt.color,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? ClayColors.deepPurple : const Color(0xFFDDD2F5),
+                      width: isSelected ? 2.5 : 1.2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: opt.color.withValues(alpha: 0.6),
+                        blurRadius: isSelected ? 8 : 4,
+                        offset: const Offset(0, 3),
+                      ),
+                      if (isSelected)
+                        BoxShadow(
+                          color: ClayColors.deepPurple.withValues(alpha: 0.25),
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                    ],
+                  ),
+                  child: Center(
+                    child: isSelected
+                        ? const Icon(
+                            Icons.check_rounded,
+                            size: 20,
+                            color: ClayColors.deepPurple,
+                          )
+                        : null,
+                  ),
                 ),
-              ],
+              ),
+            );
+          }).toList(),
+        ),
+
+        // Style selector
+        if (showStyles) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE5F8),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: isSelected
-                ? const Icon(Icons.check, size: 18, color: Color(0xFF2D234A))
-                : null,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: HighlightStyle.values.map((style) {
+                final isSelected = selectedStyle == style;
+                return GestureDetector(
+                  onTap: () => onStyleSelected?.call(style),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: isSelected
+                          ? const [
+                              BoxShadow(
+                                color: Color(0x1A382761),
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          style.icon,
+                          size: 15,
+                          color: isSelected ? ClayColors.deepPurple : ClayColors.textMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          style.label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? ClayColors.deepPurple : ClayColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 }

@@ -163,8 +163,10 @@ class BookUploadNotifier extends StateNotifier<BookUploadState> {
         existingBookId: existingBookId,
       );
 
-      // Add to local / global books state
-      await _ref.read(booksProvider.notifier).addBook(confirmedBook);
+      // The backend has already saved the book.
+      // Refresh the server-backed Library state.
+      // Do not create another book using addBook().
+      _ref.invalidate(booksProvider);
 
       state = state.copyWith(
         status: BookUploadStatus.success,

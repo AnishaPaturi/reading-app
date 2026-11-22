@@ -8,15 +8,19 @@ import '../../../../shared/models/book.dart';
 import '../../../../shared/services/providers.dart';
 import '../../../home/presentation/widgets/reader_sidebar.dart';
 import '../../../library/widgets/book_preview_sheet.dart';
+import '../../application/smart_shelf_service.dart';
 import '../../data/models/bookshelf_model.dart';
+import '../providers/book_size_provider.dart';
 import '../providers/bookshelf_provider.dart';
 import '../widgets/add_books_sheet.dart';
+import '../widgets/book_size_slider.dart';
 import '../widgets/bookshelf_decoration.dart';
 import '../widgets/bookshelf_section.dart';
 import '../widgets/empty_library_state.dart';
 import '../widgets/library_header.dart';
 import '../widgets/library_statistics.dart';
 import '../widgets/library_toolbar.dart';
+import '../widgets/scan_spines_sheet.dart';
 import 'bookshelf_detail_screen.dart';
 import 'edit_bookshelf_screen.dart';
 
@@ -33,11 +37,21 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  SmartShelfCategory _selectedSmartCategory = SmartShelfCategory.all;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _openScanSpines() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ScanSpinesSheet(),
+    );
   }
 
   void _showBookPreview(Book book) {
@@ -276,11 +290,30 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
     return books.any((b) => b.title.toLowerCase().contains(q) || b.author.toLowerCase().contains(q));
   }
 
+  static const List<(SmartShelfCategory, String, IconData)> _smartCategories = [
+    (SmartShelfCategory.all, 'All Shelves', Icons.shelves),
+    (SmartShelfCategory.genre, 'By Genre', Icons.category_rounded),
+    (SmartShelfCategory.author, 'By Author', Icons.person_rounded),
+    (SmartShelfCategory.readingStatus, 'By Status', Icons.timelapse_rounded),
+    (SmartShelfCategory.bookStatus, 'By Lifecycle', Icons.inventory_2_rounded),
+    (SmartShelfCategory.pageCount, 'By Page Count', Icons.menu_book_rounded),
+    (SmartShelfCategory.rating, 'By Rating', Icons.star_rounded),
+    (SmartShelfCategory.publisher, 'By Publisher', Icons.business_rounded),
+    (SmartShelfCategory.format, 'By Format', Icons.devices_rounded),
+    (SmartShelfCategory.price, 'By Price', Icons.payments_rounded),
+    (SmartShelfCategory.spice, 'By Spice', Icons.whatshot_rounded),
+    (SmartShelfCategory.recommendation, 'By Recommendation', Icons.thumb_up_alt_rounded),
+    (SmartShelfCategory.mood, 'By Mood', Icons.mood_rounded),
+    (SmartShelfCategory.series, 'By Series', Icons.collections_bookmark_rounded),
+    (SmartShelfCategory.collections, 'By Collections', Icons.folder_special_rounded),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final allShelves = ref.watch(bookshelfListProvider);
     final booksAsync = ref.watch(booksProvider);
     final allBooks = booksAsync.valueOrNull ?? [];
+    final bookSizeState = ref.watch(bookSizeProvider);
 
     final currentlyReadingBooks = allBooks.where((b) => b.status == ReadingStatus.currentlyReading).toList();
     final wantToReadBooks = allBooks
@@ -296,20 +329,35 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
       return _matchesShelfOrBooks(shelf.name, shelfBooks);
     }).toList();
 
+    // Generate smart shelves if a specific category is selected
+    final smartShelves = _selectedSmartCategory != SmartShelfCategory.all
+        ? SmartShelfService.generateShelves(
+            allBooks: allBooks,
+            category: _selectedSmartCategory,
+          )
+        : <AutoShelf>[];
+
+    final filteredSmartShelves = smartShelves.where((s) {
+      final shelfBooks = _filterBooks(s.books);
+      return _matchesShelfOrBooks(s.title, shelfBooks) && (_searchQuery.isEmpty || shelfBooks.isNotEmpty);
+    }).toList();
+
     final isLibraryEmpty = allBooks.isEmpty && allShelves.isEmpty;
     final showCurrentlyReading = currentlyReadingBooks.isNotEmpty || (allBooks.isNotEmpty && allShelves.isEmpty);
     final showWantToRead = wantToReadBooks.isNotEmpty;
     final showCompleted = completedBooks.isNotEmpty;
     final showDnf = dnfBooks.isNotEmpty;
 
-    final hasAnyMatchingShelf = !isLibraryEmpty && (
-        (_searchQuery.isNotEmpty
-            ? (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) ||
-               _matchesShelfOrBooks('Want to Read', wantToReadBooks) ||
-               _matchesShelfOrBooks('Completed', completedBooks) ||
-               _matchesShelfOrBooks('Did Not Finish', dnfBooks))
-            : (showCurrentlyReading || showWantToRead || showCompleted || showDnf)) ||
-        filteredShelves.isNotEmpty);
+    final hasAnyMatchingShelf = _selectedSmartCategory == SmartShelfCategory.all
+        ? (!isLibraryEmpty && (
+            (_searchQuery.isNotEmpty
+                ? (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) ||
+                   _matchesShelfOrBooks('Want to Read', wantToReadBooks) ||
+                   _matchesShelfOrBooks('Completed', completedBooks) ||
+                   _matchesShelfOrBooks('Did Not Finish', dnfBooks))
+                : (showCurrentlyReading || showWantToRead || showCompleted || showDnf)) ||
+            filteredShelves.isNotEmpty))
+        : filteredSmartShelves.isNotEmpty;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -358,6 +406,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                   subtitle: 'A little world of stories',
                                   showMenuButton: !isWide,
                                   onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+                                  onTrashTap: () => context.push('/library/deleted'),
                                 ),
                               ),
                             ),
@@ -376,6 +425,7 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                   readCount: completedBooks.length,
                                   readingCount: currentlyReadingBooks.length,
                                   totalShelves: allShelves.length,
+                                  allBooks: allBooks,
                                 ),
                               ),
                             ),
@@ -405,7 +455,20 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                               ),
                             ),
 
-                            // 4. Bookshelf Sections: Built-in + Custom Shelves
+                            // 3.5 Bookshelf Controls (Covers/Spines switcher, Adjust Sizes, Scan Spines, Smart categories)
+                            SliverPadding(
+                              padding: EdgeInsets.fromLTRB(
+                                isWide ? 32 : 18,
+                                0,
+                                isWide ? 32 : 18,
+                                14,
+                              ),
+                              sliver: SliverToBoxAdapter(
+                                child: _buildShelfViewControls(bookSizeState),
+                              ),
+                            ),
+
+                            // 4. Bookshelf Sections: Built-in + Custom Shelves OR Smart Shelves
                             if (!hasAnyMatchingShelf)
                               SliverPadding(
                                 padding: EdgeInsets.symmetric(horizontal: isWide ? 32 : 18),
@@ -422,80 +485,101 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
                                 padding: EdgeInsets.symmetric(horizontal: isWide ? 32 : 18),
                                 sliver: SliverList(
                                   delegate: SliverChildListDelegate([
-                                    // Shelf: Currently Reading
-                                    if (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) &&
-                                        (_searchQuery.isNotEmpty || showCurrentlyReading))
-                                      BookshelfSection(
-                                        title: 'Currently Reading',
-                                        bookCount: currentlyReadingBooks.length,
-                                        books: _filterBooks(currentlyReadingBooks),
-                                        icon: Icons.auto_stories_rounded,
-                                        accentColor: ClayColors.primaryPurple,
-                                        decorationType: BookshelfDecorationType.pottedPlant,
-                                        onBookTap: _showBookPreview,
-                                        onAddBooksTap: () => context.push('/library/add'),
-                                      ),
-
-                                    // Shelf: Want to Read
-                                    if (_matchesShelfOrBooks('Want to Read', wantToReadBooks) &&
-                                        (_searchQuery.isNotEmpty || showWantToRead))
-                                      BookshelfSection(
-                                        title: 'Want to Read',
-                                        bookCount: wantToReadBooks.length,
-                                        books: _filterBooks(wantToReadBooks),
-                                        icon: Icons.bookmark_rounded,
-                                        accentColor: ClayColors.amberDark,
-                                        decorationType: BookshelfDecorationType.stackedBooks,
-                                        onBookTap: _showBookPreview,
-                                        onAddBooksTap: () => context.push('/library/add'),
-                                      ),
-
-                                    // Shelf: Completed
-                                    if (_matchesShelfOrBooks('Completed', completedBooks) &&
-                                        (_searchQuery.isNotEmpty || showCompleted))
-                                      BookshelfSection(
-                                        title: 'Completed',
-                                        bookCount: completedBooks.length,
-                                        books: _filterBooks(completedBooks),
-                                        icon: Icons.emoji_events_rounded,
-                                        accentColor: ClayColors.mintDark,
-                                        decorationType: BookshelfDecorationType.cozyLamp,
-                                        onBookTap: _showBookPreview,
-                                        onAddBooksTap: () => context.push('/library/add'),
-                                      ),
-
-                                    // Shelf: Did Not Finish (DNF Sanctuary)
-                                    if (_matchesShelfOrBooks('Did Not Finish', dnfBooks) &&
-                                        (_searchQuery.isNotEmpty || showDnf))
-                                      BookshelfSection(
-                                        title: 'Did Not Finish',
-                                        bookCount: dnfBooks.length,
-                                        books: _filterBooks(dnfBooks),
-                                        icon: Icons.local_fire_department_rounded,
-                                        accentColor: const Color(0xFFC5A059),
-                                        decorationType: BookshelfDecorationType.candle,
-                                        onBookTap: _showBookPreview,
-                                        onHeaderTap: () => context.push('/tracker/dnf'),
-                                        onAddBooksTap: () => context.push('/tracker/dnf'),
-                                      ),
-
-                                    // Custom Bookshelves
-                                    for (var i = 0; i < filteredShelves.length; i++) ...[
-                                      () {
-                                        final shelf = filteredShelves[i];
-                                        final idsSet = shelf.bookIds.toSet();
-                                        final shelfBooks = allBooks.where((b) => idsSet.contains(b.id)).toList();
-                                        final filteredShelfBooks = _filterBooks(shelfBooks);
-
-                                        return BookshelfSection.fromModel(
-                                          shelf: shelf,
-                                          books: filteredShelfBooks,
-                                          decorationSeed: i + 3,
+                                    if (_selectedSmartCategory == SmartShelfCategory.all) ...[
+                                      // Shelf: Currently Reading
+                                      if (_matchesShelfOrBooks('Currently Reading', currentlyReadingBooks) &&
+                                          (_searchQuery.isNotEmpty || showCurrentlyReading))
+                                        BookshelfSection(
+                                          title: 'Currently Reading',
+                                          bookCount: currentlyReadingBooks.length,
+                                          books: _filterBooks(currentlyReadingBooks),
+                                          icon: Icons.auto_stories_rounded,
+                                          accentColor: ClayColors.primaryPurple,
+                                          decorationType: BookshelfDecorationType.pottedPlant,
                                           onBookTap: _showBookPreview,
-                                          onHeaderTap: () => _openShelfDetail(shelf),
-                                          onAddBooksTap: () => _openAddBooks(shelf),
-                                        );
-                                      }(),
+                                          onAddBooksTap: () => context.push('/library/add'),
+                                        ),
+
+                                      // Shelf: Want to Read
+                                      if (_matchesShelfOrBooks('Want to Read', wantToReadBooks) &&
+                                          (_searchQuery.isNotEmpty || showWantToRead))
+                                        BookshelfSection(
+                                          title: 'Want to Read',
+                                          bookCount: wantToReadBooks.length,
+                                          books: _filterBooks(wantToReadBooks),
+                                          icon: Icons.bookmark_rounded,
+                                          accentColor: ClayColors.amberDark,
+                                          decorationType: BookshelfDecorationType.stackedBooks,
+                                          onBookTap: _showBookPreview,
+                                          onAddBooksTap: () => context.push('/library/add'),
+                                        ),
+
+                                      // Shelf: Completed
+                                      if (_matchesShelfOrBooks('Completed', completedBooks) &&
+                                          (_searchQuery.isNotEmpty || showCompleted))
+                                        BookshelfSection(
+                                          title: 'Completed',
+                                          bookCount: completedBooks.length,
+                                          books: _filterBooks(completedBooks),
+                                          icon: Icons.emoji_events_rounded,
+                                          accentColor: ClayColors.mintDark,
+                                          decorationType: BookshelfDecorationType.cozyLamp,
+                                          onBookTap: _showBookPreview,
+                                          onAddBooksTap: () => context.push('/library/add'),
+                                        ),
+
+                                      // Shelf: Did Not Finish (DNF Sanctuary)
+                                      if (_matchesShelfOrBooks('Did Not Finish', dnfBooks) &&
+                                          (_searchQuery.isNotEmpty || showDnf))
+                                        BookshelfSection(
+                                          title: 'Did Not Finish',
+                                          bookCount: dnfBooks.length,
+                                          books: _filterBooks(dnfBooks),
+                                          icon: Icons.local_fire_department_rounded,
+                                          accentColor: const Color(0xFFC5A059),
+                                          decorationType: BookshelfDecorationType.candle,
+                                          onBookTap: _showBookPreview,
+                                          onHeaderTap: () => context.push('/tracker/dnf'),
+                                          onAddBooksTap: () => context.push('/tracker/dnf'),
+                                        ),
+
+                                      // Custom Bookshelves
+                                      for (var i = 0; i < filteredShelves.length; i++) ...[
+                                        () {
+                                          final shelf = filteredShelves[i];
+                                          final idsSet = shelf.bookIds.toSet();
+                                          final shelfBooks = allBooks.where((b) => idsSet.contains(b.id)).toList();
+                                          final filteredShelfBooks = _filterBooks(shelfBooks);
+
+                                          return BookshelfSection.fromModel(
+                                            shelf: shelf,
+                                            books: filteredShelfBooks,
+                                            decorationSeed: i + 3,
+                                            onBookTap: _showBookPreview,
+                                            onHeaderTap: () => _openShelfDetail(shelf),
+                                            onAddBooksTap: () => _openAddBooks(shelf),
+                                          );
+                                        }(),
+                                      ],
+                                    ] else ...[
+                                      // Automatic Smart Shelves (Genre, Author, Status, Page Count, Rating, Spice, Mood, etc.)
+                                      for (var i = 0; i < filteredSmartShelves.length; i++) ...[
+                                        () {
+                                          final shelf = filteredSmartShelves[i];
+                                          final shelfBooks = _filterBooks(shelf.books);
+                                          return BookshelfSection(
+                                            title: shelf.title,
+                                            bookCount: shelf.bookCount,
+                                            books: shelfBooks,
+                                            subtitle: shelf.subtitle,
+                                            icon: shelf.icon,
+                                            accentColor: shelf.accentColor,
+                                            decorationType: shelf.decorationType,
+                                            onBookTap: _showBookPreview,
+                                            onAddBooksTap: () => context.push('/library/add'),
+                                          );
+                                        }(),
+                                      ],
                                     ],
                                   ]),
                                 ),
@@ -530,6 +614,224 @@ class _BookshelvesScreenState extends ConsumerState<BookshelvesScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildShelfViewControls(BookSizeSettings bookSizeState) {
+    final isSpines = bookSizeState.viewMode == 'spines';
+    final isResize = bookSizeState.isResizeModeActive;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            // View Mode Switcher [ Covers | Spines ]
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: ClayColors.softLilac, width: 1.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildViewModeButton(
+                    title: 'Covers',
+                    icon: Icons.grid_view_rounded,
+                    isSelected: !isSpines,
+                    onTap: () {
+                      if (isSpines) {
+                        ref.read(bookSizeProvider.notifier).toggleViewMode();
+                      }
+                    },
+                  ),
+                  _buildViewModeButton(
+                    title: 'Spines',
+                    icon: Icons.view_column_rounded,
+                    isSelected: isSpines,
+                    onTap: () {
+                      if (!isSpines) {
+                        ref.read(bookSizeProvider.notifier).toggleViewMode();
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Adjust Sizes button
+            InkWell(
+              onTap: () => ref.read(bookSizeProvider.notifier).toggleResizeMode(),
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isResize ? ClayColors.amberDark : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isResize ? ClayColors.amberDark : ClayColors.softLilac,
+                    width: 1.2,
+                  ),
+                  boxShadow: isResize
+                      ? [
+                          BoxShadow(
+                            color: ClayColors.amberDark.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          )
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isResize ? Icons.check_circle_rounded : Icons.photo_size_select_large_rounded,
+                      size: 15,
+                      color: isResize ? Colors.white : ClayColors.deepPurple,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isResize ? 'Done Resizing' : 'Adjust Sizes',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isResize ? Colors.white : ClayColors.deepPurple,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Scan Spines button
+            InkWell(
+              onTap: _openScanSpines,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: ClayColors.softLilac, width: 1.2),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.document_scanner_outlined,
+                      size: 15,
+                      color: ClayColors.primaryPurple,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Scan Spines',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: ClayColors.primaryPurple,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (isResize) ...[
+          const SizedBox(height: 12),
+          const BookSizeSlider(),
+        ],
+        const SizedBox(height: 14),
+
+        // Smart Shelves horizontal categories bar
+        SizedBox(
+          height: 38,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: _smartCategories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (ctx, index) {
+              final cat = _smartCategories[index];
+              final isSelected = _selectedSmartCategory == cat.$1;
+              return ChoiceChip(
+                selected: isSelected,
+                showCheckmark: false,
+                avatar: Icon(
+                  cat.$3,
+                  size: 15,
+                  color: isSelected ? Colors.white : ClayColors.deepPurple,
+                ),
+                label: Text(
+                  cat.$2,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? Colors.white : ClayColors.textDark,
+                  ),
+                ),
+                selectedColor: ClayColors.deepPurple,
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: BorderSide(
+                    color: isSelected ? ClayColors.deepPurple : ClayColors.softLilac,
+                    width: 1.1,
+                  ),
+                ),
+                onSelected: (_) {
+                  setState(() {
+                    _selectedSmartCategory = cat.$1;
+                  });
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildViewModeButton({
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? ClayColors.deepPurple : Colors.transparent,
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? Colors.white : ClayColors.textMuted,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : ClayColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

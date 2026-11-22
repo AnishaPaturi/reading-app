@@ -108,6 +108,61 @@ void main() {
       expect(fromJson.uploadId, 'upload-abc-123');
       expect(fromJson.author, 'Robert C. Martin');
       expect(fromJson.pages, 350);
+      expect(fromJson.hasCover, isFalse);
+
+      final withCover = fromJson.copyWith(coverBase64: 'data:image/jpeg;base64,abc123');
+      expect(withCover.hasCover, isTrue);
+    });
+  });
+
+  group('Book Cover Display Logic', () {
+    test('Book parses cover information and invalidates cache with timestamp', () {
+      final json = {
+        'id': 'book-uuid-999',
+        'title': 'The Final Empire',
+        'author': 'Brandon Sanderson',
+        'hasCover': true,
+        'coverUrl': '/api/v1/books/book-uuid-999/cover',
+        'coverUpdatedAt': '2026-11-21T10:30:00Z',
+      };
+
+      final book = Book.fromJson(json);
+
+      expect(book.hasCover, isTrue);
+      expect(book.coverImageUrl, '/api/v1/books/book-uuid-999/cover');
+      expect(book.effectiveCoverUrl, startsWith('/api/v1/books/book-uuid-999/cover?v='));
+    });
+
+    test('Book with no cover returns null effectiveCoverUrl for styled fallback', () {
+      final json = {
+        'id': 'book-uuid-000',
+        'title': 'No Cover Book',
+        'author': 'Anonymous',
+        'hasCover': false,
+        'coverUrl': null,
+      };
+
+      final book = Book.fromJson(json);
+
+      expect(book.hasCover, isFalse);
+      expect(book.effectiveCoverUrl, isNull);
+    });
+
+    test('Book with base64 data URI returns raw data without cache parameters', () {
+      const dataUri = 'data:image/jpeg;base64,QUJDREVGR0g=';
+      final json = {
+        'id': 'book-preview',
+        'title': 'Preview Book',
+        'author': 'Preview Author',
+        'hasCover': true,
+        'coverUrl': dataUri,
+        'coverUpdatedAt': '2026-11-21T10:30:00Z',
+      };
+
+      final book = Book.fromJson(json);
+
+      expect(book.hasCover, isTrue);
+      expect(book.effectiveCoverUrl, equals(dataUri));
     });
   });
 }

@@ -100,10 +100,14 @@ class HttpBookRepository implements BookRepository {
             }
 
             final colorList = _generateCoverColors(bookId);
+            final bool hasCover = item['hasCover'] == true ||
+                (item['coverStorageKey'] != null && item['coverStorageKey'].toString().isNotEmpty);
+            final DateTime? coverUpdatedAt = item['coverUpdatedAt'] != null
+                ? DateTime.tryParse(item['coverUpdatedAt'].toString())
+                : (item['cover_updated_at'] != null ? DateTime.tryParse(item['cover_updated_at'].toString()) : null);
             final String? coverUrl = item['coverUrl']?.toString() ??
                 item['coverImageUrl']?.toString() ??
-                (item['coverStorageKey'] != null ? '/books/$bookId/cover' : null) ??
-                (item['hasCover'] == true ? '/books/$bookId/cover' : null);
+                (hasCover ? '/api/v1/books/$bookId/cover' : null);
 
             serverBooks.add(Book(
               id: bookId,
@@ -118,22 +122,44 @@ class HttpBookRepository implements BookRepository {
               files: files,
               addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
               coverColors: colorList,
+              hasCover: hasCover,
+              coverUpdatedAt: coverUpdatedAt,
               coverImageUrl: coverUrl,
               dnfDate: dnfDate,
               dnfReason: dnfReason,
               dnfNotes: dnfNotes,
+              rating: item['rating'] != null ? (item['rating'] as num).toDouble() : null,
+              ratingOutOf100: item['ratingOutOf100'] is num ? (item['ratingOutOf100'] as num).toInt() : null,
+              spiceRating: item['spiceRating'] is num ? (item['spiceRating'] as num).toInt() : null,
+              mood: item['mood']?.toString(),
+              recommendation: item['recommendation']?.toString(),
+              purchasePrice: item['purchasePrice'] is num ? (item['purchasePrice'] as num).toDouble() : null,
+              currency: item['currency']?.toString() ?? 'INR',
+              acquisitionMethod: item['acquisitionMethod']?.toString(),
+              purchaseDate: item['purchaseDate'] != null ? DateTime.tryParse(item['purchaseDate'].toString()) : null,
+              startDate: item['startedAt'] != null ? DateTime.tryParse(item['startedAt'].toString()) : null,
+              completionDate: item['completedAt'] != null ? DateTime.tryParse(item['completedAt'].toString()) : null,
+              publisher: item['publisher']?.toString(),
+              isbn: item['isbn']?.toString(),
+              tropes: item['tropes'] is List
+                  ? (item['tropes'] as List).map((t) => t.toString()).toList()
+                  : (item['tropes'] is String && (item['tropes'] as String).isNotEmpty
+                      ? (item['tropes'] as String).split(',').map((t) => t.trim()).toList()
+                      : const []),
             ));
           }
         }
 
-        await _saveToCache(serverBooks);
+        // Preserve any locally cached deleted books when saving library books
+        final cachedDeleted = cachedBooks.where((b) => b.status == ReadingStatus.deleted).toList();
+        await _saveToCache([...serverBooks, ...cachedDeleted]);
         return serverBooks;
       }
     } catch (_) {
       // Offline fallback: continue to return cached books
     }
 
-    return cachedBooks;
+    return cachedBooks.where((b) => b.status != ReadingStatus.deleted).toList();
   }
 
   @override
@@ -212,6 +238,73 @@ class HttpBookRepository implements BookRepository {
   }
 
   @override
+  Future<void> setPage(String id, int page) async {
+    final books = await _loadFromCache();
+    final updated = [
+      for (final b in books)
+        if (b.id == id)
+          () {
+            final validPage = page.clamp(0, b.pages);
+            final p = b.pages > 0 ? (validPage / b.pages).clamp(0.0, 1.0) : 0.0;
+            return b.copyWith(
+              progress: p,
+              lastOpenedAt: DateTime.now(),
+              status: b.status == ReadingStatus.wantToRead && p > 0
+                  ? ReadingStatus.currentlyReading
+                  : (p >= 1.0 ? ReadingStatus.completed : b.status),
+            );
+          }()
+        else
+          b
+    ];
+    await _saveToCache(updated);
+
+    try {
+      final currentBook = updated.firstWhere((b) => b.id == id);
+      await _apiClient.patch('/books/$id/reading', body: {
+        'currentPage': currentBook.currentPage,
+        'totalPages': currentBook.pages,
+        'status': _statusToBackend(currentBook.status),
+      });
+    } catch (_) {}
+  }
+
+  @override
+  Future<void> updateBookDetails(Book book) async {
+    final books = await _loadFromCache();
+    final updated = [
+      for (final b in books)
+        if (b.id == book.id) book else b
+    ];
+    await _saveToCache(updated);
+
+    try {
+      await _apiClient.put('/books/${book.id}', body: {
+        'title': book.title,
+        'description': book.description,
+        'language': book.genre,
+        'publisher': book.publisher ?? book.author,
+        'isbn': book.isbn,
+        'rating': book.rating,
+        'ratingOutOf100': book.ratingOutOf100,
+        'spiceRating': book.spiceRating,
+        'mood': book.mood,
+        'recommendation': book.recommendation,
+        'purchasePrice': book.purchasePrice,
+        'currency': book.currency,
+        'acquisitionMethod': book.acquisitionMethod,
+        if (book.purchaseDate != null) 'purchaseDate': book.purchaseDate!.toIso8601String().split('T').first,
+        if (book.startDate != null) 'startedAt': book.startDate!.toIso8601String().split('T').first,
+        if (book.completionDate != null) 'completedAt': book.completionDate!.toIso8601String().split('T').first,
+        'tropes': book.tropes.join(','),
+        'readingStatus': _statusToBackend(book.status),
+        'currentPage': book.currentPage,
+        'totalPages': book.pages,
+      });
+    } catch (_) {}
+  }
+
+  @override
   Future<void> addBook(Book book) async {
     final books = await _loadFromCache();
     final updated = [
@@ -237,6 +330,177 @@ class HttpBookRepository implements BookRepository {
         });
       }
     } catch (_) {}
+  }
+
+  @override
+  Future<List<Book>> getDeletedBooks() async {
+    try {
+      final response = await _apiClient.get(
+        '/books/deleted',
+        timeout: const Duration(seconds: 5),
+      );
+      if (response is List) {
+        final deletedBooks = <Book>[];
+        for (final item in response) {
+          if (item is Map<String, dynamic>) {
+            final bookId = item['id']?.toString() ?? '';
+            final prevStatusStr = item['previousReadingStatus']?.toString();
+            final previousStatus = prevStatusStr != null ? _mapReadingStatus(prevStatusStr) : null;
+            final deletedAt = item['deletedAt'] != null
+                ? DateTime.tryParse(item['deletedAt'].toString())
+                : null;
+
+            double progress = 0.0;
+            int totalPages = 250;
+            int currentPage = 0;
+            DateTime? dnfDate;
+            String? dnfReason;
+            String? dnfNotes;
+
+            try {
+              final readingRes = await _apiClient.get(
+                '/books/$bookId/reading',
+                timeout: const Duration(seconds: 2),
+              );
+              if (readingRes is Map<String, dynamic>) {
+                if (readingRes['progressPercentage'] is num) {
+                  progress = ((readingRes['progressPercentage'] as num) / 100.0).clamp(0.0, 1.0);
+                }
+                if (readingRes['totalPages'] is int) {
+                  totalPages = readingRes['totalPages'] as int;
+                }
+                if (readingRes['currentPage'] is int) {
+                  currentPage = readingRes['currentPage'] as int;
+                }
+                if (readingRes['dnfAt'] != null) {
+                  dnfDate = DateTime.tryParse(readingRes['dnfAt'].toString());
+                } else if (readingRes['dnfDate'] != null) {
+                  dnfDate = DateTime.tryParse(readingRes['dnfDate'].toString());
+                }
+                dnfReason = readingRes['dnfReason']?.toString();
+                dnfNotes = readingRes['dnfNotes']?.toString();
+              }
+            } catch (_) {}
+
+            List<BookFile> files = [];
+            if (item['files'] is List) {
+              files = (item['files'] as List)
+                  .whereType<Map<String, dynamic>>()
+                  .map((json) => BookFile.fromJson(json))
+                  .where((file) => file.id.trim().isNotEmpty)
+                  .toList();
+            }
+
+            if (files.isEmpty && bookId.isNotEmpty) {
+              try {
+                final filesResponse = await _apiClient.get(
+                  '/books/$bookId/files',
+                  timeout: const Duration(seconds: 5),
+                );
+                if (filesResponse is List) {
+                  files = filesResponse
+                      .whereType<Map<String, dynamic>>()
+                      .map((json) => BookFile.fromJson(json))
+                      .where((file) => file.id.trim().isNotEmpty)
+                      .toList();
+                }
+              } catch (_) {}
+            }
+
+            final colorList = _generateCoverColors(bookId);
+            final bool hasCover = item['hasCover'] == true ||
+                (item['coverStorageKey'] != null && item['coverStorageKey'].toString().isNotEmpty);
+            final DateTime? coverUpdatedAt = item['coverUpdatedAt'] != null
+                ? DateTime.tryParse(item['coverUpdatedAt'].toString())
+                : (item['cover_updated_at'] != null ? DateTime.tryParse(item['cover_updated_at'].toString()) : null);
+            final String? coverUrl = item['coverUrl']?.toString() ??
+                item['coverImageUrl']?.toString() ??
+                (hasCover ? '/api/v1/books/$bookId/cover' : null);
+
+            deletedBooks.add(Book(
+              id: bookId,
+              title: item['title']?.toString() ?? 'Untitled',
+              author: item['publisher']?.toString() ?? 'Community Author',
+              genre: item['language']?.toString() ?? 'Fiction',
+              description: item['description']?.toString() ?? '',
+              status: ReadingStatus.deleted,
+              previousStatus: previousStatus,
+              deletedAt: deletedAt,
+              progress: progress > 0 ? progress : (currentPage > 0 ? (currentPage / totalPages) : 0.0),
+              pages: totalPages,
+              formats: const [BookFormat.ebook, BookFormat.audiobook],
+              files: files,
+              addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
+              coverColors: colorList,
+              hasCover: hasCover,
+              coverUpdatedAt: coverUpdatedAt,
+              coverImageUrl: coverUrl,
+              dnfDate: dnfDate,
+              dnfReason: dnfReason,
+              dnfNotes: dnfNotes,
+            ));
+          }
+        }
+        final cached = await _loadFromCache();
+        final nonDeleted = cached.where((b) => b.status != ReadingStatus.deleted).toList();
+        await _saveToCache([...nonDeleted, ...deletedBooks]);
+        return deletedBooks;
+      }
+    } catch (_) {}
+
+    final cached = await _loadFromCache();
+    return cached.where((b) => b.status == ReadingStatus.deleted).toList();
+  }
+
+  @override
+  Future<void> moveToDeleted(String id) async {
+    try {
+      await _apiClient.delete('/books/$id');
+    } catch (_) {}
+    final cached = await _loadFromCache();
+    final updated = [
+      for (final b in cached)
+        if (b.id == id)
+          b.copyWith(
+            status: ReadingStatus.deleted,
+            previousStatus: b.status,
+            deletedAt: DateTime.now(),
+          )
+        else
+          b
+    ];
+    await _saveToCache(updated);
+  }
+
+  @override
+  Future<void> restoreBook(String id) async {
+    try {
+      await _apiClient.post('/books/$id/restore');
+    } catch (_) {}
+    final cached = await _loadFromCache();
+    final updated = [
+      for (final b in cached)
+        if (b.id == id)
+          b.copyWith(
+            status: (b.previousStatus != null && b.previousStatus != ReadingStatus.deleted)
+                ? b.previousStatus!
+                : ReadingStatus.wantToRead,
+            clearDeletedMetadata: true,
+          )
+        else
+          b
+    ];
+    await _saveToCache(updated);
+  }
+
+  @override
+  Future<void> permanentlyDeleteBook(String id) async {
+    try {
+      await _apiClient.delete('/books/$id/permanent');
+    } catch (_) {}
+    final cached = await _loadFromCache();
+    final updated = cached.where((b) => b.id != id).toList();
+    await _saveToCache(updated);
   }
 
   Future<List<Book>> _loadFromCache() async {
@@ -269,6 +533,8 @@ class HttpBookRepository implements BookRepository {
 
   static ReadingStatus _mapReadingStatus(String status) {
     switch (status.toUpperCase()) {
+      case 'DELETED':
+        return ReadingStatus.deleted;
       case 'CURRENTLY_READING':
         return ReadingStatus.currentlyReading;
       case 'COMPLETED':
@@ -278,6 +544,7 @@ class HttpBookRepository implements BookRepository {
       case 'DNF':
         return ReadingStatus.dnf;
       case 'WANT_TO_READ':
+      case 'TO_READ':
       default:
         return ReadingStatus.wantToRead;
     }
@@ -285,6 +552,8 @@ class HttpBookRepository implements BookRepository {
 
   static String _statusToBackend(ReadingStatus status) {
     switch (status) {
+      case ReadingStatus.deleted:
+        return 'DELETED';
       case ReadingStatus.currentlyReading:
         return 'CURRENTLY_READING';
       case ReadingStatus.completed:
@@ -295,7 +564,7 @@ class HttpBookRepository implements BookRepository {
         return 'DNF';
       case ReadingStatus.wantToRead:
       case ReadingStatus.toRead:
-        return 'WANT_TO_READ';
+        return 'TO_READ';
     }
   }
 

@@ -89,4 +89,132 @@ class EpubMetadataExtractorTest {
         assertThat(metadata.description()).isEqualTo("A fantasy heist novel.");
         assertThat(metadata.coverBase64()).startsWith("data:image/jpeg;base64,");
     }
+
+    @Test
+    void extract_Epub2_ExtractsCoverFromMetaTag(@TempDir File tempDir) throws IOException {
+        File epubFile = new File(tempDir, "epub2.epub");
+
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(epubFile))) {
+            zos.putNextEntry(new ZipEntry("META-INF/container.xml"));
+            String containerXml = """
+                    <?xml version="1.0"?>
+                    <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+                       <rootfiles>
+                          <rootfile full-path="content.opf" media-type="application/oebps-package+xml"/>
+                       </rootfiles>
+                    </container>
+                    """;
+            zos.write(containerXml.getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("content.opf"));
+            String opfXml = """
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <package xmlns="http://www.idpf.org/2007/opf" version="2.0">
+                      <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+                        <dc:title>Epub 2 Classic</dc:title>
+                        <dc:creator>Classic Author</dc:creator>
+                        <meta name="cover" content="my-cover-image"/>
+                      </metadata>
+                      <manifest>
+                        <item id="my-cover-image" href="images/cover.png" media-type="image/png"/>
+                      </manifest>
+                    </package>
+                    """;
+            zos.write(opfXml.getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("images/cover.png"));
+            zos.write(new byte[]{ (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+            zos.closeEntry();
+        }
+
+        ExtractedBookMetadata metadata = extractor.extract(epubFile, "epub2.epub");
+
+        assertThat(metadata.title()).isEqualTo("Epub 2 Classic");
+        assertThat(metadata.author()).isEqualTo("Classic Author");
+        assertThat(metadata.coverBase64()).startsWith("data:image/png;base64,");
+    }
+
+    @Test
+    void extract_EpubWithNestedCoverAndUppercaseExt(@TempDir File tempDir) throws IOException {
+        File epubFile = new File(tempDir, "nested.epub");
+
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(epubFile))) {
+            zos.putNextEntry(new ZipEntry("META-INF/container.xml"));
+            String containerXml = """
+                    <?xml version="1.0"?>
+                    <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+                       <rootfiles>
+                          <rootfile full-path="OPS/sub/package.opf" media-type="application/oebps-package+xml"/>
+                       </rootfiles>
+                    </container>
+                    """;
+            zos.write(containerXml.getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("OPS/sub/package.opf"));
+            String opfXml = """
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <package xmlns="http://www.idpf.org/2007/opf" version="3.0">
+                      <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+                        <dc:title>Nested Book</dc:title>
+                      </metadata>
+                      <manifest>
+                        <item id="cvr" href="../art/COVER.JPG" media-type="image/jpeg" properties="cover-image"/>
+                      </manifest>
+                    </package>
+                    """;
+            zos.write(opfXml.getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("OPS/art/COVER.JPG"));
+            zos.write(new byte[]{ (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x11, 0x22 });
+            zos.closeEntry();
+        }
+
+        ExtractedBookMetadata metadata = extractor.extract(epubFile, "nested.epub");
+
+        assertThat(metadata.title()).isEqualTo("Nested Book");
+        assertThat(metadata.coverBase64()).startsWith("data:image/jpeg;base64,");
+    }
+
+    @Test
+    void extract_EpubWithoutCover_ReturnsNullCover(@TempDir File tempDir) throws IOException {
+        File epubFile = new File(tempDir, "nocover.epub");
+
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(epubFile))) {
+            zos.putNextEntry(new ZipEntry("META-INF/container.xml"));
+            String containerXml = """
+                    <?xml version="1.0"?>
+                    <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+                       <rootfiles>
+                          <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+                       </rootfiles>
+                    </container>
+                    """;
+            zos.write(containerXml.getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+
+            zos.putNextEntry(new ZipEntry("OEBPS/content.opf"));
+            String opfXml = """
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <package xmlns="http://www.idpf.org/2007/opf" version="3.0">
+                      <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+                        <dc:title>Plain Text Book</dc:title>
+                      </metadata>
+                      <manifest>
+                        <item id="text" href="text.xhtml" media-type="application/xhtml+xml"/>
+                      </manifest>
+                    </package>
+                    """;
+            zos.write(opfXml.getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+        }
+
+        ExtractedBookMetadata metadata = extractor.extract(epubFile, "nocover.epub");
+
+        assertThat(metadata.title()).isEqualTo("Plain Text Book");
+        assertThat(metadata.coverBase64()).isNull();
+    }
 }

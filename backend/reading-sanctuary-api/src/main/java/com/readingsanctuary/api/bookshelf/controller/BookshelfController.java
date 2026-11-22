@@ -21,9 +21,13 @@ import com.readingsanctuary.api.bookshelf.service.BookshelfService;
 public class BookshelfController {
 
     private final BookshelfService shelfService;
+    private final com.readingsanctuary.api.bookshelf.service.BookSizeCustomizationService sizeCustomizationService;
 
-    public BookshelfController(BookshelfService shelfService) {
+    public BookshelfController(
+            BookshelfService shelfService,
+            com.readingsanctuary.api.bookshelf.service.BookSizeCustomizationService sizeCustomizationService) {
         this.shelfService = shelfService;
+        this.sizeCustomizationService = sizeCustomizationService;
     }
 
     @PostMapping
@@ -93,6 +97,38 @@ public class BookshelfController {
 
         shelfService.removeBook(userId, shelfId, bookId);
 
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/customizations")
+    public ResponseEntity<List<com.readingsanctuary.api.bookshelf.dto.BookSizeCustomizationDto>> getCustomizations(
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(sizeCustomizationService.getCustomizations(userId));
+    }
+
+    @PostMapping("/customizations")
+    public ResponseEntity<com.readingsanctuary.api.bookshelf.dto.BookSizeCustomizationDto> saveCustomization(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody com.readingsanctuary.api.bookshelf.dto.BookSizeCustomizationDto dto) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(sizeCustomizationService.saveCustomization(userId, dto));
+    }
+
+    @DeleteMapping("/customizations/{bookId}")
+    public ResponseEntity<Void> resetCustomization(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID bookId) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        sizeCustomizationService.resetBookCustomization(userId, bookId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/customizations")
+    public ResponseEntity<Void> resetAllCustomizations(
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        sizeCustomizationService.resetAllCustomizations(userId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ReadingStatus { currentlyReading, wantToRead, toRead, completed, onHold, dnf }
+enum ReadingStatus { currentlyReading, wantToRead, toRead, completed, onHold, dnf, deleted }
 
 extension ReadingStatusX on ReadingStatus {
   String get label => switch (this) {
@@ -10,6 +10,7 @@ extension ReadingStatusX on ReadingStatus {
         ReadingStatus.completed => 'Completed',
         ReadingStatus.onHold => 'On Hold',
         ReadingStatus.dnf => 'Did Not Finish',
+        ReadingStatus.deleted => 'Deleted',
       };
 
   String get shortLabel => switch (this) {
@@ -19,6 +20,7 @@ extension ReadingStatusX on ReadingStatus {
         ReadingStatus.completed => 'Completed',
         ReadingStatus.onHold => 'Paused',
         ReadingStatus.dnf => 'DNF',
+        ReadingStatus.deleted => 'Deleted',
       };
 }
 
@@ -141,9 +143,25 @@ class Book {
     this.series,
     this.avgRating,
     this.coverImageUrl,
+    this.hasCover = false,
+    this.coverUpdatedAt,
     this.dnfDate,
     this.dnfReason,
     this.dnfNotes,
+    this.previousStatus,
+    this.deletedAt,
+    this.ratingOutOf100,
+    this.spiceRating,
+    this.mood,
+    this.recommendation,
+    this.purchasePrice,
+    this.currency,
+    this.acquisitionMethod,
+    this.purchaseDate,
+    this.startDate,
+    this.completionDate,
+    this.publisher,
+    this.isbn,
   });
 
   final String id;
@@ -164,14 +182,51 @@ class Book {
   final String? series;
   final double? avgRating; // community rating (sample data for now)
   final String? coverImageUrl;
+  final bool hasCover;
+  final DateTime? coverUpdatedAt;
   final DateTime? dnfDate;
   final String? dnfReason;
   final String? dnfNotes;
+  final ReadingStatus? previousStatus;
+  final DateTime? deletedAt;
+
+  // Additional metadata fields (Features.md Module 7 & Table 2.1)
+  final int? ratingOutOf100;
+  final int? spiceRating;
+  final String? mood;
+  final String? recommendation;
+  final double? purchasePrice;
+  final String? currency;
+  final String? acquisitionMethod;
+  final DateTime? purchaseDate;
+  final DateTime? startDate;
+  final DateTime? completionDate;
+  final String? publisher;
+  final String? isbn;
 
   String? get effectiveCoverUrl {
-    if (coverImageUrl != null && coverImageUrl!.trim().isNotEmpty) {
-      return coverImageUrl!.trim();
+    // If book explicitly has no cover, only allow data URIs (e.g. temporary upload preview)
+    if (!hasCover && (coverImageUrl == null || !coverImageUrl!.trim().startsWith('data:'))) {
+      return null;
     }
+
+    String? url = coverImageUrl;
+    if ((url == null || url.trim().isEmpty) && hasCover && id.isNotEmpty) {
+      url = '/api/v1/books/$id/cover';
+    }
+
+    if (url != null && url.trim().isNotEmpty) {
+      final trimmed = url.trim();
+      if (trimmed.startsWith('data:')) {
+        return trimmed;
+      }
+      if (coverUpdatedAt != null) {
+        final separator = trimmed.contains('?') ? '&' : '?';
+        return '$trimmed${separator}v=${coverUpdatedAt!.millisecondsSinceEpoch}';
+      }
+      return trimmed;
+    }
+
     return null;
   }
 
@@ -196,20 +251,42 @@ class Book {
         'series': series,
         'avgRating': avgRating,
         if (coverImageUrl != null) 'coverImageUrl': coverImageUrl,
+        'hasCover': hasCover,
+        if (coverUpdatedAt != null) 'coverUpdatedAt': coverUpdatedAt!.toIso8601String(),
         if (dnfDate != null) 'dnfDate': dnfDate!.toIso8601String(),
         if (dnfReason != null) 'dnfReason': dnfReason,
         if (dnfNotes != null) 'dnfNotes': dnfNotes,
+        if (previousStatus != null) 'previousStatus': previousStatus!.name,
+        if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
+        if (ratingOutOf100 != null) 'ratingOutOf100': ratingOutOf100,
+        if (spiceRating != null) 'spiceRating': spiceRating,
+        if (mood != null) 'mood': mood,
+        if (recommendation != null) 'recommendation': recommendation,
+        if (purchasePrice != null) 'purchasePrice': purchasePrice,
+        if (currency != null) 'currency': currency,
+        if (acquisitionMethod != null) 'acquisitionMethod': acquisitionMethod,
+        if (purchaseDate != null) 'purchaseDate': purchaseDate!.toIso8601String(),
+        if (startDate != null) 'startDate': startDate!.toIso8601String(),
+        if (completionDate != null) 'completionDate': completionDate!.toIso8601String(),
+        if (publisher != null) 'publisher': publisher,
+        if (isbn != null) 'isbn': isbn,
       };
 
   factory Book.fromJson(Map<String, dynamic> json) {
     ReadingStatus parseStatus(dynamic val) {
       if (val == null) return ReadingStatus.wantToRead;
       final str = val.toString().toLowerCase();
+      if (str.contains('delete')) return ReadingStatus.deleted;
       if (str.contains('currently') || str.contains('reading')) return ReadingStatus.currentlyReading;
       if (str.contains('completed')) return ReadingStatus.completed;
       if (str.contains('hold')) return ReadingStatus.onHold;
       if (str.contains('dnf')) return ReadingStatus.dnf;
       return ReadingStatus.wantToRead;
+    }
+
+    ReadingStatus? parseNullableStatus(dynamic val) {
+      if (val == null) return null;
+      return parseStatus(val);
     }
 
     List<BookFormat> parseFormats(dynamic val) {
@@ -238,6 +315,30 @@ class Book {
       return const [Color(0xFF6B4A5E), Color(0xFF2A1A26)];
     }
 
+    List<String> parseTropes(dynamic val) {
+      if (val is List) {
+        return val.map((t) => t.toString()).toList();
+      }
+      if (val is String && val.trim().isNotEmpty) {
+        return val.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
+      }
+      return const [];
+    }
+
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      final str = val.toString().trim();
+      if (str.isEmpty) return null;
+      return DateTime.tryParse(str);
+    }
+
+    final bool hasCover = json['hasCover'] == true ||
+        (json['coverStorageKey'] != null && json['coverStorageKey'].toString().isNotEmpty);
+
+    final DateTime? coverUpdatedAt = json['coverUpdatedAt'] != null
+        ? DateTime.tryParse(json['coverUpdatedAt'].toString())
+        : (json['cover_updated_at'] != null ? DateTime.tryParse(json['cover_updated_at'].toString()) : null);
+
     return Book(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? 'Untitled',
@@ -262,19 +363,34 @@ class Book {
       lastOpenedAt: json['lastOpenedAt'] != null ? DateTime.tryParse(json['lastOpenedAt'].toString()) : null,
       rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
       coverColors: parseColors(json['coverColors']),
-      tropes: json['tropes'] is List ? (json['tropes'] as List).map((t) => t.toString()).toList() : const [],
+      tropes: parseTropes(json['tropes']),
       series: json['series']?.toString(),
       avgRating: json['avgRating'] != null ? (json['avgRating'] as num).toDouble() : null,
-      coverImageUrl: json['coverImageUrl']?.toString() ??
-          json['coverUrl']?.toString() ??
+      hasCover: hasCover,
+      coverUpdatedAt: coverUpdatedAt,
+      coverImageUrl: json['coverUrl']?.toString() ??
+          json['coverImageUrl']?.toString() ??
           json['cover_image_url']?.toString() ??
-          (json['coverStorageKey'] != null ? '/books/${json['id']}/cover' : null) ??
-          (json['hasCover'] == true ? '/books/${json['id']}/cover' : null),
+          (hasCover ? '/api/v1/books/${json['id']}/cover' : null),
       dnfDate: json['dnfDate'] != null
           ? DateTime.tryParse(json['dnfDate'].toString())
           : (json['dnfAt'] != null ? DateTime.tryParse(json['dnfAt'].toString()) : null),
       dnfReason: json['dnfReason']?.toString(),
       dnfNotes: json['dnfNotes']?.toString(),
+      previousStatus: parseNullableStatus(json['previousStatus'] ?? json['previousReadingStatus']),
+      deletedAt: json['deletedAt'] != null ? DateTime.tryParse(json['deletedAt'].toString()) : null,
+      ratingOutOf100: json['ratingOutOf100'] is num ? (json['ratingOutOf100'] as num).toInt() : null,
+      spiceRating: json['spiceRating'] is num ? (json['spiceRating'] as num).toInt() : null,
+      mood: json['mood']?.toString(),
+      recommendation: json['recommendation']?.toString(),
+      purchasePrice: json['purchasePrice'] is num ? (json['purchasePrice'] as num).toDouble() : null,
+      currency: json['currency']?.toString() ?? 'INR',
+      acquisitionMethod: json['acquisitionMethod']?.toString(),
+      purchaseDate: parseDate(json['purchaseDate']),
+      startDate: parseDate(json['startDate'] ?? json['startedAt']),
+      completionDate: parseDate(json['completionDate'] ?? json['completedAt']),
+      publisher: json['publisher']?.toString(),
+      isbn: json['isbn']?.toString(),
     );
   }
 
@@ -297,10 +413,27 @@ class Book {
     String? series,
     double? avgRating,
     String? coverImageUrl,
+    bool? hasCover,
+    DateTime? coverUpdatedAt,
     DateTime? dnfDate,
     String? dnfReason,
     String? dnfNotes,
     bool clearDnf = false,
+    ReadingStatus? previousStatus,
+    DateTime? deletedAt,
+    bool clearDeletedMetadata = false,
+    int? ratingOutOf100,
+    int? spiceRating,
+    String? mood,
+    String? recommendation,
+    double? purchasePrice,
+    String? currency,
+    String? acquisitionMethod,
+    DateTime? purchaseDate,
+    DateTime? startDate,
+    DateTime? completionDate,
+    String? publisher,
+    String? isbn,
   }) =>
       Book(
         id: id ?? this.id,
@@ -321,8 +454,24 @@ class Book {
         series: series ?? this.series,
         avgRating: avgRating ?? this.avgRating,
         coverImageUrl: coverImageUrl ?? this.coverImageUrl,
+        hasCover: hasCover ?? this.hasCover,
+        coverUpdatedAt: coverUpdatedAt ?? this.coverUpdatedAt,
         dnfDate: clearDnf ? null : (dnfDate ?? this.dnfDate),
         dnfReason: clearDnf ? null : (dnfReason ?? this.dnfReason),
         dnfNotes: clearDnf ? null : (dnfNotes ?? this.dnfNotes),
+        previousStatus: clearDeletedMetadata ? null : (previousStatus ?? this.previousStatus),
+        deletedAt: clearDeletedMetadata ? null : (deletedAt ?? this.deletedAt),
+        ratingOutOf100: ratingOutOf100 ?? this.ratingOutOf100,
+        spiceRating: spiceRating ?? this.spiceRating,
+        mood: mood ?? this.mood,
+        recommendation: recommendation ?? this.recommendation,
+        purchasePrice: purchasePrice ?? this.purchasePrice,
+        currency: currency ?? this.currency,
+        acquisitionMethod: acquisitionMethod ?? this.acquisitionMethod,
+        purchaseDate: purchaseDate ?? this.purchaseDate,
+        startDate: startDate ?? this.startDate,
+        completionDate: completionDate ?? this.completionDate,
+        publisher: publisher ?? this.publisher,
+        isbn: isbn ?? this.isbn,
       );
 }

@@ -34,6 +34,12 @@ abstract final class ClayColors {
   static const Color skyBlueDark = Color(0xFF88B3DA);
   static const Color amber = Color(0xFFF2C265);
   static const Color amberDark = Color(0xFFD49E3B);
+  static const Color rose = Color(0xFFFAD4D8);
+  static const Color roseDark = Color(0xFFE59CA5);
+  static const Color butter = Color(0xFFFDF0AA);
+  static const Color butterDark = Color(0xFFE0D17B);
+  static const Color lilac = Color(0xFFC7B2F0);
+  static const Color sky = Color(0xFFB4D8F8);
 
   // Typography
   static const Color textDark = Color(0xFF2E1A48);

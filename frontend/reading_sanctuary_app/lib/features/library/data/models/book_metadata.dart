@@ -27,6 +27,8 @@ class BookMetadata {
     this.coverBase64,
   });
 
+  bool get hasCover => coverBase64 != null && coverBase64!.trim().isNotEmpty;
+
   Map<String, dynamic> toJson() => {
         'uploadId': uploadId,
         'fileName': fileName,

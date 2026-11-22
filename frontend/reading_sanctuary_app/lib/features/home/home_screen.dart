@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:reading_sanctuary_app/core/widgets/clay_components.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/currently_reading_carousel.dart';
+import 'package:reading_sanctuary_app/features/home/presentation/widgets/dashboard_streak_card.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/hero_reading_banner.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_panel_header.dart';
 import 'package:reading_sanctuary_app/features/home/presentation/widgets/reader_sidebar.dart';
@@ -181,6 +183,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         const HeroReadingBanner(),
         const SizedBox(height: 20),
 
+        // Reading Momentum, Streak & Weekly Calendar
+        const DashboardStreakCard(),
+        const SizedBox(height: 20),
+
         if (useTwoColumns)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,10 +337,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           )
         else
-          for (final book in books) ...[
-            _buildReadingCard(context, book, progressMap),
-            const SizedBox(height: 14),
-          ],
+          CurrentlyReadingCarousel(
+            books: books,
+            progressMap: progressMap,
+            onContinueReading: (book, progress) => _continueReading(context, book, progress),
+          ),
       ],
     );
   }

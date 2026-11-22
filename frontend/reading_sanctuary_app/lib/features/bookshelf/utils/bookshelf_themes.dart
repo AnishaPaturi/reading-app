@@ -23,27 +23,31 @@ class BookshelfThemeOption {
 }
 
 class BookshelfThemes {
-  static const darkAcademia = BookshelfThemeOption(
-    id: 'dark_academia',
-    name: 'Dark Academia',
-    description: 'Espresso, walnut and antique gold',
-    primaryColor: Color(0xFF2C221E),
-    accentColor: Color(0xFFD4AF37),
-    cardColor: Color(0xFF382C27),
-    textColor: Color(0xFFF3EDE2),
-    shelfWoodColor: Color(0xFF4A3728),
+  static const violetSanctuary = BookshelfThemeOption(
+    id: 'violet_sanctuary',
+    name: 'Violet Sanctuary',
+    description: 'Porcelain, violet and deep plum clay',
+    primaryColor: Color(0xFF6B45B3),
+    accentColor: Color(0xFFC7B2F0),
+    cardColor: Color(0xFFF9F6FE),
+    textColor: Color(0xFF2E1A48),
+    shelfWoodColor: Color(0xFF432C82),
   );
 
-  static const warmParchment = BookshelfThemeOption(
-    id: 'warm_parchment',
-    name: 'Warm Parchment',
-    description: 'Ivory, beige and muted gold',
-    primaryColor: Color(0xFFF5EFE6),
-    accentColor: Color(0xFFB08968),
-    cardColor: Color(0xFFEDE4D8),
-    textColor: Color(0xFF2D234A),
-    shelfWoodColor: Color(0xFFC7A78A),
+  static const lavenderLilac = BookshelfThemeOption(
+    id: 'lavender_lilac',
+    name: 'Lavender & Lilac',
+    description: 'Porcelain, lavender and soft lilac clay',
+    primaryColor: Color(0xFFEDE5F8),
+    accentColor: Color(0xFF6B45B3),
+    cardColor: Color(0xFFF9F6FE),
+    textColor: Color(0xFF2E1A48),
+    shelfWoodColor: Color(0xFF9482E6),
   );
+
+  // Backward-compatible aliases mapped to the unified violet-purple clay system
+  static const darkAcademia = violetSanctuary;
+  static const warmParchment = lavenderLilac;
 
   static const enchantedForest = BookshelfThemeOption(
     id: 'enchanted_forest',
@@ -90,8 +94,8 @@ class BookshelfThemes {
   );
 
   static const List<BookshelfThemeOption> all = [
-    darkAcademia,
-    warmParchment,
+    violetSanctuary,
+    lavenderLilac,
     enchantedForest,
     gothicRomance,
     midnightStars,
@@ -99,14 +103,14 @@ class BookshelfThemes {
   ];
 
   static BookshelfThemeOption findById(String? id) {
-    if (id == null) return darkAcademia;
+    if (id == null) return violetSanctuary;
     return all.firstWhere(
       (t) => t.id == id,
-      orElse: () => darkAcademia,
+      orElse: () => violetSanctuary,
     );
   }
 
-  static Color parseHex(String? hexString, {Color fallback = const Color(0xFF2C221E)}) {
+  static Color parseHex(String? hexString, {Color fallback = const Color(0xFF6B45B3)}) {
     if (hexString == null || hexString.isEmpty) return fallback;
     try {
       final clean = hexString.replaceAll('#', '').replaceAll('0x', '');

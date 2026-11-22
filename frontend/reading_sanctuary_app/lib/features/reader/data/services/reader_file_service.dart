@@ -15,7 +15,28 @@ class ReaderFileService {
     this.downloadManager,
   }) : baseUrl = baseUrl ?? ApiConfig.baseUrl;
 
+  static final Map<String, Future<Uint8List>> _activeDownloads = {};
+
   Future<Uint8List> loadFileBytes({
+    required String bookId,
+    required String fileId,
+  }) async {
+    final key = '$bookId:$fileId';
+    if (_activeDownloads.containsKey(key)) {
+      debugPrint('ReaderFileService: Joining in-flight download for $key');
+      return _activeDownloads[key]!;
+    }
+
+    final future = _loadFileBytesInternal(bookId: bookId, fileId: fileId);
+    _activeDownloads[key] = future;
+    try {
+      return await future;
+    } finally {
+      _activeDownloads.remove(key);
+    }
+  }
+
+  Future<Uint8List> _loadFileBytesInternal({
     required String bookId,
     required String fileId,
   }) async {

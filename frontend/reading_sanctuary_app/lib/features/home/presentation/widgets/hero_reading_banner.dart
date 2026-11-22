@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:reading_sanctuary_app/features/authentication/presentation/providers/auth_provider.dart';
 
 class HeroReadingBanner extends ConsumerWidget {
@@ -108,6 +109,17 @@ class HeroReadingBanner extends ConsumerWidget {
                         ],
                       ),
                       SizedBox(height: spacing),
+                      Text(
+                        DateFormat('EEEE, d MMMM y').format(currentTime ?? DateTime.now()),
+                        style: TextStyle(
+                          color: const Color(0xFF6B588F),
+                          fontSize: (subtitleFontSize * 0.95).clamp(9.5, 13.5),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: spacing * 0.5),
                       Text(
                         "Let's read some books today!",
                         style: TextStyle(

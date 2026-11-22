@@ -10,6 +10,7 @@ class ReaderToolbar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onToggleBookmark;
   final VoidCallback onOpenSettings;
   final VoidCallback onOpenAnnotations;
+  final VoidCallback? onOpenTableOfContents;
   final VoidCallback? onSearch;
   final VoidCallback? onListenTts;
 
@@ -22,6 +23,7 @@ class ReaderToolbar extends StatelessWidget implements PreferredSizeWidget {
     required this.onToggleBookmark,
     required this.onOpenSettings,
     required this.onOpenAnnotations,
+    this.onOpenTableOfContents,
     this.onSearch,
     this.onListenTts,
   });
@@ -34,10 +36,22 @@ class ReaderToolbar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: ClayColors.background,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: ClayColors.deepPurple),
-        tooltip: 'Exit Reader',
-        onPressed: onBack,
+      leadingWidth: onOpenTableOfContents != null ? 96 : 56,
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_rounded, color: ClayColors.deepPurple),
+            tooltip: 'Exit Reader',
+            onPressed: onBack,
+          ),
+          if (onOpenTableOfContents != null)
+            IconButton(
+              icon: const Icon(Icons.toc_rounded, color: ClayColors.deepPurple, size: 24),
+              tooltip: 'Table of Contents',
+              onPressed: onOpenTableOfContents,
+            ),
+        ],
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,

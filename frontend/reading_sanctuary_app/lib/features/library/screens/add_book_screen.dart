@@ -126,6 +126,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
       ReadingStatus.completed => 'COMPLETED',
       ReadingStatus.onHold => 'ON_HOLD',
       ReadingStatus.dnf => 'DNF',
+      ReadingStatus.deleted => 'DELETED',
       ReadingStatus.wantToRead || ReadingStatus.toRead => 'WANT_TO_READ',
     };
   }

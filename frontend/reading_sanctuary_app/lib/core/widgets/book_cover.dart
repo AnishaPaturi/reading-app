@@ -1,13 +1,50 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import '../../features/reader/presentation/providers/reader_provider.dart';
 import '../network/api_config.dart';
 import '../../shared/models/book.dart';
 import 'clay_components.dart';
 
-/// Tactile, upright 3D book cover supporting network/backend images, base64 data,
-/// and graceful fallbacks to procedural pastel clay artwork.
+/// LRU in-memory cache for loaded cover image bytes to prevent re-fetching.
+class CoverImageCache {
+  static final Map<String, Uint8List> _cache = {};
+  static final List<String> _order = [];
+  static const int _maxSize = 120;
+
+  static Uint8List? get(String url) => _cache[url];
+
+  static void set(String url, Uint8List bytes) {
+    if (_cache.containsKey(url)) {
+      _order.remove(url);
+      _order.add(url);
+      _cache[url] = bytes;
+      return;
+    }
+    if (_order.length >= _maxSize) {
+      final oldest = _order.removeAt(0);
+      _cache.remove(oldest);
+    }
+    _order.add(url);
+    _cache[url] = bytes;
+  }
+
+  static void evict(String urlPrefix) {
+    _cache.removeWhere((key, _) => key.contains(urlPrefix));
+    _order.removeWhere((key) => key.contains(urlPrefix));
+  }
+
+  static void clear() {
+    _cache.clear();
+    _order.clear();
+  }
+}
+
+/// Tactile, upright 3D book cover supporting authenticated network/backend images,
+/// base64 data, and graceful fallbacks to procedural pastel clay artwork.
 class BookCover extends StatelessWidget {
   const BookCover({
     super.key,
@@ -121,7 +158,7 @@ class BookCover extends StatelessWidget {
       }
     }
 
-    // 2. HTTP / HTTPS or relative URL
+    // 2. HTTP / HTTPS or relative URL (authenticated retrieval)
     String fullUrl = rawUrl;
     if (rawUrl.startsWith('/')) {
       final base = ApiConfig.baseUrl.replaceAll(RegExp(r'/$'), '');
@@ -133,14 +170,11 @@ class BookCover extends StatelessWidget {
       }
     }
 
-    return Image.network(
-      fullUrl,
+    return _AuthenticatedCoverImage(
+      url: fullUrl,
       fit: fit,
-      errorBuilder: (_, __, ___) => _buildStyledFallback(),
-      loadingBuilder: (context, child, progress) {
-        if (progress == null) return child;
-        return _buildThemedLoadingPlaceholder();
-      },
+      fallbackBuilder: (_) => _buildStyledFallback(),
+      loadingBuilder: (_) => _buildThemedLoadingPlaceholder(),
     );
   }
 
@@ -229,5 +263,125 @@ class BookCover extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _AuthenticatedCoverImage extends ConsumerStatefulWidget {
+  final String url;
+  final BoxFit fit;
+  final WidgetBuilder fallbackBuilder;
+  final WidgetBuilder loadingBuilder;
+
+  const _AuthenticatedCoverImage({
+    required this.url,
+    required this.fit,
+    required this.fallbackBuilder,
+    required this.loadingBuilder,
+  });
+
+  @override
+  ConsumerState<_AuthenticatedCoverImage> createState() => _AuthenticatedCoverImageState();
+}
+
+class _AuthenticatedCoverImageState extends ConsumerState<_AuthenticatedCoverImage> {
+  Uint8List? _bytes;
+  bool _isLoading = false;
+  bool _hasError = false;
+  String? _loadedUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AuthenticatedCoverImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _loadImage();
+    }
+  }
+
+  Future<void> _loadImage() async {
+    final targetUrl = widget.url;
+    _loadedUrl = targetUrl;
+
+    // Check memory cache first
+    final cached = CoverImageCache.get(targetUrl);
+    if (cached != null) {
+      if (mounted) {
+        setState(() {
+          _bytes = cached;
+          _isLoading = false;
+          _hasError = false;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _hasError = false;
+        _bytes = null;
+      });
+    }
+
+    try {
+      final token = ref.read(authTokenProvider);
+      final headers = <String, String>{
+        'Accept': 'image/*',
+        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await http.get(Uri.parse(targetUrl), headers: headers);
+      if (_loadedUrl != targetUrl || !mounted) return;
+
+      if (response.statusCode >= 200 && response.statusCode < 300 && response.bodyBytes.isNotEmpty) {
+        CoverImageCache.set(targetUrl, response.bodyBytes);
+        setState(() {
+          _bytes = response.bodyBytes;
+          _isLoading = false;
+          _hasError = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
+    } catch (_) {
+      if (_loadedUrl == targetUrl && mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<String?>(authTokenProvider, (previous, next) {
+      if (previous != next && next != null && next.isNotEmpty && (_hasError || _bytes == null)) {
+        _loadImage();
+      }
+    });
+
+    if (_bytes != null) {
+      return Image.memory(
+        _bytes!,
+        fit: widget.fit,
+        errorBuilder: (_, __, ___) => widget.fallbackBuilder(context),
+      );
+    }
+    if (_hasError) {
+      return widget.fallbackBuilder(context);
+    }
+    if (_isLoading) {
+      return widget.loadingBuilder(context);
+    }
+    return widget.loadingBuilder(context);
   }
 }

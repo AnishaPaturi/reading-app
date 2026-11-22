@@ -9,8 +9,10 @@ import '../../core/widgets/common_widgets.dart';
 import '../../shared/models/book.dart';
 import '../../shared/services/providers.dart';
 import '../../shared/utils/book_file_navigation.dart';
+import '../bookshelf/presentation/widgets/book_delete_dialog.dart';
 import '../dnf/screens/dnf_cinematic_screen.dart';
 import '../offline/presentation/widgets/offline_download_button.dart';
+import 'widgets/edit_book_metadata_sheet.dart';
 
 class BookDetailsScreen extends ConsumerStatefulWidget {
   const BookDetailsScreen({super.key, required this.bookId});
@@ -24,6 +26,103 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
   final Map<String, int> _ratings = {'Spice': 0, 'Fluff': 0, 'Tear': 0, 'Humor': 0};
   int _format = 0;
   bool? _readAgain;
+
+  void _showEnlargedCover(BuildContext context, Book book) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              constraints: const BoxConstraints(maxWidth: 380, maxHeight: 560),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BookCover(book: book, fit: BoxFit.contain),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 22),
+                  onPressed: () => Navigator.of(ctx).pop(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openEditMetadata(BuildContext context, Book book) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => EditBookMetadataSheet(book: book),
+    );
+  }
+
+  Future<void> _handleDeleteBook(BuildContext context, Book book) async {
+    final confirmed = await showBookDeleteDialog(context, book);
+    if (!confirmed || !context.mounted) return;
+
+    try {
+      await ref.read(booksProvider.notifier).moveToDeleted(book.id);
+      if (!context.mounted) return;
+
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/library');
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('"${book.title}" moved to Deleted'),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          action: SnackBarAction(
+            label: 'Undo',
+            textColor: ClayColors.primaryPurple,
+            onPressed: () {
+              ref.read(booksProvider.notifier).restoreBook(book.id);
+            },
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not delete book: $error'),
+          backgroundColor: const Color(0xFF8B2635),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +216,23 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
             ),
             actions: [
               IconButton(
+                icon: const Icon(
+                  Icons.edit_note_rounded,
+                  color: ClayColors.deepPurple,
+                  size: 26,
+                ),
+                tooltip: 'Edit Details',
+                onPressed: () => _openEditMetadata(context, b),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: ClayColors.coral,
+                ),
+                tooltip: 'Move to Deleted',
+                onPressed: () => _handleDeleteBook(context, b),
+              ),
+              IconButton(
                 icon: Icon(
                   (b.rating ?? 0) >= 4.0 ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                   color: (b.rating ?? 0) >= 4.0 ? ClayColors.coral : ClayColors.textDark,
@@ -145,11 +261,35 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(
-                              width: 96,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: BookCover(book: b),
+                            InkWell(
+                              onTap: () => _showEnlargedCover(context, b),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Stack(
+                                children: [
+                                  SizedBox(
+                                    width: 100,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: BookCover(book: b),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 4,
+                                    right: 4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.6),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.fullscreen_rounded,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: 18),
@@ -209,13 +349,56 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                                           ),
                                         ),
                                       ),
+                                      if (b.recommendation != null && b.recommendation!.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFBF4E2),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: const Color(0xFFE2C26E), width: 1),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.thumb_up_alt_rounded, size: 12, color: Color(0xFF8A6D1C)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                b.recommendation!,
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: const Color(0xFF8A6D1C),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      if (b.mood != null && b.mood!.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEBF7F0),
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: const Color(0xFF8FD8A8), width: 1),
+                                          ),
+                                          child: Text(
+                                            b.mood!,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF227042),
+                                            ),
+                                          ),
+                                        ),
                                     ],
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
                                     b.status == ReadingStatus.completed
-                                        ? 'Finished: ${DateFormat.yMMMd().format(b.lastOpenedAt ?? b.addedAt)}'
-                                        : 'Added: ${DateFormat.yMMMd().format(b.addedAt)}',
+                                        ? 'Finished: ${DateFormat.yMMMd().format(b.completionDate ?? b.lastOpenedAt ?? b.addedAt)}'
+                                        : (b.startDate != null
+                                            ? 'Started: ${DateFormat.yMMMd().format(b.startDate!)}'
+                                            : 'Added: ${DateFormat.yMMMd().format(b.addedAt)}'),
                                     style: GoogleFonts.inter(
                                       color: ClayColors.textMuted,
                                       fontSize: 12,
@@ -453,6 +636,103 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                             ),
                             const SizedBox(height: 8),
                             Center(child: RatingStars(b.rating, size: 26)),
+                            if (b.ratingOutOf100 != null) ...[
+                              Container(
+                                margin: const EdgeInsets.only(top: 14),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFAF7FE),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: ClayColors.softLilac),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.analytics_outlined, size: 18, color: ClayColors.deepPurple),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Score out of 100',
+                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: ClayColors.textDark),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      '${b.ratingOutOf100} / 100',
+                                      style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: ClayColors.deepPurple),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            if (b.spiceRating != null && b.spiceRating! > 0) ...[
+                              Container(
+                                margin: const EdgeInsets.only(top: 10),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF6F4),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: const Color(0xFFFFDCD6)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.local_fire_department_rounded, size: 18, color: ClayColors.coral),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Spice Rating',
+                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: ClayColors.textDark),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        for (var i = 1; i <= 5; i++)
+                                          Icon(
+                                            i <= b.spiceRating! ? Icons.local_fire_department_rounded : Icons.local_fire_department_outlined,
+                                            color: i <= b.spiceRating! ? ClayColors.coral : const Color(0xFFE0C4BE),
+                                            size: 18,
+                                          ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          '${b.spiceRating} / 5',
+                                          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: ClayColors.coral),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            if (b.tropes.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                'Tropes & Themes',
+                                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: ClayColors.textDark),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: b.tropes.map((t) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF0ECFB),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: const Color(0xFFDCD2F5)),
+                                    ),
+                                    child: Text(
+                                      '#$t',
+                                      style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: ClayColors.deepPurple),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
                             const SizedBox(height: 20),
                             Wrap(
                               spacing: 20,
@@ -527,6 +807,94 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
                                 color: ClayColors.textDark,
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Acquisition & Edition Details
+                      ClayCard(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Acquisition & Edition',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: ClayColors.textDark,
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  onPressed: () => _openEditMetadata(context, b),
+                                  icon: const Icon(Icons.edit_outlined, size: 16, color: ClayColors.deepPurple),
+                                  label: Text(
+                                    'Edit',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: ClayColors.deepPurple,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _buildDetailRow(
+                              icon: Icons.shopping_bag_outlined,
+                              label: 'Acquisition',
+                              value: b.acquisitionMethod ?? 'Purchased',
+                            ),
+                            const SizedBox(height: 10),
+                            _buildDetailRow(
+                              icon: Icons.payments_outlined,
+                              label: 'Purchase Price',
+                              value: b.purchasePrice != null
+                                  ? '${b.currency ?? '₹'} ${b.purchasePrice!.toStringAsFixed(2)}'
+                                  : 'Not recorded',
+                            ),
+                            if (b.purchaseDate != null) ...[
+                              const SizedBox(height: 10),
+                              _buildDetailRow(
+                                icon: Icons.calendar_today_outlined,
+                                label: 'Purchase Date',
+                                value: DateFormat.yMMMd().format(b.purchaseDate!),
+                              ),
+                            ],
+                            const SizedBox(height: 10),
+                            _buildDetailRow(
+                              icon: Icons.business_outlined,
+                              label: 'Publisher',
+                              value: b.publisher ?? 'Not specified',
+                            ),
+                            const SizedBox(height: 10),
+                            _buildDetailRow(
+                              icon: Icons.tag_rounded,
+                              label: 'ISBN',
+                              value: b.isbn ?? 'Not specified',
+                            ),
+                            if (b.startDate != null || b.completionDate != null) ...[
+                              const Divider(height: 24, color: Color(0xFFE5DCF4)),
+                              if (b.startDate != null) ...[
+                                _buildDetailRow(
+                                  icon: Icons.play_arrow_outlined,
+                                  label: 'Reading Started',
+                                  value: DateFormat.yMMMd().format(b.startDate!),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
+                              if (b.completionDate != null) ...[
+                                _buildDetailRow(
+                                  icon: Icons.check_circle_outline_rounded,
+                                  label: 'Reading Completed',
+                                  value: DateFormat.yMMMd().format(b.completionDate!),
+                                ),
+                              ],
+                            ],
                           ],
                         ),
                       ),
@@ -651,6 +1019,35 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
           ),
         );
       },
+    );
+  }
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: ClayColors.primaryPurple),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+            color: ClayColors.textMuted,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: ClayColors.textDark,
+          ),
+        ),
+      ],
     );
   }
 }

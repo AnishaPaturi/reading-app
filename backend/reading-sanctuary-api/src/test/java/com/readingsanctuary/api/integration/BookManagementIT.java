@@ -15,6 +15,7 @@ import com.readingsanctuary.api.book.dto.BookResponse;
 import com.readingsanctuary.api.book.dto.CreateBookRequest;
 import com.readingsanctuary.api.book.dto.UpdateBookRequest;
 import com.readingsanctuary.api.book.entity.Book;
+import com.readingsanctuary.api.book.enums.ReadingStatus;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.book.service.BookService;
 import com.readingsanctuary.api.user.entity.User;
@@ -22,6 +23,7 @@ import com.readingsanctuary.api.user.repository.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,6 +74,7 @@ class BookManagementIT {
         Book savedBook = new Book();
         ReflectionTestUtils.setField(savedBook, "id", bookId);
         savedBook.setTitle("Refactoring");
+        savedBook.setReadingStatus(ReadingStatus.TO_READ);
         savedBook.setCreatedBy(testUser);
 
         when(bookRepository.findByIdAndCreatedBy_Id(bookId, userId)).thenReturn(Optional.of(savedBook));
@@ -86,8 +89,22 @@ class BookManagementIT {
         BookResponse updated = bookService.updateBook(bookId, updateReq, userId);
         assertThat(updated.title()).isEqualTo("Refactoring 2nd Ed");
 
-        // 4. Delete Book
+        // 4. Soft Delete Book (Move to Deleted)
         bookService.deleteBook(bookId, userId);
+        assertThat(savedBook.getReadingStatus()).isEqualTo(ReadingStatus.DELETED);
+        assertThat(savedBook.getPreviousReadingStatus()).isEqualTo(ReadingStatus.TO_READ);
+        assertThat(savedBook.getDeletedAt()).isNotNull();
+        verify(bookRepository, atLeastOnce()).save(savedBook);
+
+        // 5. Restore Book
+        bookService.restoreBook(bookId, userId);
+        assertThat(savedBook.getReadingStatus()).isEqualTo(ReadingStatus.TO_READ);
+        assertThat(savedBook.getPreviousReadingStatus()).isNull();
+        assertThat(savedBook.getDeletedAt()).isNull();
+
+        // 6. Soft Delete again and Permanently Delete
+        bookService.deleteBook(bookId, userId);
+        bookService.permanentlyDeleteBook(bookId, userId);
         verify(bookRepository).delete(savedBook);
     }
 }

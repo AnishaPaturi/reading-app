@@ -35,7 +35,25 @@ class MockBookRepo implements BookRepository {
   Future<void> updateProgress(String id, double progress) async {}
 
   @override
+  Future<void> setPage(String id, int page) async {}
+
+  @override
+  Future<void> updateBookDetails(Book book) async {}
+
+  @override
   Future<void> addBook(Book book) async {}
+
+  @override
+  Future<List<Book>> getDeletedBooks() async => [];
+
+  @override
+  Future<void> moveToDeleted(String id) async {}
+
+  @override
+  Future<void> restoreBook(String id) async {}
+
+  @override
+  Future<void> permanentlyDeleteBook(String id) async {}
 }
 
 void main() {

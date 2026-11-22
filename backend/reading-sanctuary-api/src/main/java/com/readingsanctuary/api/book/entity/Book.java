@@ -1,5 +1,6 @@
 package com.readingsanctuary.api.book.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
@@ -108,6 +109,43 @@ public class Book {
 
     @Column(name = "dnf_notes", columnDefinition = "TEXT")
     private String dnfNotes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "previous_reading_status", length = 40)
+    private ReadingStatus previousReadingStatus;
+
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+
+    @Column(name = "rating")
+    private Double rating;
+
+    @Column(name = "rating_out_of_100")
+    private Integer ratingOutOf100;
+
+    @Column(name = "spice_rating")
+    private Integer spiceRating;
+
+    @Column(name = "mood", length = 100)
+    private String mood;
+
+    @Column(name = "recommendation", length = 50)
+    private String recommendation;
+
+    @Column(name = "purchase_price", precision = 12, scale = 2)
+    private BigDecimal purchasePrice;
+
+    @Column(name = "currency", length = 10)
+    private String currency = "INR";
+
+    @Column(name = "acquisition_method", length = 50)
+    private String acquisitionMethod;
+
+    @Column(name = "purchase_date")
+    private LocalDate purchaseDate;
+
+    @Column(name = "tropes", columnDefinition = "TEXT")
+    private String tropes;
 
     // Required by JPA
     public Book() {
@@ -313,5 +351,101 @@ public class Book {
 
     public void setDnfNotes(String dnfNotes) {
         this.dnfNotes = dnfNotes;
+    }
+
+    public ReadingStatus getPreviousReadingStatus() {
+        return previousReadingStatus;
+    }
+
+    public void setPreviousReadingStatus(ReadingStatus previousReadingStatus) {
+        this.previousReadingStatus = previousReadingStatus;
+    }
+
+    public OffsetDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(OffsetDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public Integer getRatingOutOf100() {
+        return ratingOutOf100;
+    }
+
+    public void setRatingOutOf100(Integer ratingOutOf100) {
+        this.ratingOutOf100 = ratingOutOf100;
+    }
+
+    public Integer getSpiceRating() {
+        return spiceRating;
+    }
+
+    public void setSpiceRating(Integer spiceRating) {
+        this.spiceRating = spiceRating;
+    }
+
+    public String getMood() {
+        return mood;
+    }
+
+    public void setMood(String mood) {
+        this.mood = mood;
+    }
+
+    public String getRecommendation() {
+        return recommendation;
+    }
+
+    public void setRecommendation(String recommendation) {
+        this.recommendation = recommendation;
+    }
+
+    public BigDecimal getPurchasePrice() {
+        return purchasePrice;
+    }
+
+    public void setPurchasePrice(BigDecimal purchasePrice) {
+        this.purchasePrice = purchasePrice;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getAcquisitionMethod() {
+        return acquisitionMethod;
+    }
+
+    public void setAcquisitionMethod(String acquisitionMethod) {
+        this.acquisitionMethod = acquisitionMethod;
+    }
+
+    public LocalDate getPurchaseDate() {
+        return purchaseDate;
+    }
+
+    public void setPurchaseDate(LocalDate purchaseDate) {
+        this.purchaseDate = purchaseDate;
+    }
+
+    public String getTropes() {
+        return tropes;
+    }
+
+    public void setTropes(String tropes) {
+        this.tropes = tropes;
     }
 }

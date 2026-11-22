@@ -2,8 +2,10 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
+import '../../../../core/widgets/clay_components.dart';
 import '../../../annotations/domain/annotation_type.dart';
 import '../../../annotations/domain/book_annotation.dart';
+import '../../data/models/reader_chapter.dart';
 import '../../data/models/reader_position.dart';
 import '../../data/models/reader_settings.dart';
 
@@ -13,13 +15,15 @@ class PdfReaderView extends StatefulWidget {
   final ReaderSettings settings;
   final List<BookAnnotation> annotations;
   final void Function(ReaderPosition position) onPositionChanged;
+  final ValueChanged<List<ReaderChapter>>? onChaptersLoaded;
   final void Function(
     String text,
     String startLocation,
     String endLocation,
     int pageNumber,
-    List<NormalizedRect> rectangles,
-  )? onTextSelected;
+    List<NormalizedRect> rectangles, [
+    Rect? targetRect,
+  ])? onTextSelected;
   final ValueChanged<BookAnnotation>? onAnnotationTap;
 
   const PdfReaderView({
@@ -29,6 +33,7 @@ class PdfReaderView extends StatefulWidget {
     required this.settings,
     this.annotations = const [],
     required this.onPositionChanged,
+    this.onChaptersLoaded,
     this.onTextSelected,
     this.onAnnotationTap,
   });
@@ -39,6 +44,8 @@ class PdfReaderView extends StatefulWidget {
 
 class PdfReaderViewState extends State<PdfReaderView> {
   late final PdfViewerController _controller;
+  PdfTextSearcher? _textSearcher;
+  String? _pendingSearchQuery;
   int _pageNumber = 1;
   int _pageCount = 1;
   String? _emphasizedAnnotationId;
@@ -49,6 +56,51 @@ class PdfReaderViewState extends State<PdfReaderView> {
     super.initState();
     _controller = PdfViewerController();
     _pageNumber = widget.initialPosition?.pageNumber ?? 1;
+  }
+
+  @override
+  void dispose() {
+    _textSearcher?.dispose();
+    super.dispose();
+  }
+
+  PdfTextSearcher? get textSearcher => _textSearcher;
+
+  void startSearch(String query) {
+    final cleanQuery = query.trim();
+
+    if (_textSearcher == null) {
+      _pendingSearchQuery = cleanQuery;
+      return;
+    }
+
+    if (cleanQuery.isEmpty) {
+      _textSearcher!.resetTextSearch();
+      return;
+    }
+
+    _textSearcher!.startTextSearch(cleanQuery);
+  }
+
+  void nextSearchMatch() {
+    _textSearcher?.goToNextMatch();
+  }
+
+  void prevSearchMatch() {
+    _textSearcher?.goToPrevMatch();
+  }
+
+  void clearSearch() {
+    _pendingSearchQuery = null;
+    _textSearcher?.resetTextSearch();
+  }
+
+  Future<void> clearSelection() async {
+    try {
+      if (_controller.isReady) {
+        await _controller.textSelectionDelegate.clearTextSelection();
+      }
+    } catch (_) {}
   }
 
   @override
@@ -268,10 +320,91 @@ class PdfReaderViewState extends State<PdfReaderView> {
     return rectangles;
   }
 
+  int _selectionSeq = 0;
+
+  Future<void> _handleTextSelectionChange(PdfTextSelection selection) async {
+    final seq = ++_selectionSeq;
+
+    if (!selection.hasSelectedText || !selection.isTextSelectionEnabled) {
+      if (widget.onTextSelected != null) {
+        widget.onTextSelected!('', '', '', _pageNumber, const [], null);
+      }
+      return;
+    }
+
+    try {
+      final text = await selection.getSelectedText();
+      if (seq != _selectionSeq || !mounted) return;
+
+      if (text.trim().isEmpty) {
+        if (widget.onTextSelected != null) {
+          widget.onTextSelected!('', '', '', _pageNumber, const [], null);
+        }
+        return;
+      }
+
+      final ranges = await selection.getSelectedTextRanges();
+      if (seq != _selectionSeq || !mounted) return;
+
+      final pageNum = ranges.isNotEmpty
+          ? ranges.first.pageNumber
+          : _pageNumber;
+
+      final rectangles = await _extractRectangles(
+        text: text.trim(),
+        pageNum: pageNum,
+        ranges: ranges,
+      );
+      if (seq != _selectionSeq || !mounted) return;
+
+      Rect? targetRect;
+      if (rectangles.isNotEmpty && _controller.isReady && pageNum <= _controller.pages.length) {
+        try {
+          final pdfPage = _controller.pages[pageNum - 1];
+          double minLeft = rectangles.first.left;
+          double minTop = rectangles.first.top;
+          double maxRight = rectangles.first.left + rectangles.first.width;
+          double maxBottom = rectangles.first.top + rectangles.first.height;
+          for (final r in rectangles.skip(1)) {
+            if (r.left < minLeft) minLeft = r.left;
+            if (r.top < minTop) minTop = r.top;
+            if (r.left + r.width > maxRight) maxRight = r.left + r.width;
+            if (r.top + r.height > maxBottom) maxBottom = r.top + r.height;
+          }
+          final totalRectInPage = Rect.fromLTRB(
+            minLeft * pdfPage.width,
+            minTop * pdfPage.height,
+            maxRight * pdfPage.width,
+            maxBottom * pdfPage.height,
+          );
+          final pdfRect = totalRectInPage.toPdfRect(page: pdfPage);
+          final docRect = _controller.calcRectForRectInsidePage(
+            pageNumber: pageNum,
+            rect: pdfRect,
+          );
+          targetRect = _controller.doc2local.rectToLocal(context, docRect) ?? docRect;
+        } catch (_) {}
+      }
+
+      if (widget.onTextSelected != null) {
+        widget.onTextSelected!(
+          text.trim(),
+          'page=$pageNum',
+          'page=$pageNum',
+          pageNum,
+          rectangles,
+          targetRect,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error handling PDF text selection: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: widget.settings.themeMode.backgroundColor,
+      color: ClayColors.background,
       child: PdfViewer.data(
         widget.fileBytes,
         sourceName: 'Reading Sanctuary Document',
@@ -298,8 +431,15 @@ class PdfReaderViewState extends State<PdfReaderView> {
                 }
               : null,
           onPageChanged: _handlePageChanged,
+          textSelectionParams: PdfTextSelectionParams(
+            onTextSelectionChange: _handleTextSelectionChange,
+          ),
           pagePaintCallbacks: [
             (canvas, pageRect, page) {
+              final searcher = _textSearcher;
+              if (searcher != null) {
+                searcher.pageTextMatchPaintCallback(canvas, pageRect, page);
+              }
               final pageHighlights = widget.annotations.where(
                 (a) => a.pageNumber == page.pageNumber &&
                     (a.type == AnnotationType.highlight || a.type == AnnotationType.quote),
@@ -310,18 +450,18 @@ class PdfReaderViewState extends State<PdfReaderView> {
                 final baseColor = highlight.displayColor;
                 final paint = Paint()
                   ..color = isEmphasized
-                      ? (isQuote ? const Color(0xFFD4A373).withValues(alpha: 0.85) : baseColor.withValues(alpha: 0.70))
-                      : (isQuote ? const Color(0xFFE8D7C3).withValues(alpha: 0.55) : baseColor.withValues(alpha: 0.40))
+                      ? (isQuote ? ClayColors.softLilac.withValues(alpha: 0.85) : baseColor.withValues(alpha: 0.70))
+                      : (isQuote ? ClayColors.softLilac.withValues(alpha: 0.45) : baseColor.withValues(alpha: 0.40))
                   ..style = PaintingStyle.fill;
 
                 final borderPaint = isEmphasized
                     ? (Paint()
-                        ..color = isQuote ? const Color(0xFF9A6138) : const Color(0xFF533E85)
+                        ..color = isQuote ? ClayColors.primaryPurple : ClayColors.deepPurple
                         ..strokeWidth = 2.0
                         ..style = PaintingStyle.stroke)
                     : (isQuote
                         ? (Paint()
-                            ..color = const Color(0xFFC48B5E).withValues(alpha: 0.6)
+                            ..color = ClayColors.primaryPurple.withValues(alpha: 0.6)
                             ..strokeWidth = 1.0
                             ..style = PaintingStyle.stroke)
                         : null);
@@ -363,7 +503,7 @@ class PdfReaderViewState extends State<PdfReaderView> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF533E85).withValues(alpha: 0.88),
+                        color: ClayColors.deepPurple.withValues(alpha: 0.90),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: const [
                           BoxShadow(
@@ -397,50 +537,66 @@ class PdfReaderViewState extends State<PdfReaderView> {
             ];
           },
           customizeContextMenuItems: (params, items) {
-            if (params.contextMenuFor == PdfViewerPart.selectedText) {
-              items.insert(
-                0,
-                ContextMenuButtonItem(
-                  label: 'Annotate',
-                  onPressed: () async {
-                    final text = await params.textSelectionDelegate.getSelectedText();
-                    final ranges = await params.textSelectionDelegate.getSelectedTextRanges();
-                    params.dismissContextMenu();
-                    if (text.trim().isNotEmpty && widget.onTextSelected != null) {
-                      final pageNum = ranges.isNotEmpty
-                          ? ranges.first.pageNumber
-                          : (params.a?.page.pageNumber ?? _pageNumber);
-
-                      final rectangles = await _extractRectangles(
-                        text: text.trim(),
-                        pageNum: pageNum,
-                        ranges: ranges,
-                        a: params.a,
-                        b: params.b,
-                      );
-
-                      widget.onTextSelected!(
-                        text.trim(),
-                        'page=$pageNum',
-                        'page=$pageNum',
-                        pageNum,
-                        rectangles,
-                      );
-                    }
-                  },
-                ),
-              );
-            }
+            // Native actions (Copy, Select All) are preserved.
+            // The floating annotation toolbar is displayed automatically via onTextSelectionChange.
           },
           onViewerReady: (document, controller) {
-            setState(() {
-              _pageCount = document.pages.length;
-            });
-            if (_pageNumber > 1 && _pageNumber <= _pageCount) {
-              controller.goToPage(pageNumber: _pageNumber);
+            _textSearcher?.dispose();
+            _textSearcher = PdfTextSearcher(controller);
+
+            final pendingQuery = _pendingSearchQuery;
+            _pendingSearchQuery = null;
+
+            if (pendingQuery != null && pendingQuery.isNotEmpty) {
+              _textSearcher!.startTextSearch(pendingQuery);
             }
-            _handlePageChanged(_pageNumber);
-            _resolveMissingAnnotationGeometries();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              if (!mounted) return;
+
+              final pageCount = document.pages.length;
+
+              setState(() {
+                _pageCount = pageCount;
+              });
+
+              if (pageCount == 0) return;
+
+              final safePage = _pageNumber.clamp(1, pageCount);
+
+              if (safePage > 1) {
+                controller.goToPage(pageNumber: safePage);
+              }
+
+              _handlePageChanged(safePage);
+              _resolveMissingAnnotationGeometries();
+
+              if (widget.onChaptersLoaded != null) {
+                try {
+                  final outlineNodes = await document.loadOutline();
+
+                  if (!mounted || outlineNodes.isEmpty) return;
+
+                  ReaderChapter convertNode(PdfOutlineNode node) {
+                    return ReaderChapter(
+                      title: node.title.trim().isNotEmpty
+                          ? node.title.trim()
+                          : 'Section',
+                      pageNumber: node.dest?.pageNumber,
+                      subchapters: node.children
+                          .map(convertNode)
+                          .toList(),
+                    );
+                  }
+
+                  widget.onChaptersLoaded!(
+                    outlineNodes.map(convertNode).toList(),
+                  );
+                } catch (e) {
+                  debugPrint('Failed to load PDF outline: $e');
+                }
+              }
+            });
           },
         ),
       ),

@@ -327,6 +327,10 @@ class BookCoverGrid extends StatelessWidget {
         label = 'DNF';
         color = const Color(0xFFC94A4A);
         break;
+      case ReadingStatus.deleted:
+        label = 'Deleted';
+        color = const Color(0xFF8B2635);
+        break;
     }
 
     return Container(

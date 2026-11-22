@@ -24,6 +24,11 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
         ReadingStatus readingStatus
     );
 
+    List<Book> findAllByCreatedBy_IdAndReadingStatusNot(
+        UUID userId,
+        ReadingStatus readingStatus
+    );
+
     long countByCreatedBy_Id(UUID userId);
 
     long countByCreatedBy_IdAndReadingStatus(UUID userId, ReadingStatus readingStatus);

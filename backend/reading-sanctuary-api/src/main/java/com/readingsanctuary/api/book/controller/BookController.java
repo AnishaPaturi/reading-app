@@ -39,7 +39,7 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // Get all books
+    // Get all active books
     @GetMapping
     public ResponseEntity<List<BookResponse>> getAllBooks(
             @AuthenticationPrincipal Jwt jwt) {
@@ -47,6 +47,18 @@ public class BookController {
         UUID userId = UUID.fromString(jwt.getSubject());
 
         return ResponseEntity.ok(bookService.getAllBooks(userId));
+    }
+
+    // Get Deleted books
+    @GetMapping("/deleted")
+    public ResponseEntity<List<BookResponse>> getDeletedBooks(
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+
+        return ResponseEntity.ok(
+                bookService.getDeletedBooks(userId)
+        );
     }
 
     // Get a book by ID
@@ -74,7 +86,7 @@ public class BookController {
                 bookService.updateBook(id, request, userId));
     }
 
-    // Delete a book
+    // Move to Deleted (soft delete)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(
             @PathVariable UUID id,
@@ -83,6 +95,32 @@ public class BookController {
         UUID userId = UUID.fromString(jwt.getSubject());
 
         bookService.deleteBook(id, userId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // Restore a book
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<Void> restoreBook(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+
+        bookService.restoreBook(id, userId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // Permanently delete
+    @DeleteMapping("/{id}/permanent")
+    public ResponseEntity<Void> permanentlyDeleteBook(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+
+        bookService.permanentlyDeleteBook(id, userId);
 
         return ResponseEntity.noContent().build();
     }

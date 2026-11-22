@@ -317,10 +317,10 @@ void main() {
       );
 
       expect(find.byType(HighlightColorPicker), findsOneWidget);
-      expect(HighlightColors.options.length, equals(5));
+      expect(HighlightColors.options.length, equals(6));
 
-      // Tap on dusty rose (second option)
-      await tester.tap(find.byType(GestureDetector).at(1));
+      // Tap on Rose (third option, index 2)
+      await tester.tap(find.byType(GestureDetector).at(2));
       await tester.pumpAndSettle();
 
       expect(chosen?.hex, equals('#FAD4D8'));
@@ -408,6 +408,8 @@ void main() {
       expect(find.text('All'), findsOneWidget);
       expect(find.text('Highlights'), findsOneWidget);
       expect(find.text('Notes'), findsOneWidget);
+      expect(find.text('Bookmarks'), findsOneWidget);
+      expect(find.text('Quotes'), findsOneWidget);
 
       // Check content
       expect(find.text('“First highlighted quote”'), findsOneWidget);

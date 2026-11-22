@@ -5,6 +5,10 @@ import '../models/book.dart';
 /// HTTP-backed implementation (Spring Boot) without touching the UI.
 abstract class BookRepository {
   Future<List<Book>> getBooks();
+  Future<List<Book>> getDeletedBooks();
+  Future<void> moveToDeleted(String id);
+  Future<void> restoreBook(String id);
+  Future<void> permanentlyDeleteBook(String id);
   Future<void> updateStatus(
     String id,
     ReadingStatus status, {
@@ -13,7 +17,9 @@ abstract class BookRepository {
     String? dnfNotes,
   });
   Future<void> updateProgress(String id, double progress);
+  Future<void> setPage(String id, int page);
   Future<void> addBook(Book book);
+  Future<void> updateBookDetails(Book book);
 }
 
 class MockBookRepository implements BookRepository {
@@ -23,7 +29,49 @@ class MockBookRepository implements BookRepository {
   @override
   Future<List<Book>> getBooks() async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
-    return List.unmodifiable(_books);
+    return List.unmodifiable(_books.where((b) => b.status != ReadingStatus.deleted).toList());
+  }
+
+  @override
+  Future<List<Book>> getDeletedBooks() async {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    return List.unmodifiable(_books.where((b) => b.status == ReadingStatus.deleted).toList());
+  }
+
+  @override
+  Future<void> moveToDeleted(String id) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == id)
+          b.copyWith(
+            status: ReadingStatus.deleted,
+            previousStatus: b.status,
+            deletedAt: DateTime.now(),
+          )
+        else
+          b
+    ];
+  }
+
+  @override
+  Future<void> restoreBook(String id) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == id)
+          b.copyWith(
+            status: (b.previousStatus != null && b.previousStatus != ReadingStatus.deleted)
+                ? b.previousStatus!
+                : ReadingStatus.wantToRead,
+            clearDeletedMetadata: true,
+          )
+        else
+          b
+    ];
+  }
+
+  @override
+  Future<void> permanentlyDeleteBook(String id) async {
+    _books = _books.where((b) => b.id != id).toList();
   }
 
   @override
@@ -71,6 +119,35 @@ class MockBookRepository implements BookRepository {
           )
         else
           b
+    ];
+  }
+
+  @override
+  Future<void> setPage(String id, int page) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == id)
+          () {
+            final validPage = page.clamp(0, b.pages);
+            final p = b.pages > 0 ? (validPage / b.pages).clamp(0.0, 1.0) : 0.0;
+            return b.copyWith(
+              progress: p,
+              lastOpenedAt: DateTime.now(),
+              status: b.status == ReadingStatus.wantToRead && p > 0
+                  ? ReadingStatus.currentlyReading
+                  : b.status,
+            );
+          }()
+        else
+          b
+    ];
+  }
+
+  @override
+  Future<void> updateBookDetails(Book book) async {
+    _books = [
+      for (final b in _books)
+        if (b.id == book.id) book else b
     ];
   }
 

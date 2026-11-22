@@ -13,6 +13,7 @@ import 'package:reading_sanctuary_app/features/analytics/data/models/reading_str
 import 'package:reading_sanctuary_app/features/analytics/data/models/yearly_wrap_up.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/repositories/analytics_repository.dart';
 import 'package:reading_sanctuary_app/features/analytics/data/services/activity_tracking_service.dart';
+import 'package:reading_sanctuary_app/features/calendar/data/models/reading_calendar_models.dart';
 
 class FakeAnalyticsRepository implements AnalyticsRepository {
   ActivitySessionRequest? lastStartRequest;
@@ -127,6 +128,21 @@ class FakeAnalyticsRepository implements AnalyticsRepository {
 
   @override
   Future<GoalProgressResponse> getGoalProgress(String goalId) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CalendarMonthData> getCalendar({int? year, int? month, String? timezone}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<StreakResponse> toggleStreakFreeze({DateTime? date, String? timezone}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<StreakResponse> markTodayComplete({String? timezone}) async {
     throw UnimplementedError();
   }
 

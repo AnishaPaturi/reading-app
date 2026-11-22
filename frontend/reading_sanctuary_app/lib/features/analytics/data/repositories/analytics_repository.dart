@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../../core/network/api_config.dart';
+import '../../../calendar/data/models/reading_calendar_models.dart';
 import '../models/activity_session.dart';
 import '../models/analytics_overview.dart';
 import '../models/author_analytics.dart';
@@ -18,6 +19,9 @@ abstract class AnalyticsRepository {
   Future<AnalyticsOverviewResponse> getOverview({DateTime? from, DateTime? to, String? timezone});
   Future<DailyActivityResponse> getActivity({String period = 'MONTH', int? year, int? month, String? timezone});
   Future<StreakResponse> getStreaks({String? timezone});
+  Future<CalendarMonthData> getCalendar({int? year, int? month, String? timezone});
+  Future<StreakResponse> toggleStreakFreeze({DateTime? date, String? timezone});
+  Future<StreakResponse> markTodayComplete({String? timezone});
   Future<ReadingPaceResponse> getReadingPace({int? year, DateTime? from, DateTime? to});
   Future<BooksCompletedResponse> getBooksCompleted({int? year});
   Future<GenreAnalyticsResponse> getGenres({int? year});
@@ -122,6 +126,53 @@ class HttpAnalyticsRepository implements AnalyticsRepository {
       activeDatesThisYear: [],
       totalActiveDaysThisYear: 0,
     );
+  }
+
+  @override
+  Future<CalendarMonthData> getCalendar({int? year, int? month, String? timezone}) async {
+    final y = year ?? DateTime.now().year;
+    final m = month ?? DateTime.now().month;
+    try {
+      final uri = Uri.parse('$baseUrl/analytics/calendar').replace(queryParameters: {
+        'year': y.toString(),
+        'month': m.toString(),
+        if (timezone != null) 'timezone': timezone,
+      });
+      final res = await http.get(uri, headers: _headers());
+      if (res.statusCode == 200) {
+        return CalendarMonthData.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+      }
+    } catch (_) {}
+    return CalendarMonthData.local(y, m);
+  }
+
+  @override
+  Future<StreakResponse> toggleStreakFreeze({DateTime? date, String? timezone}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/analytics/freeze').replace(queryParameters: {
+        if (date != null) 'date': date.toIso8601String().split('T').first,
+        if (timezone != null) 'timezone': timezone,
+      });
+      final res = await http.post(uri, headers: _headers());
+      if (res.statusCode == 200) {
+        return StreakResponse.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+      }
+    } catch (_) {}
+    return getStreaks(timezone: timezone);
+  }
+
+  @override
+  Future<StreakResponse> markTodayComplete({String? timezone}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/analytics/mark-today-complete').replace(queryParameters: {
+        if (timezone != null) 'timezone': timezone,
+      });
+      final res = await http.post(uri, headers: _headers());
+      if (res.statusCode == 200) {
+        return StreakResponse.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+      }
+    } catch (_) {}
+    return getStreaks(timezone: timezone);
   }
 
   @override

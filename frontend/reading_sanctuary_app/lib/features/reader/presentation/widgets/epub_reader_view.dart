@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_epub_viewer/flutter_epub_viewer.dart';
 
+import '../../../../core/widgets/clay_components.dart';
 import '../../../annotations/domain/annotation_type.dart';
 import '../../../annotations/domain/book_annotation.dart';
+import '../../data/models/reader_chapter.dart';
 import '../../data/models/reader_position.dart';
 import '../../data/models/reader_settings.dart';
 
@@ -15,12 +17,14 @@ class EpubReaderView extends StatefulWidget {
   final List<BookAnnotation> annotations;
 
   final ValueChanged<ReaderPosition> onPositionChanged;
+  final ValueChanged<List<ReaderChapter>>? onChaptersLoaded;
 
   final void Function(
     String text,
     String startLocation,
-    String endLocation,
-  )? onTextSelected;
+    String endLocation, [
+    Rect? targetRect,
+  ])? onTextSelected;
 
   final ValueChanged<BookAnnotation>? onAnnotationTap;
 
@@ -31,6 +35,7 @@ class EpubReaderView extends StatefulWidget {
     required this.settings,
     this.annotations = const [],
     required this.onPositionChanged,
+    this.onChaptersLoaded,
     this.onTextSelected,
     this.onAnnotationTap,
   });
@@ -124,6 +129,33 @@ class EpubReaderViewState extends State<EpubReaderView> {
     } catch (error, stackTrace) {
       debugPrint('EPUB CFI navigation failed: $error');
     }
+  }
+
+  Future<List<EpubSearchResult>> search(String query) async {
+    if (!_isEpubLoaded || _isDisposed || query.trim().isEmpty) return [];
+    try {
+      return await _controller.search(query: query.trim());
+    } catch (e) {
+      debugPrint('EPUB search failed: $e');
+      return [];
+    }
+  }
+
+  void jumpToSearchResult(EpubSearchResult result) {
+    if (!_isEpubLoaded || _isDisposed) return;
+    try {
+      _controller.display(cfi: result.cfi);
+    } catch (e) {
+      debugPrint('EPUB jump to search result failed: $e');
+    }
+  }
+
+  ReaderChapter _convertEpubChapter(EpubChapter ch) {
+    return ReaderChapter(
+      title: ch.title.trim().isNotEmpty ? ch.title.trim() : 'Chapter',
+      href: ch.href,
+      subchapters: ch.subitems.map(_convertEpubChapter).toList(),
+    );
   }
 
   // ---------------------------------------------------------
@@ -251,7 +283,7 @@ class EpubReaderViewState extends State<EpubReaderView> {
           _controller.addHighlight(
             cfi: cfi,
             color: annotation.type == AnnotationType.quote
-                ? const Color(0xFFD4A373)
+                ? ClayColors.softLilac
                 : annotation.displayColor,
             opacity: annotation.type == AnnotationType.quote
                 ? 0.45
@@ -301,12 +333,9 @@ class EpubReaderViewState extends State<EpubReaderView> {
       },
     };
 
-    final bg = widget.settings.themeMode.backgroundColor;
-    final fg = widget.settings.themeMode.textColor;
-
     return EpubTheme.custom(
-      backgroundDecoration: BoxDecoration(color: bg),
-      foregroundColor: fg,
+      backgroundDecoration: const BoxDecoration(color: ClayColors.background),
+      foregroundColor: ClayColors.textDark,
       customCss: customCss,
     );
   }
@@ -342,7 +371,7 @@ class EpubReaderViewState extends State<EpubReaderView> {
         : EpubFlow.scrolled;
 
     return Container(
-      color: widget.settings.themeMode.backgroundColor,
+      color: ClayColors.background,
       child: EpubViewer(
         epubController: _controller,
 
@@ -381,6 +410,12 @@ class EpubReaderViewState extends State<EpubReaderView> {
           debugPrint('EPUB loading error: ${error.message}');
         },
 
+        onChaptersLoaded: (rawChapters) {
+          if (_isDisposed) return;
+          final chapters = rawChapters.map(_convertEpubChapter).toList();
+          widget.onChaptersLoaded?.call(chapters);
+        },
+
         onLocationLoaded: _onLocationsLoaded,
 
         // ---------------------------------------------------
@@ -413,6 +448,7 @@ class EpubReaderViewState extends State<EpubReaderView> {
             selectedText,
             cfiRange,
             cfiRange,
+            null,
           );
         },
 

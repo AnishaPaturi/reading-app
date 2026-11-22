@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +18,10 @@ import com.readingsanctuary.api.book.enums.ReadingStatus;
 import com.readingsanctuary.api.book.repository.BookRepository;
 import com.readingsanctuary.api.bookfile.entity.BookFile;
 import com.readingsanctuary.api.bookfile.repository.BookFileRepository;
+import com.readingsanctuary.api.bookfile.service.LocalFileStorageService;
+import com.readingsanctuary.api.sync.service.SyncChangePublisher;
 import com.readingsanctuary.api.user.entity.User;
 import com.readingsanctuary.api.user.repository.UserRepository;
-import com.readingsanctuary.api.sync.service.SyncChangePublisher;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class BookService {
@@ -30,18 +31,19 @@ public class BookService {
     private final SyncChangePublisher changePublisher;
     private final BookFileRepository bookFileRepository;
     private final BookStorageService bookStorageService;
+    private final LocalFileStorageService localStorageService;
 
     public BookService(
             BookRepository bookRepository,
             UserRepository userRepository) {
-        this(bookRepository, userRepository, null, null, null);
+        this(bookRepository, userRepository, null, null, null, null);
     }
 
     public BookService(
             BookRepository bookRepository,
             UserRepository userRepository,
             SyncChangePublisher changePublisher) {
-        this(bookRepository, userRepository, changePublisher, null, null);
+        this(bookRepository, userRepository, changePublisher, null, null, null);
     }
 
     @Autowired
@@ -50,12 +52,14 @@ public class BookService {
             UserRepository userRepository,
             @Autowired(required = false) SyncChangePublisher changePublisher,
             @Autowired(required = false) BookFileRepository bookFileRepository,
-            @Autowired(required = false) BookStorageService bookStorageService) {
+            @Autowired(required = false) BookStorageService bookStorageService,
+            @Autowired(required = false) LocalFileStorageService localStorageService) {
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
         this.changePublisher = changePublisher;
         this.bookFileRepository = bookFileRepository;
         this.bookStorageService = bookStorageService;
+        this.localStorageService = localStorageService;
     }
 
     // Create a new book
@@ -285,7 +289,7 @@ public class BookService {
         }
     }
 
-    // Permanently delete a book and its physical files
+    // Permanently delete a book and its physical files & cover
     @Transactional
     public void permanentlyDeleteBook(UUID bookId, UUID userId) {
 
@@ -309,18 +313,28 @@ public class BookService {
             } catch (Exception ignored) {}
         }
 
+        String coverStorageKey = book.getCoverStorageKey();
+
         bookRepository.delete(book);
 
         if (changePublisher != null) {
             changePublisher.publishDelete(userId, "BOOK", bookId.toString(), 3L);
         }
 
+        // Clean up attached book format files
         if (bookStorageService != null) {
             for (String key : storageKeys) {
                 try {
                     bookStorageService.delete(key);
                 } catch (Exception ignored) {}
             }
+        }
+
+        // Clean up cover image
+        if (localStorageService != null && coverStorageKey != null && !coverStorageKey.isBlank()) {
+            try {
+                localStorageService.delete(coverStorageKey);
+            } catch (Exception ignored) {}
         }
     }
 
@@ -334,6 +348,9 @@ public class BookService {
 
     // Convert entity into response DTO
     private BookResponse mapToResponse(Book book) {
+        boolean hasCover = book.getCoverStorageKey() != null && !book.getCoverStorageKey().isBlank();
+        String coverUrl = hasCover ? "/api/v1/books/" + book.getId() + "/cover" : null;
+        OffsetDateTime coverUpdatedAt = book.getCoverUpdatedAt();
 
         return new BookResponse(
                 book.getId(),
@@ -361,7 +378,10 @@ public class BookService {
                 book.getCurrentPage(),
                 book.getTotalPages(),
                 book.getStartedAt(),
-                book.getCompletedAt()
+                book.getCompletedAt(),
+                hasCover,
+                coverUrl,
+                coverUpdatedAt
         );
     }
 }

@@ -100,10 +100,14 @@ class HttpBookRepository implements BookRepository {
             }
 
             final colorList = _generateCoverColors(bookId);
+            final bool hasCover = item['hasCover'] == true ||
+                (item['coverStorageKey'] != null && item['coverStorageKey'].toString().isNotEmpty);
+            final DateTime? coverUpdatedAt = item['coverUpdatedAt'] != null
+                ? DateTime.tryParse(item['coverUpdatedAt'].toString())
+                : (item['cover_updated_at'] != null ? DateTime.tryParse(item['cover_updated_at'].toString()) : null);
             final String? coverUrl = item['coverUrl']?.toString() ??
                 item['coverImageUrl']?.toString() ??
-                (item['coverStorageKey'] != null ? '/books/$bookId/cover' : null) ??
-                (item['hasCover'] == true ? '/books/$bookId/cover' : null);
+                (hasCover ? '/api/v1/books/$bookId/cover' : null);
 
             serverBooks.add(Book(
               id: bookId,
@@ -118,6 +122,8 @@ class HttpBookRepository implements BookRepository {
               files: files,
               addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
               coverColors: colorList,
+              hasCover: hasCover,
+              coverUpdatedAt: coverUpdatedAt,
               coverImageUrl: coverUrl,
               dnfDate: dnfDate,
               dnfReason: dnfReason,
@@ -402,10 +408,14 @@ class HttpBookRepository implements BookRepository {
             }
 
             final colorList = _generateCoverColors(bookId);
+            final bool hasCover = item['hasCover'] == true ||
+                (item['coverStorageKey'] != null && item['coverStorageKey'].toString().isNotEmpty);
+            final DateTime? coverUpdatedAt = item['coverUpdatedAt'] != null
+                ? DateTime.tryParse(item['coverUpdatedAt'].toString())
+                : (item['cover_updated_at'] != null ? DateTime.tryParse(item['cover_updated_at'].toString()) : null);
             final String? coverUrl = item['coverUrl']?.toString() ??
                 item['coverImageUrl']?.toString() ??
-                (item['coverStorageKey'] != null ? '/books/$bookId/cover' : null) ??
-                (item['hasCover'] == true ? '/books/$bookId/cover' : null);
+                (hasCover ? '/api/v1/books/$bookId/cover' : null);
 
             deletedBooks.add(Book(
               id: bookId,
@@ -422,6 +432,8 @@ class HttpBookRepository implements BookRepository {
               files: files,
               addedAt: DateTime.tryParse(item['createdAt']?.toString() ?? '') ?? DateTime.now(),
               coverColors: colorList,
+              hasCover: hasCover,
+              coverUpdatedAt: coverUpdatedAt,
               coverImageUrl: coverUrl,
               dnfDate: dnfDate,
               dnfReason: dnfReason,

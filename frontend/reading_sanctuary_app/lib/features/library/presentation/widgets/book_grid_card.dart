@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/widgets/book_cover.dart';
 import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
 import '../../theme/bookshelf_theme.dart';
@@ -43,11 +44,11 @@ class BookGridCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: Center(
-                      child: ClayBookMini(
-                        title: book.title,
-                        color: palette.base,
-                        width: double.infinity,
-                        height: double.infinity,
+                      child: BookCover(
+                        book: book,
+                        borderRadius: 10,
+                        fit: BoxFit.cover,
+                        elevation: 2,
                       ),
                     ),
                   ),

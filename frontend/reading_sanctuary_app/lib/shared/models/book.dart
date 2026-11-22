@@ -143,6 +143,8 @@ class Book {
     this.series,
     this.avgRating,
     this.coverImageUrl,
+    this.hasCover = false,
+    this.coverUpdatedAt,
     this.dnfDate,
     this.dnfReason,
     this.dnfNotes,
@@ -180,6 +182,8 @@ class Book {
   final String? series;
   final double? avgRating; // community rating (sample data for now)
   final String? coverImageUrl;
+  final bool hasCover;
+  final DateTime? coverUpdatedAt;
   final DateTime? dnfDate;
   final String? dnfReason;
   final String? dnfNotes;
@@ -201,9 +205,28 @@ class Book {
   final String? isbn;
 
   String? get effectiveCoverUrl {
-    if (coverImageUrl != null && coverImageUrl!.trim().isNotEmpty) {
-      return coverImageUrl!.trim();
+    // If book explicitly has no cover, return null so styled fallback renders
+    if (!hasCover && (coverImageUrl == null || coverImageUrl!.trim().isEmpty)) {
+      return null;
     }
+
+    String? url = coverImageUrl;
+    if ((url == null || url.trim().isEmpty) && hasCover && id.isNotEmpty) {
+      url = '/api/v1/books/$id/cover';
+    }
+
+    if (url != null && url.trim().isNotEmpty) {
+      final trimmed = url.trim();
+      if (trimmed.startsWith('data:')) {
+        return trimmed;
+      }
+      if (coverUpdatedAt != null) {
+        final separator = trimmed.contains('?') ? '&' : '?';
+        return '$trimmed${separator}v=${coverUpdatedAt!.millisecondsSinceEpoch}';
+      }
+      return trimmed;
+    }
+
     return null;
   }
 
@@ -228,6 +251,8 @@ class Book {
         'series': series,
         'avgRating': avgRating,
         if (coverImageUrl != null) 'coverImageUrl': coverImageUrl,
+        'hasCover': hasCover,
+        if (coverUpdatedAt != null) 'coverUpdatedAt': coverUpdatedAt!.toIso8601String(),
         if (dnfDate != null) 'dnfDate': dnfDate!.toIso8601String(),
         if (dnfReason != null) 'dnfReason': dnfReason,
         if (dnfNotes != null) 'dnfNotes': dnfNotes,
@@ -307,6 +332,13 @@ class Book {
       return DateTime.tryParse(str);
     }
 
+    final bool hasCover = json['hasCover'] == true ||
+        (json['coverStorageKey'] != null && json['coverStorageKey'].toString().isNotEmpty);
+
+    final DateTime? coverUpdatedAt = json['coverUpdatedAt'] != null
+        ? DateTime.tryParse(json['coverUpdatedAt'].toString())
+        : (json['cover_updated_at'] != null ? DateTime.tryParse(json['cover_updated_at'].toString()) : null);
+
     return Book(
       id: json['id']?.toString() ?? '',
       title: json['title']?.toString() ?? 'Untitled',
@@ -334,11 +366,12 @@ class Book {
       tropes: parseTropes(json['tropes']),
       series: json['series']?.toString(),
       avgRating: json['avgRating'] != null ? (json['avgRating'] as num).toDouble() : null,
-      coverImageUrl: json['coverImageUrl']?.toString() ??
-          json['coverUrl']?.toString() ??
+      hasCover: hasCover,
+      coverUpdatedAt: coverUpdatedAt,
+      coverImageUrl: json['coverUrl']?.toString() ??
+          json['coverImageUrl']?.toString() ??
           json['cover_image_url']?.toString() ??
-          (json['coverStorageKey'] != null ? '/books/${json['id']}/cover' : null) ??
-          (json['hasCover'] == true ? '/books/${json['id']}/cover' : null),
+          (hasCover ? '/api/v1/books/${json['id']}/cover' : null),
       dnfDate: json['dnfDate'] != null
           ? DateTime.tryParse(json['dnfDate'].toString())
           : (json['dnfAt'] != null ? DateTime.tryParse(json['dnfAt'].toString()) : null),
@@ -380,6 +413,8 @@ class Book {
     String? series,
     double? avgRating,
     String? coverImageUrl,
+    bool? hasCover,
+    DateTime? coverUpdatedAt,
     DateTime? dnfDate,
     String? dnfReason,
     String? dnfNotes,
@@ -419,6 +454,8 @@ class Book {
         series: series ?? this.series,
         avgRating: avgRating ?? this.avgRating,
         coverImageUrl: coverImageUrl ?? this.coverImageUrl,
+        hasCover: hasCover ?? this.hasCover,
+        coverUpdatedAt: coverUpdatedAt ?? this.coverUpdatedAt,
         dnfDate: clearDnf ? null : (dnfDate ?? this.dnfDate),
         dnfReason: clearDnf ? null : (dnfReason ?? this.dnfReason),
         dnfNotes: clearDnf ? null : (dnfNotes ?? this.dnfNotes),

@@ -3,7 +3,6 @@ package com.readingsanctuary.api.book.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -52,6 +51,7 @@ public class BookUploadService {
 
     private static final Set<String> SUPPORTED_FORMATS = Set.of("pdf", "epub", "mp3", "m4b", "m4a");
     private static final long MAX_FILE_SIZE = 2048L * 1024 * 1024; // 2 GB (2048 MB)
+    private static final long MAX_COVER_SIZE = 5L * 1024 * 1024; // 5 MB
 
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
@@ -371,6 +371,12 @@ public class BookUploadService {
             // Attach to an existing book belonging to this user
             book = bookRepository.findByIdAndCreatedBy_Id(request.existingBookId(), userId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Existing book not found"));
+
+            // If this uploaded format contains an extracted cover, update the book's cover
+            if (pending.getCoverBase64() != null && !pending.getCoverBase64().isBlank()) {
+                saveExtractedCover(book, pending.getCoverBase64());
+                book = bookRepository.save(book);
+            }
         } else {
             // Create a brand new Book record
             book = new Book();
@@ -461,6 +467,10 @@ public class BookUploadService {
     }
 
     private void saveExtractedCover(Book book, String coverBase64) {
+        if (coverBase64 == null || coverBase64.isBlank()) {
+            return;
+        }
+
         try {
             String cleanData = coverBase64;
             String extension = "jpg";
@@ -469,7 +479,7 @@ public class BookUploadService {
             if (coverBase64.startsWith("data:")) {
                 int comma = coverBase64.indexOf(',');
                 if (comma > 0) {
-                    String meta = coverBase64.substring(5, comma);
+                    String meta = coverBase64.substring(5, comma).toLowerCase(Locale.ROOT);
                     cleanData = coverBase64.substring(comma + 1);
                     if (meta.contains("image/png")) {
                         extension = "png";
@@ -477,21 +487,68 @@ public class BookUploadService {
                     } else if (meta.contains("image/webp")) {
                         extension = "webp";
                         contentType = "image/webp";
+                    } else if (meta.contains("image/jpeg") || meta.contains("image/jpg")) {
+                        extension = "jpg";
+                        contentType = "image/jpeg";
+                    } else {
+                        log.warn("Unsupported extracted cover mime-type: {}", meta);
+                        return;
                     }
                 }
             }
 
             byte[] bytes = Base64.getDecoder().decode(cleanData.trim());
-            if (bytes.length > 0 && bytes.length <= 10 * 1024 * 1024) {
-                String coverStorageKey = localStorageService.storeBytes(bytes, extension);
-                book.setCoverStorageKey(coverStorageKey);
-                book.setCoverFileName("cover." + extension);
-                book.setCoverContentType(contentType);
-                book.setCoverUpdatedAt(OffsetDateTime.now());
+            if (bytes.length == 0 || bytes.length > MAX_COVER_SIZE) {
+                log.warn("Extracted cover rejected: invalid byte length {}", bytes.length);
+                return;
+            }
+
+            // Validate image signature / magic bytes
+            if (!isValidImageSignature(bytes, extension)) {
+                log.warn("Extracted cover rejected: byte signature does not match {}", extension);
+                return;
+            }
+
+            String oldStorageKey = book.getCoverStorageKey();
+            String coverStorageKey = localStorageService.storeBytes(bytes, extension);
+            book.setCoverStorageKey(coverStorageKey);
+            book.setCoverFileName("cover." + extension);
+            book.setCoverContentType(contentType);
+            book.setCoverUpdatedAt(OffsetDateTime.now());
+
+            // If replacing an old cover, delete old physical file
+            if (oldStorageKey != null && !oldStorageKey.isBlank() && !oldStorageKey.equals(coverStorageKey)) {
+                try {
+                    localStorageService.delete(oldStorageKey);
+                } catch (IOException ignored) {
+                    log.warn("Could not delete superseded cover file: {}", oldStorageKey);
+                }
             }
         } catch (Exception e) {
             log.warn("Could not save extracted cover image: {}", e.getMessage());
         }
+    }
+
+    private boolean isValidImageSignature(byte[] bytes, String extension) {
+        if (bytes == null || bytes.length < 4) return false;
+        return switch (extension) {
+            case "jpg", "jpeg" ->
+                    bytes.length >= 3 &&
+                    (bytes[0] & 0xFF) == 0xFF &&
+                    (bytes[1] & 0xFF) == 0xD8 &&
+                    (bytes[2] & 0xFF) == 0xFF;
+            case "png" ->
+                    bytes.length >= 8 &&
+                    (bytes[0] & 0xFF) == 0x89 &&
+                    bytes[1] == 0x50 &&
+                    bytes[2] == 0x4E &&
+                    bytes[3] == 0x47;
+            case "webp" ->
+                    bytes.length >= 12 &&
+                    bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F' &&
+                    bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P';
+            default -> false;
+        };
     }
 
     private void validateFileSignature(MultipartFile file, String extension) {
@@ -560,6 +617,10 @@ public class BookUploadService {
     }
 
     private BookResponse toBookResponse(Book book) {
+        boolean hasCover = book.getCoverStorageKey() != null && !book.getCoverStorageKey().isBlank();
+        String coverUrl = hasCover ? "/api/v1/books/" + book.getId() + "/cover" : null;
+        OffsetDateTime coverUpdatedAt = book.getCoverUpdatedAt();
+
         return new BookResponse(
                 book.getId(),
                 book.getTitle(),
@@ -586,7 +647,10 @@ public class BookUploadService {
                 book.getCurrentPage(),
                 book.getTotalPages(),
                 book.getStartedAt(),
-                book.getCompletedAt()
+                book.getCompletedAt(),
+                hasCover,
+                coverUrl,
+                coverUpdatedAt
         );
     }
 

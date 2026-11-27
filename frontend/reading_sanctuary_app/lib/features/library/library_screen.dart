@@ -95,78 +95,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     );
   }
 
-  void _showScanFolderDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Row(
-          children: [
-            const Icon(Icons.folder_copy_rounded, color: ClayColors.deepPurple, size: 24),
-            const SizedBox(width: 8),
-            Text(
-              'Scan Books / Folder',
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: ClayColors.textDark,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Select a local directory to scan for supported ebook and audiobook files (EPUB, PDF, MP3, M4B, M4A).',
-              style: GoogleFonts.inter(fontSize: 13, height: 1.4, color: ClayColors.textMuted),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F4FB),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle_outline, color: ClayColors.deepPurple, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Duplicate books will be identified and grouped automatically.',
-                      style: GoogleFonts.inter(fontSize: 12, color: ClayColors.textDark),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancel', style: GoogleFonts.inter(color: ClayColors.textMuted)),
-          ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ClayColors.deepPurple,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-            icon: const Icon(Icons.drive_folder_upload_rounded, color: Colors.white, size: 18),
-            label: const Text('Pick Folder', style: TextStyle(color: Colors.white)),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              context.push('/library/add?autoPick=true');
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   List<Book> _filterAndSort(List<Book> books) {
     var result = List<Book>.from(books);
 
@@ -396,65 +324,79 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     List<String> authors,
     List<String> genres,
   ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            if (!isWide)
-              IconButton(
-                icon: const Icon(Icons.menu_rounded, color: ClayColors.textDark),
-                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+    return SizedBox(
+      width: double.infinity,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 12,
+        runSpacing: 10,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isWide)
+                IconButton(
+                  icon: const Icon(Icons.menu_rounded, color: ClayColors.textDark),
+                  onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                ),
+              Text(
+                'Library',
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: ClayColors.textDark,
+                ),
               ),
-            Text(
-              'Library',
-              style: GoogleFonts.inter(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: ClayColors.textDark,
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
 
-        // Action Buttons: + Add Books, Scan Books, Manual Add
-        Wrap(
-          spacing: 8,
-          children: [
-            ElevatedButton.icon(
-              onPressed: _openAddBooksSheet,
-              icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
-              label: const Text('Add Books', style: TextStyle(color: Colors.white, fontSize: 12.5)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ClayColors.deepPurple,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          // Action Buttons: + Add Books, Discover Books, Downloads, Manual Add, Trash
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: _openAddBooksSheet,
+                icon: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                label: const Text('Add Books', style: TextStyle(color: Colors.white, fontSize: 12.5)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ClayColors.deepPurple,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
               ),
-            ),
-            OutlinedButton.icon(
-              onPressed: _showScanFolderDialog,
-              icon: const Icon(Icons.folder_open_rounded, size: 17, color: ClayColors.deepPurple),
-              label: Text('Scan Books', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700, color: ClayColors.deepPurple)),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFFDDD2F5)),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/library/discover'),
+                icon: const Icon(Icons.travel_explore_rounded, size: 17, color: ClayColors.deepPurple),
+                label: Text('Discover Books', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700, color: ClayColors.deepPurple)),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  side: const BorderSide(color: Color(0xFFDDD2F5)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit_note_rounded, color: ClayColors.deepPurple),
-              tooltip: 'Manual Book Addition',
-              onPressed: () => context.push('/library/add-manual'),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, color: ClayColors.coral),
-              tooltip: 'Forgotten Shelf / Trash',
-              onPressed: () => context.push('/library/deleted'),
-            ),
-          ],
-        ),
-      ],
+              IconButton(
+                icon: const Icon(Icons.download_rounded, color: ClayColors.deepPurple),
+                tooltip: 'Downloads',
+                onPressed: () => context.push('/downloads'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_note_rounded, color: ClayColors.deepPurple),
+                tooltip: 'Manual Book Addition',
+                onPressed: () => context.push('/library/add-manual'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, color: ClayColors.coral),
+                tooltip: 'Forgotten Shelf / Trash',
+                onPressed: () => context.push('/library/deleted'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

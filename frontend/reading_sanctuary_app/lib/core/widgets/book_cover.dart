@@ -53,82 +53,88 @@ class BookCover extends StatelessWidget {
     this.borderRadius = 10,
     this.fit = BoxFit.cover,
     this.elevation = 6,
+    this.aspectRatio = 2 / 3,
   });
 
   final Book book;
   final double borderRadius;
   final BoxFit fit;
   final double elevation;
+  final double? aspectRatio;
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Cover of ${book.title} by ${book.author}',
-      child: AspectRatio(
-        aspectRatio: 2 / 3,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(borderRadius),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF6C5791).withValues(alpha: 0.18),
-                blurRadius: elevation * 1.3,
-                offset: Offset(0, elevation * 0.6),
-              ),
-              BoxShadow(
-                color: Colors.white.withValues(alpha: 0.25),
-                blurRadius: 2,
-                offset: const Offset(0, -1),
-              ),
-            ],
+    final container = Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6C5791).withValues(alpha: 0.18),
+            blurRadius: elevation * 1.3,
+            offset: Offset(0, elevation * 0.6),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(borderRadius),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                _buildCoverContent(context),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.25),
+            blurRadius: 2,
+            offset: const Offset(0, -1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildCoverContent(context),
 
-                // Tactile left spine crease overlay for realistic 3D upright appearance
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 5,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.25),
-                          Colors.white.withValues(alpha: 0.08),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
+            // Tactile left spine crease overlay for realistic 3D upright appearance
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 5,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.25),
+                      Colors.white.withValues(alpha: 0.08),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
-
-                // Subtle inner border for clay depth
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          width: 1.0,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+
+            // Subtle inner border for clay depth
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1.0,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+
+    return Semantics(
+      label: 'Cover of ${book.title} by ${book.author}',
+      child: aspectRatio != null
+          ? AspectRatio(
+              aspectRatio: aspectRatio!,
+              child: container,
+            )
+          : container,
     );
   }
 
@@ -222,41 +228,50 @@ class BookCover extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.fromLTRB(w * 0.14, w * 0.1, w * 0.08, w * 0.1),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      book.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: (w * 0.11).clamp(9.0, 15.0),
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        height: 1.15,
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: SizedBox(
+                      width: (w * 0.78).clamp(24.0, 220.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            book.title,
+                            textAlign: TextAlign.center,
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: (w * 0.11).clamp(9.0, 15.0),
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1.15,
+                            ),
+                          ),
+                          SizedBox(height: w * 0.05),
+                          Container(
+                            height: 1.5,
+                            width: w * 0.35,
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                          SizedBox(height: w * 0.05),
+                          Text(
+                            book.author.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: (w * 0.065).clamp(7.5, 11.0),
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.8,
+                              color: Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: w * 0.05),
-                    Container(
-                      height: 1.5,
-                      width: w * 0.35,
-                      color: Colors.white.withValues(alpha: 0.4),
-                    ),
-                    SizedBox(height: w * 0.05),
-                    Text(
-                      book.author.toUpperCase(),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: (w * 0.065).clamp(7.5, 11.0),
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.8,
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -59,6 +60,18 @@ class ReaderFileService {
         return localBytes;
       }
     }
+
+    // 1b. Check direct physical file on disk (e.g. if fileId is a path or local file)
+    try {
+      final directFile = File(fileId);
+      if (await directFile.exists()) {
+        final bytes = await directFile.readAsBytes();
+        if (bytes.isNotEmpty) {
+          debugPrint('ReaderFileService: Loaded direct file from disk ($fileId)');
+          return bytes;
+        }
+      }
+    } catch (_) {}
 
     // 2. Retrieve authentication token.
     final token = tokenProvider();

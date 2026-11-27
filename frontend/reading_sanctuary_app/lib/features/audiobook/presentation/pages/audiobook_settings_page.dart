@@ -86,7 +86,7 @@ class _AudiobookSettingsPageState extends ConsumerState<AudiobookSettingsPage> {
                   title: const Text('Skip Silence'),
                   subtitle: const Text('Skip sustained quiet portions between sections'),
                   value: settings.silenceSkipping,
-                  activeColor: primary,
+                  activeThumbColor: primary,
                   onChanged: (val) {
                     playbackService.setSilenceSkipping(val);
                     setState(() {});
@@ -97,7 +97,7 @@ class _AudiobookSettingsPageState extends ConsumerState<AudiobookSettingsPage> {
                   title: const Text('Volume Boost'),
                   subtitle: const Text('Amplifies low-volume audiobook recordings safely'),
                   value: settings.volumeBoost,
-                  activeColor: primary,
+                  activeThumbColor: primary,
                   onChanged: (val) {
                     playbackService.setVolumeBoost(val);
                     setState(() {});
@@ -118,7 +118,7 @@ class _AudiobookSettingsPageState extends ConsumerState<AudiobookSettingsPage> {
                   title: const Text('Shake to Extend'),
                   subtitle: const Text('Shake your phone when timer ends to add 5 minutes'),
                   value: settings.shakeToExtend,
-                  activeColor: primary,
+                  activeThumbColor: primary,
                   onChanged: (val) async {
                     final updated = settings.copyWith(shakeToExtend: val);
                     await ref.read(audiobookLocalDatasourceProvider).saveSettings(updated);
@@ -130,7 +130,7 @@ class _AudiobookSettingsPageState extends ConsumerState<AudiobookSettingsPage> {
                   title: const Text('Night Appearance Default'),
                   subtitle: const Text('Use ultra-dim warm appearance while sleep timer is active'),
                   value: settings.nightAppearance,
-                  activeColor: primary,
+                  activeThumbColor: primary,
                   onChanged: (val) async {
                     final updated = settings.copyWith(nightAppearance: val);
                     await ref.read(audiobookLocalDatasourceProvider).saveSettings(updated);
@@ -211,9 +211,9 @@ class _AudiobookSettingsPageState extends ConsumerState<AudiobookSettingsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.2) : Colors.transparent,
+          color: selected ? color.withValues(alpha: 0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? color : Colors.grey.withOpacity(0.3), width: selected ? 2 : 1),
+          border: Border.all(color: selected ? color : Colors.grey.withValues(alpha: 0.3), width: selected ? 2 : 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

@@ -49,7 +49,7 @@ class AudiobookHistoryPage extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.history_rounded, size: 54, color: Colors.grey.withOpacity(0.5)),
+                    Icon(Icons.history_rounded, size: 54, color: Colors.grey.withValues(alpha: 0.5)),
                     const SizedBox(height: 12),
                     Text(
                       'No listening sessions recorded yet',
@@ -82,14 +82,14 @@ class AudiobookHistoryPage extends ConsumerWidget {
                           : [AppColors.parchment, Colors.white],
                     ),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: primary.withOpacity(0.3)),
+                    border: Border.all(color: primary.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: primary.withOpacity(0.15),
+                          color: primary.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(Icons.headphones_rounded, color: primary, size: 30),

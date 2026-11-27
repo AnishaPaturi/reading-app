@@ -76,23 +76,29 @@ class _ReaderSidebarState extends State<ReaderSidebar> with SingleTickerProvider
                   unselectedLabelStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
                   tabs: [
                     Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.toc_rounded, size: 18),
-                          const SizedBox(width: 6),
-                          Text('Contents (${widget.chapters.length})'),
-                        ],
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.toc_rounded, size: 18),
+                            const SizedBox(width: 6),
+                            Text('Contents (${widget.chapters.length})'),
+                          ],
+                        ),
                       ),
                     ),
                     Tab(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.bookmark_rounded, size: 17),
-                          const SizedBox(width: 6),
-                          Text('Bookmarks (${widget.bookmarks.length})'),
-                        ],
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.bookmark_rounded, size: 17),
+                            const SizedBox(width: 6),
+                            Text('Bookmarks (${widget.bookmarks.length})'),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -196,48 +202,51 @@ class _ReaderSidebarState extends State<ReaderSidebar> with SingleTickerProvider
       );
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
         color: isCurrent ? const Color(0xFFF2ECFC) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isCurrent ? ClayColors.deepPurple : const Color(0xFFDDD2F5),
-          width: isCurrent ? 1.5 : 1.0,
-        ),
-      ),
-      child: ListTile(
-        contentPadding: EdgeInsets.fromLTRB(14.0 + (depth * 12.0), 2, 14, 2),
-        leading: Icon(
-          Icons.article_outlined,
-          size: 18,
-          color: isCurrent ? ClayColors.deepPurple : ClayColors.textMuted,
-        ),
-        title: Text(
-          chapter.title,
-          style: GoogleFonts.inter(
-            fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-            fontSize: 13,
-            color: isCurrent ? ClayColors.deepPurple : ClayColors.textDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isCurrent ? ClayColors.deepPurple : const Color(0xFFDDD2F5),
+            width: isCurrent ? 1.5 : 1.0,
           ),
         ),
-        trailing: chapter.pageNumber != null
-            ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: ClayColors.background,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'p. ${chapter.pageNumber}',
-                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: ClayColors.textMuted),
-                ),
-              )
-            : null,
-        onTap: () {
-          Navigator.of(context).pop();
-          widget.onSelectChapter(chapter);
-        },
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          contentPadding: EdgeInsets.fromLTRB(14.0 + (depth * 12.0), 2, 14, 2),
+          leading: Icon(
+            Icons.article_outlined,
+            size: 18,
+            color: isCurrent ? ClayColors.deepPurple : ClayColors.textMuted,
+          ),
+          title: Text(
+            chapter.title,
+            style: GoogleFonts.inter(
+              fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
+              fontSize: 13,
+              color: isCurrent ? ClayColors.deepPurple : ClayColors.textDark,
+            ),
+          ),
+          trailing: chapter.pageNumber != null
+              ? Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: ClayColors.background,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'p. ${chapter.pageNumber}',
+                    style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: ClayColors.textMuted),
+                  ),
+                )
+              : null,
+          onTap: () {
+            Navigator.of(context).pop();
+            widget.onSelectChapter(chapter);
+          },
+        ),
       ),
     );
   }

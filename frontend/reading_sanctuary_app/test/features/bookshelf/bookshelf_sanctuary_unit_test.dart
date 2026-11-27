@@ -150,23 +150,25 @@ void main() {
       expect(BookshelfThemes.toHex(color), '#D4AF37');
     });
 
-    test('findById retrieves known themes and falls back to darkAcademia', () {
-      final darkAcademia = BookshelfThemes.findById('dark_academia');
-      expect(darkAcademia.name, 'Dark Academia');
+    test('findById retrieves known themes and falls back to violetSanctuary', () {
+      final violetSanctuary = BookshelfThemes.findById('violet_sanctuary');
+      expect(violetSanctuary.name, 'Violet Sanctuary');
+      expect(BookshelfThemes.darkAcademia.id, 'violet_sanctuary');
 
-      final warmParchment = BookshelfThemes.findById('warm_parchment');
-      expect(warmParchment.name, 'Warm Parchment');
+      final lavenderLilac = BookshelfThemes.findById('lavender_lilac');
+      expect(lavenderLilac.name, 'Lavender & Lilac');
+      expect(BookshelfThemes.warmParchment.id, 'lavender_lilac');
 
       final fallback = BookshelfThemes.findById('non_existent');
-      expect(fallback.id, 'dark_academia');
+      expect(fallback.id, 'violet_sanctuary');
     });
 
     test('all 6 aesthetic themes exist', () {
       expect(BookshelfThemes.all.length, 6);
       final ids = BookshelfThemes.all.map((t) => t.id).toList();
       expect(ids, containsAll([
-        'dark_academia',
-        'warm_parchment',
+        'violet_sanctuary',
+        'lavender_lilac',
         'enchanted_forest',
         'gothic_romance',
         'midnight_stars',

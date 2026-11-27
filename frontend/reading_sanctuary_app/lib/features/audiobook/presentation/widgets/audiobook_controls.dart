@@ -52,12 +52,12 @@ class AudiobookControls extends StatelessWidget {
           height: 72,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(
+            gradient: LinearGradient(
               colors: [Color(0xFF8873DA), Color(0xFF6550C7)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
                 color: Colors.white,
                 offset: Offset(-4, -4),

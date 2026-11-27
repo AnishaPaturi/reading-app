@@ -2,48 +2,82 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../shared/models/book.dart';
+import 'book_cover.dart';
+
 /// Centralized 3D Clay Palette matching the reference designs
 abstract final class ClayColors {
-  static const Color background = Color(0xFFF4F0FB);
+  // Canvas Background
+  static const Color background = Color(0xFFF4F0FA); // Soft Lavender Milk
   static const Color backgroundEnd = Color(0xFFEDE5F8);
+  static const Color canvasBackground = Color(0xFFF4F0FA);
 
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFF4F0FB), Color(0xFFEDE5F8)],
+    colors: [Color(0xFFF4F0FA), Color(0xFFEDE5F8)],
   );
 
-  static const Color primaryPurple = Color(0xFF6B45B3);
-  static const Color deepPurple = Color(0xFF382761);
-  static const Color darkNavy = Color(0xFF281B47);
-  static const Color softLilac = Color(0xFFC7B2F0);
-  static const Color lightLilac = Color(0xFFDDD2F5);
-  static const Color cardBg = Color(0xFFF9F6FE);
-  static const Color clayBorder = Color(0xFFE5DCF4);
+  // Card Surface (Base)
+  static const Color cardBg = Color(0xFFFAF8FF); // Whisper Cream / Off-White
+  static const Color cardSurface = Color(0xFFFAF8FF);
+  static const Color clayBorder = Color(0xFFDDD6FE); // Pastel Muted Violet border
 
-  // Clay Accent Tiles
-  static const Color peach = Color(0xFFFFC3A6);
-  static const Color peachDark = Color(0xFFE89874);
-  static const Color coral = Color(0xFFFF926B);
-  static const Color coralDark = Color(0xFFE06E45);
-  static const Color mint = Color(0xFFA4DFD0);
-  static const Color mintDark = Color(0xFF78BAA9);
-  static const Color lavender = Color(0xFFC4B1EB);
-  static const Color lavenderDark = Color(0xFFA189CE);
-  static const Color skyBlue = Color(0xFFB4D8F8);
-  static const Color skyBlueDark = Color(0xFF88B3DA);
-  static const Color amber = Color(0xFFF2C265);
-  static const Color amberDark = Color(0xFFD49E3B);
-  static const Color rose = Color(0xFFFAD4D8);
-  static const Color roseDark = Color(0xFFE59CA5);
-  static const Color butter = Color(0xFFFDF0AA);
-  static const Color butterDark = Color(0xFFE0D17B);
-  static const Color lilac = Color(0xFFC7B2F0);
-  static const Color sky = Color(0xFFB4D8F8);
+  // Primary Brand Accent (Royal Lilac / Deep Lavender)
+  static const Color royalLilac = Color(0xFF6C5CE7);
+  static const Color deepLavender = Color(0xFF5E4BCE);
+  static const Color primaryPurple = Color(0xFF6C5CE7);
+  static const Color deepPurple = Color(0xFF5E4BCE);
+  static const Color darkNavy = Color(0xFF2B234A);
 
-  // Typography
-  static const Color textDark = Color(0xFF2E1A48);
-  static const Color textMuted = Color(0xFF7A6894);
+  // Primary Container (Pastel Muted Violet)
+  static const Color pastelMutedViolet = Color(0xFFDDD6FE);
+  static const Color primaryContainer = Color(0xFFDDD6FE);
+  static const Color softLilac = Color(0xFFDDD6FE);
+  static const Color lightLilac = Color(0xFFD4C7F5);
+  static const Color lilac = Color(0xFFDDD6FE);
+
+  // Warm Accent (Orange) - Soft Creamsicle Coral
+  static const Color creamsicleCoral = Color(0xFFFF9E7D);
+  static const Color coral = Color(0xFFFF9E7D);
+  static const Color coralDark = Color(0xFFFF8A65);
+  static const Color peach = Color(0xFFFF9E7D);
+  static const Color peachDark = Color(0xFFFF8A65);
+
+  // Warm Accent (Yellow) - Sunny Buttercup
+  static const Color sunnyButtercup = Color(0xFFFFD166);
+  static const Color buttercup = Color(0xFFFFD166);
+  static const Color amber = Color(0xFFFFD166);
+  static const Color amberDark = Color(0xFFF8C868);
+  static const Color butter = Color(0xFFFFD166);
+  static const Color butterDark = Color(0xFFF8C868);
+
+  // Secondary Accent (Teal) - Soft Sage Mint
+  static const Color sageMint = Color(0xFF8BD3C7);
+  static const Color mint = Color(0xFF8BD3C7);
+  static const Color mintDark = Color(0xFF94D2BD);
+  static const Color skyBlue = Color(0xFF8BD3C7);
+  static const Color skyBlueDark = Color(0xFF94D2BD);
+  static const Color sky = Color(0xFF8BD3C7);
+
+  // Secondary Accent (Pink) - Muted Pastel Blush
+  static const Color pastelBlush = Color(0xFFF7A8B8);
+  static const Color blush = Color(0xFFF7A8B8);
+  static const Color rose = Color(0xFFF7A8B8);
+  static const Color roseDark = Color(0xFFF4B3C2);
+  static const Color lavender = Color(0xFFD4C7F5);
+  static const Color lavenderDark = Color(0xFFB8A4E8);
+
+  // Primary Text & Headings (Deep Blackberry Slate)
+  static const Color textDark = Color(0xFF2B234A);
+  static const Color textHeading = Color(0xFF231C38);
+  static const Color blackberrySlate = Color(0xFF2B234A);
+
+  // Secondary Text (Dusty Plum / Muted Mauve)
+  static const Color textMuted = Color(0xFF6E6685);
+  static const Color dustyPlum = Color(0xFF6E6685);
+  static const Color mutedMauve = Color(0xFF7A7292);
+  static const Color textSub = Color(0xFF7A7292);
   static const Color textLight = Colors.white;
 }
 
@@ -56,19 +90,19 @@ class ClayBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 62,
-      margin: const EdgeInsets.fromLTRB(14, 0, 14, 16),
+      height: 60,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF6246AA),
-        borderRadius: BorderRadius.circular(31),
+        color: const Color(0xFF5E4BCE), // Rich royal violet base (#5E4BCE)
+        borderRadius: BorderRadius.circular(999), // Fully pill-shaped
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF432C82).withValues(alpha: 0.45),
-            blurRadius: 14,
+            color: const Color(0xFF5E4BCE).withValues(alpha: 0.38),
+            blurRadius: 18,
             offset: const Offset(0, 6),
           ),
           BoxShadow(
-            color: Colors.white.withValues(alpha: 0.35),
+            color: Colors.white.withValues(alpha: 0.25),
             blurRadius: 3,
             offset: const Offset(0, -1),
           ),
@@ -84,20 +118,20 @@ class ClayBottomNav extends StatelessWidget {
             tooltip: 'Home',
           ),
           _NavItem(
+            icon: Icons.calendar_today_rounded,
+            route: '/calendar',
+            activeRoute: activeRoute,
+            tooltip: 'Calendar',
+          ),
+          _NavItem(
             icon: Icons.auto_stories_rounded,
             route: '/library',
             activeRoute: activeRoute,
             tooltip: 'Library',
           ),
           _NavItem(
-            icon: Icons.favorite_rounded,
-            route: '/favorites',
-            activeRoute: activeRoute,
-            tooltip: 'Favourites',
-          ),
-          _NavItem(
             icon: Icons.headphones_rounded,
-            route: '/reading',
+            route: '/audiobooks',
             activeRoute: activeRoute,
             tooltip: 'Audiobooks',
           ),
@@ -106,12 +140,6 @@ class ClayBottomNav extends StatelessWidget {
             route: '/profile',
             activeRoute: activeRoute,
             tooltip: 'Profile',
-          ),
-          _NavItem(
-            icon: Icons.settings_rounded,
-            route: '/settings',
-            activeRoute: activeRoute,
-            tooltip: 'Settings',
           ),
         ],
       ),
@@ -146,17 +174,29 @@ class _NavItem extends StatelessWidget {
             context.go(route);
           }
         },
-        child: Container(
-          width: 44,
-          height: 44,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: isSelected ? 48 : 40,
+          height: isSelected ? 36 : 36,
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white.withValues(alpha: 0.22) : Colors.transparent,
-            shape: BoxShape.circle,
+            color: isSelected ? const Color(0xFFFF9E7D) : Colors.transparent, // Glowing pastel active state (Creamsicle Coral)
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFFFF9E7D).withValues(alpha: 0.5),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
-          child: Icon(
-            icon,
-            size: 22,
-            color: isSelected ? const Color(0xFFFFB28D) : Colors.white.withValues(alpha: 0.85),
+          child: Center(
+            child: Icon(
+              icon,
+              size: 21,
+              color: isSelected ? const Color(0xFF2B234A) : Colors.white.withValues(alpha: 0.85),
+            ),
           ),
         ),
       ),
@@ -199,18 +239,25 @@ class ClayCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(borderRadius),
           border: border ??
               Border.all(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: const Color(0xFFDDD6FE).withValues(alpha: 0.6),
                 width: 1.2,
               ),
           boxShadow: [
+            // Outer Shadow: box-shadow: 0 10px 20px rgba(108, 92, 231, 0.10), 0 4px 6px rgba(0, 0, 0, 0.04);
             BoxShadow(
-              color: const Color(0xFF6C5791).withValues(alpha: 0.14),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              color: const Color(0xFF6C5CE7).withValues(alpha: 0.10),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
             BoxShadow(
-              color: Colors.white.withValues(alpha: 0.7),
-              blurRadius: 4,
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 4),
+            ),
+            // Specular top highlight
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.8),
+              blurRadius: 3,
               offset: const Offset(0, -2),
             ),
           ],
@@ -322,6 +369,7 @@ class ClayTile extends StatelessWidget {
 
 /// Cute 3D Mini Book representation (for Trending, Quick Access, Mia's Library)
 class ClayBookMini extends StatelessWidget {
+  final Book? book;
   final String title;
   final Color color;
   final Widget? motif;
@@ -334,6 +382,7 @@ class ClayBookMini extends StatelessWidget {
 
   const ClayBookMini({
     super.key,
+    this.book,
     required this.title,
     required this.color,
     this.motif,
@@ -347,67 +396,98 @@ class ClayBookMini extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Widget bookChild;
+    if (book != null) {
+      bookChild = SizedBox(
+        width: width,
+        height: height,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              BookCover(
+                book: book!,
+                borderRadius: 10,
+                fit: BoxFit.cover,
+                elevation: 4,
+                aspectRatio: null,
+              ),
+              if (motif != null)
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: motif!,
+                ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      bookChild = Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(10),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.lerp(color, Colors.white, 0.22)!,
+              color,
+              Color.lerp(color, Colors.black, 0.18)!,
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.45),
+              blurRadius: 6,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.3),
+            width: 0.8,
+          ),
+        ),
+        padding: const EdgeInsets.all(6),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: 8.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                height: 1.1,
+              ),
+            ),
+            if (motif != null) ...[
+              const SizedBox(height: 4),
+              motif!,
+            ],
+          ],
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          Container(
-            width: width,
-            height: height,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color.lerp(color, Colors.white, 0.22)!,
-                  color,
-                  Color.lerp(color, Colors.black, 0.18)!,
-                ],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.45),
-                  blurRadius: 6,
-                  offset: const Offset(0, 4),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.12),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 0.8,
-              ),
-            ),
-            padding: const EdgeInsets.all(6),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.1,
-                  ),
-                ),
-                if (motif != null) ...[
-                  const SizedBox(height: 4),
-                  motif!,
-                ],
-              ],
-            ),
-          ),
+          bookChild,
           if (hasHeart)
             const Positioned(
               top: -8,

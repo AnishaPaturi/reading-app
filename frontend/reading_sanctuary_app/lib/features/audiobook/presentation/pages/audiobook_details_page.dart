@@ -144,8 +144,8 @@ class _AudiobookDetailsPageState extends ConsumerState<AudiobookDetailsPage> {
                       value: ratio,
                       minHeight: 5,
                       backgroundColor: isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.1),
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.1),
                       valueColor: AlwaysStoppedAnimation<Color>(primary),
                     ),
                   ),
@@ -206,7 +206,7 @@ class _AudiobookDetailsPageState extends ConsumerState<AudiobookDetailsPage> {
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
                     radius: 12,
-                    backgroundColor: Colors.grey.withOpacity(0.15),
+                    backgroundColor: Colors.grey.withValues(alpha: 0.15),
                     child: Text(
                       '${t.trackOrder}',
                       style: const TextStyle(fontSize: 11),
@@ -397,17 +397,17 @@ class _AudiobookDetailsPageState extends ConsumerState<AudiobookDetailsPage> {
   void _confirmDelete(BuildContext context, Audiobook book) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Remove Audiobook'),
         content: Text('Are you sure you want to remove "${book.title}" from your library? Audio files on your device will remain intact.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               await ref.read(audiobookLibraryProvider.notifier).deleteAudiobook(book.id);
-              if (mounted) Navigator.pop(context);
+              if (mounted) Navigator.pop(this.context);
             },
             child: const Text('Remove'),
           ),

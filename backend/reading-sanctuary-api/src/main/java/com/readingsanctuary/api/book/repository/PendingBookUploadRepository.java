@@ -18,4 +18,8 @@ public interface PendingBookUploadRepository extends JpaRepository<PendingBookUp
     List<PendingBookUpload> findAllByUser_Id(UUID userId);
 
     List<PendingBookUpload> findAllByExpiresAtBefore(OffsetDateTime cutoff);
+
+    boolean existsByUser_IdAndChecksum(UUID userId, String checksum);
+
+    Optional<PendingBookUpload> findFirstByUser_IdAndChecksum(UUID userId, String checksum);
 }

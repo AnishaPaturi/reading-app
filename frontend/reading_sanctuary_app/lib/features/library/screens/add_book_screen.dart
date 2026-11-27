@@ -160,6 +160,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
           confirmedBook.id,
         );
       }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('"${confirmedBook.title}" added to your bookshelf!'),
@@ -343,9 +344,9 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
               const SizedBox(height: 20),
 
               // Supported Formats Pills
-              Wrap(
+              const Wrap(
                 spacing: 8,
-                children: const [
+                children: [
                   _FormatBadge(label: 'PDF', icon: Icons.picture_as_pdf_rounded),
                   _FormatBadge(label: 'EPUB', icon: Icons.book_rounded),
                   _FormatBadge(label: 'MP3', icon: Icons.headphones_rounded),
@@ -506,8 +507,8 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
               Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0EBF8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0EBF8),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
@@ -713,7 +714,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
                     _buildLabel('Reading Status'),
                     DropdownButtonFormField<ReadingStatus>(
                       isExpanded: true,
-                      value: _status,
+                      initialValue: _status,
                       decoration: _inputDecoration(null, Icons.auto_stories_rounded),
                       items: const [
                         DropdownMenuItem(value: ReadingStatus.wantToRead, child: Text('Want to Read')),
@@ -998,7 +999,7 @@ class _AddBookScreenState extends ConsumerState<AddBookScreen> {
                     _buildLabel('Initial Status'),
                     DropdownButtonFormField<ReadingStatus>(
                       isExpanded: true,
-                      value: _status,
+                      initialValue: _status,
                       decoration: _inputDecoration(null, Icons.auto_stories_rounded),
                       items: const [
                         DropdownMenuItem(value: ReadingStatus.wantToRead, child: Text('Want to Read')),

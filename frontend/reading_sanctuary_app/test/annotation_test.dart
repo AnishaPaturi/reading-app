@@ -233,7 +233,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final params = const BookAnnotationParams(bookId: 'b1', bookFileId: 'bf1');
+      const params = BookAnnotationParams(bookId: 'b1', bookFileId: 'bf1');
       // Wait for initial load to complete
       await container.read(bookFileAnnotationsProvider(params).notifier).load();
 
@@ -271,7 +271,7 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final params = const BookAnnotationParams(bookId: 'b1', bookFileId: 'bf1');
+      const params = BookAnnotationParams(bookId: 'b1', bookFileId: 'bf1');
       await container.read(bookFileAnnotationsProvider(params).notifier).load();
 
       final created = await container.read(bookFileAnnotationsProvider(params).notifier).addNote(
@@ -328,7 +328,6 @@ void main() {
 
     testWidgets('AnnotationContextMenu displays selected text and actions', (tester) async {
       bool noteClicked = false;
-      HighlightColorOption? highlightChosen;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -336,7 +335,7 @@ void main() {
             body: AnnotationContextMenu(
               selectedText: 'A quoted sentence of great beauty.',
               pageNumber: 12,
-              onHighlight: (color) => highlightChosen = color,
+              onHighlight: (_) {},
               onAddNote: () => noteClicked = true,
             ),
           ),

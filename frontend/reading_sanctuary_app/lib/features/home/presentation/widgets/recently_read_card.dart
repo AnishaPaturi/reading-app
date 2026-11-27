@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/widgets/book_cover.dart';
 import '../../../../shared/models/book.dart';
 import '../../../../shared/services/providers.dart';
 
@@ -8,11 +9,13 @@ class RecentlyReadBook {
   final String title;
   final String imagePath;
   final double progress; // 0.0 to 1.0
+  final Book? book;
 
   const RecentlyReadBook({
     required this.title,
     required this.imagePath,
     required this.progress,
+    this.book,
   });
 }
 
@@ -34,6 +37,7 @@ class RecentlyReadCard extends ConsumerWidget {
         title: b.title,
         imagePath: 'assets/images/dashboard/book_midnight.png',
         progress: b.progress,
+        book: b,
       )).toList();
     }
 
@@ -93,7 +97,13 @@ class RecentlyReadCard extends ConsumerWidget {
 
   Widget _buildBookItem(BuildContext context, RecentlyReadBook book) {
     return InkWell(
-      onTap: () => context.go('/library'),
+      onTap: () {
+        if (book.book != null) {
+          context.push('/book/${book.book!.id}');
+        } else {
+          context.go('/library');
+        }
+      },
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -102,6 +112,7 @@ class RecentlyReadCard extends ConsumerWidget {
             // Book cover with soft clay shadow
             Container(
               height: 105,
+              width: 70,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
@@ -114,16 +125,23 @@ class RecentlyReadCard extends ConsumerWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  book.imagePath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFF9482E6).withValues(alpha: 0.2),
-                    child: const Center(
-                      child: Icon(Icons.book, color: Color(0xFF9482E6)),
-                    ),
-                  ),
-                ),
+                child: book.book != null
+                    ? BookCover(
+                        book: book.book!,
+                        fit: BoxFit.cover,
+                        borderRadius: 10,
+                        aspectRatio: null,
+                      )
+                    : Image.asset(
+                        book.imagePath,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFF9482E6).withValues(alpha: 0.2),
+                          child: const Center(
+                            child: Icon(Icons.book, color: Color(0xFF9482E6)),
+                          ),
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 8),
@@ -151,6 +169,8 @@ class RecentlyReadCard extends ConsumerWidget {
             Text(
               book.title,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,

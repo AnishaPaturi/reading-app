@@ -25,6 +25,19 @@ class AudiobookDurationUtils {
     }
   }
 
+  /// Formats byte size into human-readable string (e.g. "14.5 MB", "1.20 GB")
+  static String formatFileSize(int bytes) {
+    if (bytes <= 0) return '0 B';
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
+
   static AudiobookStatus calculateStatus({
     required int positionMs,
     required int totalDurationMs,

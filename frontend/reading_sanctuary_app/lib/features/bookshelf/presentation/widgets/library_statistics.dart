@@ -134,20 +134,30 @@ class _LibraryStatisticsState extends State<LibraryStatistics> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      _isExpanded ? 'Hide Deep Statistics ▲' : 'View Deep Bookshelf Statistics ▼',
-                      style: GoogleFonts.inter(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: ClayColors.deepPurple,
+                    Expanded(
+                      child: Text(
+                        _isExpanded ? 'Hide Deep Statistics ▲' : 'View Deep Bookshelf Statistics ▼',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: ClayColors.deepPurple,
+                        ),
                       ),
                     ),
-                    Text(
-                      '${ratedBooks.length} rated · $distinctGenres genres',
-                      style: GoogleFonts.inter(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
-                        color: ClayColors.textMuted,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '${ratedBooks.length} rated · $distinctGenres genres',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: GoogleFonts.inter(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          color: ClayColors.textMuted,
+                        ),
                       ),
                     ),
                   ],

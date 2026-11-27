@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/widgets/clay_components.dart';
 import '../authentication/presentation/providers/auth_provider.dart';
-import '../reader/presentation/providers/reader_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -13,32 +13,47 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
+  Timer? _splashTimer;
+  bool _delayElapsed = false;
+  bool _navigated = false;
+
   @override
   void initState() {
     super.initState();
-    _initApp();
-  }
-
-  Future<void> _initApp() async {
-    final restoreFuture =
-        ref.read(authNotifierProvider.notifier).restoreSession();
-    final delayFuture =
-        Future<void>.delayed(const Duration(milliseconds: 1600));
-
-    await Future.wait([restoreFuture, delayFuture]);
-
-    if (mounted) {
-      final token = ref.read(authTokenProvider);
-      if (token != null && token.isNotEmpty) {
-        context.go('/home');
-      } else {
-        context.go('/landing');
-      }
+    _splashTimer = Timer(const Duration(milliseconds: 1600), () {
+      _delayElapsed = true;
+      _tryNavigate();
+    });
+    if (!ref.read(authSessionRestoredProvider)) {
+      ref.read(authNotifierProvider.notifier).restoreSession().then((_) {
+        _tryNavigate();
+      });
     }
   }
 
   @override
+  void dispose() {
+    _splashTimer?.cancel();
+    super.dispose();
+  }
+
+  void _tryNavigate() {
+    if (!mounted || _navigated || !_delayElapsed) return;
+    if (!ref.read(authSessionRestoredProvider)) return;
+    if (GoRouterState.of(context).uri.path != '/') return;
+
+    _navigated = true;
+    final isAuthenticated = ref.read(authNotifierProvider).isAuthenticated;
+    context.go(isAuthenticated ? '/home' : '/landing');
+  }
+
+  @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(authSessionRestoredProvider, (_, restored) {
+      if (restored) {
+        _tryNavigate();
+      }
+    });
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

@@ -48,7 +48,7 @@ class _SleepTimerSheetState extends State<SleepTimerSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -83,9 +83,9 @@ class _SleepTimerSheetState extends State<SleepTimerSheet> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: primary.withOpacity(0.12),
+                color: primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primary.withOpacity(0.3)),
+                border: Border.all(color: primary.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -232,7 +232,7 @@ class _SleepTimerSheetState extends State<SleepTimerSheet> {
               style: GoogleFonts.inter(fontSize: 11, color: Colors.grey),
             ),
             value: _fadeOut,
-            activeColor: primary,
+            activeThumbColor: primary,
             onChanged: (val) => setState(() => _fadeOut = val),
           ),
           SwitchListTile(
@@ -249,7 +249,7 @@ class _SleepTimerSheetState extends State<SleepTimerSheet> {
               style: GoogleFonts.inter(fontSize: 11, color: Colors.grey),
             ),
             value: _shakeToExtend,
-            activeColor: primary,
+            activeThumbColor: primary,
             onChanged: (val) => setState(() => _shakeToExtend = val),
           ),
           SwitchListTile(
@@ -266,7 +266,7 @@ class _SleepTimerSheetState extends State<SleepTimerSheet> {
               style: GoogleFonts.inter(fontSize: 11, color: Colors.grey),
             ),
             value: _nightAppearance,
-            activeColor: primary,
+            activeThumbColor: primary,
             onChanged: (val) => setState(() => _nightAppearance = val),
           ),
         ],
@@ -281,7 +281,7 @@ class _SleepTimerSheetState extends State<SleepTimerSheet> {
         fontWeight: FontWeight.w600,
         color: isDark ? AppColors.ivory : AppColors.textDark,
       ),
-      backgroundColor: primary.withOpacity(0.12),
+      backgroundColor: primary.withValues(alpha: 0.12),
       onPressed: () {
         widget.sleepTimer.startDurationTimer(
           Duration(minutes: minutes),

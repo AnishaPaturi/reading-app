@@ -16,8 +16,8 @@ class ApiException implements Exception {
 }
 
 class BadRequestException extends ApiException {
-  const BadRequestException(String message, {String? errorCode, dynamic details})
-      : super(message: message, statusCode: 400, errorCode: errorCode, details: details);
+  const BadRequestException(String message, {super.errorCode, super.details})
+      : super(message: message, statusCode: 400);
 }
 
 class UnauthorizedException extends ApiException {
@@ -36,8 +36,8 @@ class NotFoundException extends ApiException {
 }
 
 class ConflictException extends ApiException {
-  const ConflictException(String message, {String? errorCode, dynamic details})
-      : super(message: message, statusCode: 409, errorCode: errorCode ?? 'CONFLICT', details: details);
+  const ConflictException(String message, {String? errorCode, super.details})
+      : super(message: message, statusCode: 409, errorCode: errorCode ?? 'CONFLICT');
 }
 
 class PayloadTooLargeException extends ApiException {

@@ -1,7 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import '../models/audiobook.dart';
 import '../models/audio_track.dart';
 import '../models/audio_chapter.dart';
@@ -9,11 +6,22 @@ import '../models/playback_progress.dart';
 import '../models/audiobook_bookmark.dart';
 import '../models/listening_event.dart';
 import '../models/audio_settings.dart';
+import 'audiobook_storage.dart';
 
 class AudiobookLocalDatasource {
+  static const String _booksKey = 'sanctuary_audiobooks';
+  static const String _tracksKey = 'sanctuary_audio_tracks';
+  static const String _chaptersKey = 'sanctuary_audio_chapters';
+  static const String _progressKey = 'sanctuary_playback_progress';
+  static const String _bookmarksKey = 'sanctuary_audiobook_bookmarks';
+  static const String _sessionsKey = 'sanctuary_listening_sessions';
+  static const String _eventsKey = 'sanctuary_listening_events';
+  static const String _settingsKey = 'sanctuary_audiobook_settings';
+
   final String? customDirectoryPath;
-  Directory? _baseDir;
+  final AudiobookStorageBackend _storage;
   bool _initialized = false;
+  Future<void>? _initFuture;
 
   final Map<String, Audiobook> _audiobooks = {};
   final Map<String, List<AudioTrack>> _tracksByBook = {};
@@ -24,213 +32,183 @@ class AudiobookLocalDatasource {
   final List<ListeningEvent> _events = [];
   AudioSettings _settings = const AudioSettings();
 
-  AudiobookLocalDatasource({this.customDirectoryPath});
+  AudiobookLocalDatasource({
+    this.customDirectoryPath,
+    AudiobookStorageBackend? storageBackend,
+  }) : _storage = storageBackend ??
+            createPlatformAudiobookStorage(customDirectoryPath: customDirectoryPath);
+
+  bool get isInitialized => _initialized;
 
   Future<void> init() async {
     if (_initialized) return;
-
-    try {
-      if (customDirectoryPath != null) {
-        _baseDir = Directory(customDirectoryPath!);
-      } else {
-        _baseDir = await getApplicationDocumentsDirectory();
-      }
-
-      if (!await _baseDir!.exists()) {
-        await _baseDir!.create(recursive: true);
-      }
-
-      await _loadState();
-    } catch (e) {
-      debugPrint('AudiobookLocalDatasource init fallback to memory: $e');
+    if (_initFuture != null) {
+      await _initFuture;
+      return;
     }
 
-    _initialized = true;
+    final future = _performInit();
+    _initFuture = future;
+    try {
+      await future;
+      _initialized = true;
+    } catch (_) {
+      _initFuture = null;
+      _initialized = false;
+      rethrow;
+    }
   }
 
-  File _getFile(String filename) {
-    final path = _baseDir != null ? '${_baseDir!.path}/$filename' : filename;
-    return File(path);
+  Future<void> _performInit() async {
+    await _storage.init();
+    await _loadState();
   }
 
   Future<void> _loadState() async {
+    final bookContent = await _storage.readStore(_booksKey);
+    if (bookContent != null && bookContent.isNotEmpty) {
+      final list = _decodeList(bookContent, _booksKey);
+      _audiobooks.clear();
+      for (final item in list) {
+        final book = Audiobook.fromJson(item as Map<String, dynamic>);
+        _audiobooks[book.id] = book;
+      }
+    }
+
+    final trackContent = await _storage.readStore(_tracksKey);
+    if (trackContent != null && trackContent.isNotEmpty) {
+      final list = _decodeList(trackContent, _tracksKey);
+      _tracksByBook.clear();
+      for (final item in list) {
+        final track = AudioTrack.fromJson(item as Map<String, dynamic>);
+        _tracksByBook.putIfAbsent(track.audiobookId, () => []).add(track);
+      }
+      for (final trackList in _tracksByBook.values) {
+        trackList.sort((a, b) => a.trackOrder.compareTo(b.trackOrder));
+      }
+    }
+
+    final chapterContent = await _storage.readStore(_chaptersKey);
+    if (chapterContent != null && chapterContent.isNotEmpty) {
+      final list = _decodeList(chapterContent, _chaptersKey);
+      _chaptersByBook.clear();
+      for (final item in list) {
+        final chapter = AudioChapter.fromJson(item as Map<String, dynamic>);
+        if (chapter.audiobookId != null) {
+          _chaptersByBook.putIfAbsent(chapter.audiobookId!, () => []).add(chapter);
+        }
+      }
+    }
+
+    final progressContent = await _storage.readStore(_progressKey);
+    if (progressContent != null && progressContent.isNotEmpty) {
+      final list = _decodeList(progressContent, _progressKey);
+      _progress.clear();
+      for (final item in list) {
+        final p = PlaybackProgress.fromJson(item as Map<String, dynamic>);
+        _progress[p.audiobookId] = p;
+      }
+    }
+
+    final bookmarkContent = await _storage.readStore(_bookmarksKey);
+    if (bookmarkContent != null && bookmarkContent.isNotEmpty) {
+      final list = _decodeList(bookmarkContent, _bookmarksKey);
+      _bookmarksByBook.clear();
+      for (final item in list) {
+        final bm = AudiobookBookmark.fromJson(item as Map<String, dynamic>);
+        _bookmarksByBook.putIfAbsent(bm.audiobookId, () => []).add(bm);
+      }
+    }
+
+    final sessionContent = await _storage.readStore(_sessionsKey);
+    if (sessionContent != null && sessionContent.isNotEmpty) {
+      final list = _decodeList(sessionContent, _sessionsKey);
+      _sessions.clear();
+      for (final item in list) {
+        _sessions.add(ListeningSession.fromJson(item as Map<String, dynamic>));
+      }
+    }
+
+    final eventContent = await _storage.readStore(_eventsKey);
+    if (eventContent != null && eventContent.isNotEmpty) {
+      final list = _decodeList(eventContent, _eventsKey);
+      _events.clear();
+      for (final item in list) {
+        _events.add(ListeningEvent.fromJson(item as Map<String, dynamic>));
+      }
+    }
+
+    final settingsContent = await _storage.readStore(_settingsKey);
+    if (settingsContent != null && settingsContent.isNotEmpty) {
+      try {
+        _settings = AudioSettings.fromJson(jsonDecode(settingsContent) as Map<String, dynamic>);
+      } catch (e) {
+        throw AudiobookStorageException('Failed to parse persisted settings store', e);
+      }
+    }
+  }
+
+  List<dynamic> _decodeList(String content, String storeKey) {
     try {
-      final bookFile = _getFile('sanctuary_audiobooks.json');
-      if (await bookFile.exists()) {
-        final content = await bookFile.readAsString();
-        final list = jsonDecode(content) as List<dynamic>;
-        _audiobooks.clear();
-        for (final item in list) {
-          final book = Audiobook.fromJson(item as Map<String, dynamic>);
-          _audiobooks[book.id] = book;
-        }
-      }
-
-      final trackFile = _getFile('sanctuary_audio_tracks.json');
-      if (await trackFile.exists()) {
-        final content = await trackFile.readAsString();
-        final list = jsonDecode(content) as List<dynamic>;
-        _tracksByBook.clear();
-        for (final item in list) {
-          final track = AudioTrack.fromJson(item as Map<String, dynamic>);
-          _tracksByBook.putIfAbsent(track.audiobookId, () => []).add(track);
-        }
-        for (final list in _tracksByBook.values) {
-          list.sort((a, b) => a.trackOrder.compareTo(b.trackOrder));
-        }
-      }
-
-      final chapterFile = _getFile('sanctuary_audio_chapters.json');
-      if (await chapterFile.exists()) {
-        final content = await chapterFile.readAsString();
-        final list = jsonDecode(content) as List<dynamic>;
-        _chaptersByBook.clear();
-        for (final item in list) {
-          final chapter = AudioChapter.fromJson(item as Map<String, dynamic>);
-          if (chapter.audiobookId != null) {
-            _chaptersByBook.putIfAbsent(chapter.audiobookId!, () => []).add(chapter);
-          }
-        }
-      }
-
-      final progressFile = _getFile('sanctuary_playback_progress.json');
-      if (await progressFile.exists()) {
-        final content = await progressFile.readAsString();
-        final list = jsonDecode(content) as List<dynamic>;
-        _progress.clear();
-        for (final item in list) {
-          final p = PlaybackProgress.fromJson(item as Map<String, dynamic>);
-          _progress[p.audiobookId] = p;
-        }
-      }
-
-      final bookmarkFile = _getFile('sanctuary_audiobook_bookmarks.json');
-      if (await bookmarkFile.exists()) {
-        final content = await bookmarkFile.readAsString();
-        final list = jsonDecode(content) as List<dynamic>;
-        _bookmarksByBook.clear();
-        for (final item in list) {
-          final bm = AudiobookBookmark.fromJson(item as Map<String, dynamic>);
-          _bookmarksByBook.putIfAbsent(bm.audiobookId, () => []).add(bm);
-        }
-      }
-
-      final sessionFile = _getFile('sanctuary_listening_sessions.json');
-      if (await sessionFile.exists()) {
-        final content = await sessionFile.readAsString();
-        final list = jsonDecode(content) as List<dynamic>;
-        _sessions.clear();
-        for (final item in list) {
-          _sessions.add(ListeningSession.fromJson(item as Map<String, dynamic>));
-        }
-      }
-
-      final eventFile = _getFile('sanctuary_listening_events.json');
-      if (await eventFile.exists()) {
-        final content = await eventFile.readAsString();
-        final list = jsonDecode(content) as List<dynamic>;
-        _events.clear();
-        for (final item in list) {
-          _events.add(ListeningEvent.fromJson(item as Map<String, dynamic>));
-        }
-      }
-
-      final settingsFile = _getFile('sanctuary_audiobook_settings.json');
-      if (await settingsFile.exists()) {
-        final content = await settingsFile.readAsString();
-        _settings = AudioSettings.fromJson(jsonDecode(content) as Map<String, dynamic>);
-      }
+      return jsonDecode(content) as List<dynamic>;
     } catch (e) {
-      debugPrint('Error loading local audiobook database: $e');
+      throw AudiobookStorageException('Failed to parse persisted store "$storeKey"', e);
     }
   }
 
   Future<void> _saveBooks() async {
-    try {
-      final file = _getFile('sanctuary_audiobooks.json');
-      final list = _audiobooks.values.map((b) => b.toJson()).toList();
-      await file.writeAsString(jsonEncode(list));
-    } catch (e) {
-      debugPrint('Error saving audiobooks: $e');
-    }
+    final list = _audiobooks.values.map((b) => b.toJson()).toList();
+    await _storage.writeStore(_booksKey, jsonEncode(list));
   }
 
   Future<void> _saveTracks() async {
-    try {
-      final file = _getFile('sanctuary_audio_tracks.json');
-      final allTracks = <Map<String, dynamic>>[];
-      for (final list in _tracksByBook.values) {
-        allTracks.addAll(list.map((t) => t.toJson()));
-      }
-      await file.writeAsString(jsonEncode(allTracks));
-    } catch (e) {
-      debugPrint('Error saving tracks: $e');
+    final allTracks = <Map<String, dynamic>>[];
+    for (final list in _tracksByBook.values) {
+      allTracks.addAll(list.map((t) => t.toJson()));
     }
+    await _storage.writeStore(_tracksKey, jsonEncode(allTracks));
   }
 
   Future<void> _saveChapters() async {
-    try {
-      final file = _getFile('sanctuary_audio_chapters.json');
-      final allChapters = <Map<String, dynamic>>[];
-      for (final list in _chaptersByBook.values) {
-        allChapters.addAll(list.map((c) => c.toJson()));
-      }
-      await file.writeAsString(jsonEncode(allChapters));
-    } catch (e) {
-      debugPrint('Error saving chapters: $e');
+    final allChapters = <Map<String, dynamic>>[];
+    for (final list in _chaptersByBook.values) {
+      allChapters.addAll(list.map((c) => c.toJson()));
     }
+    await _storage.writeStore(_chaptersKey, jsonEncode(allChapters));
   }
 
   Future<void> _saveProgress() async {
-    try {
-      final file = _getFile('sanctuary_playback_progress.json');
-      final list = _progress.values.map((p) => p.toJson()).toList();
-      await file.writeAsString(jsonEncode(list));
-    } catch (e) {
-      debugPrint('Error saving progress: $e');
-    }
+    final list = _progress.values.map((p) => p.toJson()).toList();
+    await _storage.writeStore(_progressKey, jsonEncode(list));
   }
 
   Future<void> _saveBookmarks() async {
-    try {
-      final file = _getFile('sanctuary_audiobook_bookmarks.json');
-      final allBookmarks = <Map<String, dynamic>>[];
-      for (final list in _bookmarksByBook.values) {
-        allBookmarks.addAll(list.map((b) => b.toJson()));
-      }
-      await file.writeAsString(jsonEncode(allBookmarks));
-    } catch (e) {
-      debugPrint('Error saving bookmarks: $e');
+    final allBookmarks = <Map<String, dynamic>>[];
+    for (final list in _bookmarksByBook.values) {
+      allBookmarks.addAll(list.map((b) => b.toJson()));
     }
+    await _storage.writeStore(_bookmarksKey, jsonEncode(allBookmarks));
   }
 
   Future<void> _saveSessions() async {
-    try {
-      final file = _getFile('sanctuary_listening_sessions.json');
-      final list = _sessions.map((s) => s.toJson()).toList();
-      await file.writeAsString(jsonEncode(list));
-    } catch (e) {
-      debugPrint('Error saving sessions: $e');
-    }
+    final list = _sessions.map((s) => s.toJson()).toList();
+    await _storage.writeStore(_sessionsKey, jsonEncode(list));
   }
 
   Future<void> _saveEvents() async {
-    try {
-      final file = _getFile('sanctuary_listening_events.json');
-      final list = _events.map((e) => e.toJson()).toList();
-      await file.writeAsString(jsonEncode(list));
-    } catch (e) {
-      debugPrint('Error saving events: $e');
-    }
+    final list = _events.map((e) => e.toJson()).toList();
+    await _storage.writeStore(_eventsKey, jsonEncode(list));
   }
 
   Future<void> saveSettings(AudioSettings settings) async {
+    await init();
+    final previous = _settings;
     _settings = settings;
     try {
-      final file = _getFile('sanctuary_audiobook_settings.json');
-      await file.writeAsString(jsonEncode(settings.toJson()));
-    } catch (e) {
-      debugPrint('Error saving audiobook settings: $e');
+      await _storage.writeStore(_settingsKey, jsonEncode(settings.toJson()));
+    } catch (_) {
+      _settings = previous;
+      rethrow;
     }
   }
 
@@ -243,34 +221,165 @@ class AudiobookLocalDatasource {
 
   Future<void> saveAudiobook(Audiobook book, List<AudioTrack> tracks, {List<AudioChapter>? chapters}) async {
     await init();
+    final oldBook = _audiobooks[book.id];
+    final oldTracks = _tracksByBook[book.id];
+    final oldChapters = _chaptersByBook[book.id];
+
     _audiobooks[book.id] = book;
-    _tracksByBook[book.id] = List.from(tracks)..sort((a, b) => a.trackOrder.compareTo(b.trackOrder));
+    _tracksByBook[book.id] = List<AudioTrack>.of(tracks)
+      ..sort((a, b) => a.trackOrder.compareTo(b.trackOrder));
     if (chapters != null) {
-      _chaptersByBook[book.id] = List.from(chapters);
-      await _saveChapters();
+      _chaptersByBook[book.id] = List<AudioChapter>.of(chapters);
     }
-    await _saveBooks();
-    await _saveTracks();
+
+    try {
+      if (chapters != null) {
+        await _saveChapters();
+      }
+      await _saveBooks();
+      await _saveTracks();
+    } catch (e) {
+      if (oldBook != null) {
+        _audiobooks[book.id] = oldBook;
+      } else {
+        _audiobooks.remove(book.id);
+      }
+      if (oldTracks != null) {
+        _tracksByBook[book.id] = oldTracks;
+      } else {
+        _tracksByBook.remove(book.id);
+      }
+      if (chapters != null) {
+        if (oldChapters != null) {
+          _chaptersByBook[book.id] = oldChapters;
+        } else {
+          _chaptersByBook.remove(book.id);
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// Safely and atomically replaces an existing audiobook's metadata and tracks.
+  /// Preserves listening progress if safely mappable, or resets progress if [resetProgress] is true.
+  /// If storage write fails, rolls back memory state and rethrows the exception.
+  Future<void> replaceAudiobook({
+    required Audiobook book,
+    required List<AudioTrack> tracks,
+    List<AudioChapter>? chapters,
+    bool resetProgress = true,
+  }) async {
+    await init();
+    final oldBook = _audiobooks[book.id];
+    if (oldBook == null) {
+      throw StateError('Cannot replace audiobook "${book.id}": not found in library.');
+    }
+
+    final oldTracks = _tracksByBook[book.id];
+    final oldChapters = _chaptersByBook[book.id];
+    final oldProgress = _progress[book.id];
+
+    PlaybackProgress? updatedProgress;
+    if (oldProgress != null) {
+      if (resetProgress) {
+        updatedProgress = PlaybackProgress(
+          audiobookId: book.id,
+          currentTrackId: tracks.isNotEmpty ? tracks.first.id : null,
+          trackIndex: 0,
+          positionMs: 0,
+          totalDurationMs: book.totalDurationMs,
+          playbackSpeed: oldProgress.playbackSpeed,
+          lastListenedAt: DateTime.now(),
+          completed: false,
+        );
+      } else {
+        final trackIdx = oldProgress.trackIndex < tracks.length ? oldProgress.trackIndex : 0;
+        final targetTrack = tracks.isNotEmpty ? tracks[trackIdx] : null;
+        updatedProgress = oldProgress.copyWith(
+          currentTrackId: targetTrack?.id,
+          trackIndex: trackIdx,
+          totalDurationMs: book.totalDurationMs,
+        );
+      }
+    }
+
+    _audiobooks[book.id] = book;
+    _tracksByBook[book.id] = List<AudioTrack>.of(tracks)
+      ..sort((a, b) => a.trackOrder.compareTo(b.trackOrder));
+    if (chapters != null) {
+      _chaptersByBook[book.id] = List<AudioChapter>.of(chapters);
+    }
+    if (updatedProgress != null) {
+      _progress[book.id] = updatedProgress;
+    }
+
+    try {
+      await _saveBooks();
+      await _saveTracks();
+      if (chapters != null) {
+        await _saveChapters();
+      }
+      if (updatedProgress != null) {
+        await _saveProgress();
+      }
+    } catch (e) {
+      _audiobooks[book.id] = oldBook;
+      if (oldTracks != null) {
+        _tracksByBook[book.id] = oldTracks;
+      } else {
+        _tracksByBook.remove(book.id);
+      }
+      if (oldChapters != null) {
+        _chaptersByBook[book.id] = oldChapters;
+      } else {
+        _chaptersByBook.remove(book.id);
+      }
+      if (oldProgress != null) {
+        _progress[book.id] = oldProgress;
+      } else {
+        _progress.remove(book.id);
+      }
+      rethrow;
+    }
   }
 
   Future<void> updateAudiobook(Audiobook book) async {
     await init();
+    final oldBook = _audiobooks[book.id];
     _audiobooks[book.id] = book;
-    await _saveBooks();
+    try {
+      await _saveBooks();
+    } catch (_) {
+      if (oldBook != null) {
+        _audiobooks[book.id] = oldBook;
+      } else {
+        _audiobooks.remove(book.id);
+      }
+      rethrow;
+    }
   }
 
   Future<void> deleteAudiobook(String id) async {
     await init();
-    _audiobooks.remove(id);
-    _tracksByBook.remove(id);
-    _chaptersByBook.remove(id);
-    _progress.remove(id);
-    _bookmarksByBook.remove(id);
-    await _saveBooks();
-    await _saveTracks();
-    await _saveChapters();
-    await _saveProgress();
-    await _saveBookmarks();
+    final oldBook = _audiobooks.remove(id);
+    final oldTracks = _tracksByBook.remove(id);
+    final oldChapters = _chaptersByBook.remove(id);
+    final oldProgress = _progress.remove(id);
+    final oldBookmarks = _bookmarksByBook.remove(id);
+    try {
+      await _saveBooks();
+      await _saveTracks();
+      await _saveChapters();
+      await _saveProgress();
+      await _saveBookmarks();
+    } catch (_) {
+      if (oldBook != null) _audiobooks[id] = oldBook;
+      if (oldTracks != null) _tracksByBook[id] = oldTracks;
+      if (oldChapters != null) _chaptersByBook[id] = oldChapters;
+      if (oldProgress != null) _progress[id] = oldProgress;
+      if (oldBookmarks != null) _bookmarksByBook[id] = oldBookmarks;
+      rethrow;
+    }
   }
 
   // Tracks
@@ -286,8 +395,18 @@ class AudiobookLocalDatasource {
 
   Future<void> saveChaptersForBook(String bookId, List<AudioChapter> chapters) async {
     await init();
-    _chaptersByBook[bookId] = List.from(chapters);
-    await _saveChapters();
+    final oldChapters = _chaptersByBook[bookId];
+    _chaptersByBook[bookId] = List<AudioChapter>.of(chapters);
+    try {
+      await _saveChapters();
+    } catch (_) {
+      if (oldChapters != null) {
+        _chaptersByBook[bookId] = oldChapters;
+      } else {
+        _chaptersByBook.remove(bookId);
+      }
+      rethrow;
+    }
   }
 
   // Progress
@@ -295,9 +414,10 @@ class AudiobookLocalDatasource {
 
   Future<void> saveProgressRecord(PlaybackProgress progress) async {
     await init();
-    _progress[progress.audiobookId] = progress;
-    // Also update audiobook status if appropriate
+    final oldProgress = _progress[progress.audiobookId];
     final book = _audiobooks[progress.audiobookId];
+    _progress[progress.audiobookId] = progress;
+    Audiobook? oldBook;
     if (book != null) {
       final updatedStatus = progress.completed
           ? AudiobookStatus.completed
@@ -305,11 +425,26 @@ class AudiobookLocalDatasource {
               ? AudiobookStatus.current
               : AudiobookStatus.notStarted);
       if (book.status != updatedStatus) {
+        oldBook = book;
         _audiobooks[book.id] = book.copyWith(status: updatedStatus);
-        await _saveBooks();
       }
     }
-    await _saveProgress();
+    try {
+      if (oldBook != null) {
+        await _saveBooks();
+      }
+      await _saveProgress();
+    } catch (_) {
+      if (oldProgress != null) {
+        _progress[progress.audiobookId] = oldProgress;
+      } else {
+        _progress.remove(progress.audiobookId);
+      }
+      if (oldBook != null) {
+        _audiobooks[oldBook.id] = oldBook;
+      }
+      rethrow;
+    }
   }
 
   // Bookmarks
@@ -323,46 +458,81 @@ class AudiobookLocalDatasource {
       all.addAll(list);
     }
     all.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return all;
+    return List.unmodifiable(all);
   }
 
   Future<void> saveBookmark(AudiobookBookmark bookmark) async {
     await init();
+    final existingList = _bookmarksByBook[bookmark.audiobookId];
+    final previousSnapshot = existingList != null ? List<AudiobookBookmark>.of(existingList) : null;
     final list = _bookmarksByBook.putIfAbsent(bookmark.audiobookId, () => []);
     list.removeWhere((b) => b.id == bookmark.id);
     list.add(bookmark);
-    await _saveBookmarks();
+    try {
+      await _saveBookmarks();
+    } catch (_) {
+      if (previousSnapshot != null) {
+        _bookmarksByBook[bookmark.audiobookId] = previousSnapshot;
+      } else {
+        _bookmarksByBook.remove(bookmark.audiobookId);
+      }
+      rethrow;
+    }
   }
 
   Future<void> deleteBookmark(String bookId, String bookmarkId) async {
     await init();
     final list = _bookmarksByBook[bookId];
-    if (list != null) {
-      list.removeWhere((b) => b.id == bookmarkId);
+    if (list == null) return;
+    final previousSnapshot = List<AudiobookBookmark>.of(list);
+    list.removeWhere((b) => b.id == bookmarkId);
+    try {
       await _saveBookmarks();
+    } catch (_) {
+      _bookmarksByBook[bookId] = previousSnapshot;
+      rethrow;
     }
   }
 
   // History & Sessions
   List<ListeningSession> getSessionsForBook(String bookId) {
-    return _sessions.where((s) => s.audiobookId == bookId).toList()
+    final list = _sessions.where((s) => s.audiobookId == bookId).toList()
       ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    return List.unmodifiable(list);
   }
 
   List<ListeningSession> getAllSessions() {
-    return List.unmodifiable(_sessions)..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    final list = List<ListeningSession>.of(_sessions)
+      ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    return List.unmodifiable(list);
   }
 
   Future<void> recordSession(ListeningSession session) async {
     await init();
+    final previous = List<ListeningSession>.of(_sessions);
     _sessions.removeWhere((s) => s.id == session.id);
     _sessions.add(session);
-    await _saveSessions();
+    try {
+      await _saveSessions();
+    } catch (_) {
+      _sessions
+        ..clear()
+        ..addAll(previous);
+      rethrow;
+    }
   }
 
   Future<void> recordEvent(ListeningEvent event) async {
     await init();
+    final previous = List<ListeningEvent>.of(_events);
     _events.add(event);
-    await _saveEvents();
+    try {
+      await _saveEvents();
+    } catch (_) {
+      _events
+        ..clear()
+        ..addAll(previous);
+      rethrow;
+    }
   }
 }

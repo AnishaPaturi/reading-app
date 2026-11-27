@@ -10,7 +10,9 @@ import '../widgets/clay_text_field.dart';
 import '../widgets/social_login_row.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
-  const SignUpScreen({super.key});
+  final String? redirectTo;
+
+  const SignUpScreen({super.key, this.redirectTo});
   @override
   ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
@@ -32,6 +34,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     super.dispose();
   }
 
+  String get _postAuthDestination {
+    final r = widget.redirectTo;
+    if (r != null && r.startsWith('/') && !r.startsWith('/login') && !r.startsWith('/signup')) {
+      return r;
+    }
+    return '/home';
+  }
+
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedGender != null) {
@@ -51,7 +61,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         ref.read(authNotifierProvider.notifier).setGender(genderKey);
         ref.read(userGenderProvider.notifier).state = genderKey;
       }
-      context.go('/home');
+      context.go(_postAuthDestination);
     } else {
       _showAuthError(ref.read(authNotifierProvider).error ?? 'Sign up failed');
     }
@@ -61,7 +71,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final success = await ref.read(authNotifierProvider.notifier).loginWithSocial(provider);
     if (!mounted) return;
     if (success) {
-      context.go('/home');
+      context.go(_postAuthDestination);
     } else {
       final error = ref.read(authNotifierProvider).error;
       if (error != null && error.isNotEmpty) _showAuthError(error);
@@ -122,7 +132,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           alignment: WrapAlignment.center, children: [
           Text('Already have an account? ', style: GoogleFonts.inter(
             color: AuthPalette.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
-          GestureDetector(onTap: () => context.go('/login'),
+          GestureDetector(onTap: () {
+            final redirect = widget.redirectTo;
+            context.go(redirect != null
+                ? '/login?redirect=${Uri.encodeComponent(redirect)}'
+                : '/login');
+          },
             child: Text('Login', style: GoogleFonts.inter(
               color: AuthPalette.textLink, fontSize: 14, fontWeight: FontWeight.w700))),
         ])),
@@ -159,71 +174,71 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               ),
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () => setState(() => _selectedGender = 'male'),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Radio<String>(
-                          value: 'male',
-                          groupValue: _selectedGender,
-                          activeColor: AuthPalette.primaryPurpleDark,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (val) => setState(() => _selectedGender = val),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Male',
-                          style: GoogleFonts.inter(
-                            color: AuthPalette.textDark,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+          RadioGroup<String>(
+            groupValue: _selectedGender,
+            onChanged: (val) => setState(() => _selectedGender = val),
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => setState(() => _selectedGender = 'male'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Radio<String>(
+                            value: 'male',
+                            activeColor: AuthPalette.primaryPurpleDark,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            'Male',
+                            style: GoogleFonts.inter(
+                              color: AuthPalette.textDark,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: () => setState(() => _selectedGender = 'female'),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Radio<String>(
-                          value: 'female',
-                          groupValue: _selectedGender,
-                          activeColor: AuthPalette.primaryPurpleDark,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (val) => setState(() => _selectedGender = val),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Female',
-                          style: GoogleFonts.inter(
-                            color: AuthPalette.textDark,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => setState(() => _selectedGender = 'female'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Radio<String>(
+                            value: 'female',
+                            activeColor: AuthPalette.primaryPurpleDark,
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            'Female',
+                            style: GoogleFonts.inter(
+                              color: AuthPalette.textDark,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

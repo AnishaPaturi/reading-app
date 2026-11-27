@@ -11,7 +11,7 @@ const primaryDestinations = [
   NavDest('Home', '/home', Icons.home_outlined),
   NavDest('Library', '/library', Icons.local_library_outlined),
   NavDest('Favourites', '/favorites', Icons.favorite_outline),
-  NavDest('Audiobooks', '/reading', Icons.headphones_outlined),
+  NavDest('Audiobooks', '/audiobooks', Icons.headphones_outlined),
   NavDest('Profile', '/profile', Icons.person_outline),
   NavDest('Settings', '/settings', Icons.settings_outlined),
 ];
@@ -20,8 +20,9 @@ const primaryDestinations = [
 const sidebarDestinations = [
   NavDest('Home', '/home', Icons.home_outlined),
   NavDest('Library', '/library', Icons.local_library_outlined),
+  NavDest('Downloads', '/downloads', Icons.download_outlined),
   NavDest('Favourites', '/favorites', Icons.favorite_outline),
-  NavDest('Audiobooks', '/reading', Icons.headphones_outlined),
+  NavDest('Audiobooks', '/audiobooks', Icons.headphones_outlined),
   NavDest('DNF Shelf', '/tracker/dnf', Icons.local_fire_department_outlined),
   NavDest('Profile', '/profile', Icons.person_outline),
   NavDest('Settings', '/settings', Icons.settings_outlined),
@@ -31,8 +32,10 @@ final Map<String, String> _routeTitles = {
   '/dashboard': 'Home',
   '/home': 'Home',
   '/library': 'Library',
+  '/downloads': 'Downloads',
   '/favorites': 'Favorites',
-  '/reading': 'Audiobooks',
+  '/audiobooks': 'Audiobooks',
+  '/reading': 'Reading',
   '/profile': 'Profile',
   '/settings': 'Settings',
   '/sync/settings': 'Sync & Devices',
@@ -48,6 +51,7 @@ final Map<String, String> _routeTitles = {
   '/quotes': 'Favorite Quotes',
   '/search': 'Search',
   '/help': 'Help & Support',
+  '/library/discover': 'Discover Books',
   '/library/add': 'Add Book',
   '/library/add-manual': 'Add Book',
 };
@@ -64,6 +68,7 @@ String titleFor(String location) {
 
 /// Top-level screens show the menu; everything else shows a back button.
 const _detailPaths = {
+  '/library/discover',
   '/library/add',
   '/library/add-manual',
   '/journal/new',

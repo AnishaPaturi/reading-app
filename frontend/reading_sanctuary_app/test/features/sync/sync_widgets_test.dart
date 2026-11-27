@@ -25,7 +25,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.cloud_done_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.cloud_done_rounded), findsOneWidget);
   });
 
   testWidgets('SyncStatusIndicator displays pending changes badge', (tester) async {
@@ -45,7 +45,7 @@ void main() {
     );
 
     expect(find.text('3'), findsOneWidget);
-    expect(find.byIcon(Icons.cloud_upload_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.cloud_upload_rounded), findsOneWidget);
   });
 
   testWidgets('OfflineDownloadButton shows Download for Offline when not downloaded', (tester) async {

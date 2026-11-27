@@ -126,7 +126,7 @@ class EpubReaderViewState extends State<EpubReaderView> {
 
     try {
       _controller.display(cfi: cfi);
-    } catch (error, stackTrace) {
+    } catch (error) {
       debugPrint('EPUB CFI navigation failed: $error');
     }
   }

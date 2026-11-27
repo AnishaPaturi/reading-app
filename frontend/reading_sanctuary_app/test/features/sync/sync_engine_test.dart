@@ -86,6 +86,7 @@ void main() {
   });
 
   tearDown(() async {
+    await engine.activeSyncFuture;
     engine.dispose();
     try {
       if (await tempDir.exists()) {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/audiobook_local_datasource.dart';
 import '../../data/models/audiobook.dart';
+import 'audiobook_providers.dart';
 
 class AudiobookLibraryFilter {
   final String query;
@@ -49,10 +50,12 @@ final audiobookLibraryFilterProvider =
 class AudiobookLibraryState {
   final List<Audiobook> allBooks;
   final bool isLoading;
+  final String? errorMessage;
 
   const AudiobookLibraryState({
     this.allBooks = const [],
     this.isLoading = false,
+    this.errorMessage,
   });
 }
 
@@ -64,21 +67,45 @@ class AudiobookLibraryNotifier extends StateNotifier<AudiobookLibraryState> {
   }
 
   Future<void> refresh() async {
-    state = AudiobookLibraryState(allBooks: state.allBooks, isLoading: true);
-    await _datasource.init();
-    final books = _datasource.getAllAudiobooks();
-    state = AudiobookLibraryState(allBooks: books, isLoading: false);
+    state = AudiobookLibraryState(
+      allBooks: state.allBooks,
+      isLoading: true,
+    );
+    try {
+      await _datasource.init();
+      final books = List<Audiobook>.unmodifiable(_datasource.getAllAudiobooks());
+      if (!mounted) return;
+      state = AudiobookLibraryState(
+        allBooks: books,
+        isLoading: false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      state = AudiobookLibraryState(
+        allBooks: state.allBooks,
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
   }
 
   Future<void> deleteAudiobook(String id) async {
-    await _datasource.deleteAudiobook(id);
-    await refresh();
+    try {
+      await _datasource.deleteAudiobook(id);
+      await refresh();
+    } catch (e) {
+      if (!mounted) return;
+      state = AudiobookLibraryState(
+        allBooks: state.allBooks,
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
   }
 }
 
 final audiobookLibraryLocalDatasourceProvider = Provider<AudiobookLocalDatasource>((ref) {
-  final ds = AudiobookLocalDatasource();
-  return ds;
+  return ref.watch(audiobookLocalDatasourceProvider);
 });
 
 final audiobookLibraryProvider =
@@ -87,41 +114,93 @@ final audiobookLibraryProvider =
   return AudiobookLibraryNotifier(ds);
 });
 
+int _compareAudiobooks(Audiobook a, Audiobook b, String sortBy) {
+  int cmp;
+  switch (sortBy) {
+    case 'title':
+      cmp = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+      break;
+    case 'author':
+      cmp = a.author.toLowerCase().compareTo(b.author.toLowerCase());
+      if (cmp == 0) {
+        cmp = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+      }
+      break;
+    case 'recentlyAdded':
+    default:
+      cmp = b.dateAdded.compareTo(a.dateAdded);
+      break;
+  }
+  if (cmp != 0) return cmp;
+  final dateCmp = b.dateAdded.compareTo(a.dateAdded);
+  if (dateCmp != 0) return dateCmp;
+  return a.id.compareTo(b.id);
+}
+
+/// Filters and deterministically sorts a copy of [source] without mutating it.
+List<Audiobook> filterAndSortAudiobooks(
+  List<Audiobook> source,
+  AudiobookLibraryFilter filter, {
+  AudiobookStatus? statusOverride,
+}) {
+  final effectiveStatus = statusOverride ?? filter.status;
+  final trimmedQuery = filter.query.toLowerCase().trim();
+
+  // Always allocate a fresh mutable list so unmodifiable sources are never sorted in place.
+  final list = source.where((b) {
+    if (effectiveStatus != null && b.status != effectiveStatus) {
+      return false;
+    }
+    if (trimmedQuery.isNotEmpty) {
+      final titleMatch = b.title.toLowerCase().contains(trimmedQuery);
+      final authorMatch = b.author.toLowerCase().contains(trimmedQuery);
+      if (!titleMatch && !authorMatch) {
+        return false;
+      }
+    }
+    return true;
+  }).toList();
+
+  list.sort((a, b) => _compareAudiobooks(a, b, filter.sortBy));
+  return List<Audiobook>.unmodifiable(list);
+}
+
 /// Filtered audiobooks derived provider
 final filteredAudiobooksProvider = Provider<List<Audiobook>>((ref) {
   final libState = ref.watch(audiobookLibraryProvider);
   final filter = ref.watch(audiobookLibraryFilterProvider);
+  return filterAndSortAudiobooks(libState.allBooks, filter);
+});
 
-  var books = libState.allBooks;
+/// Derived provider for Currently listening audiobooks
+final currentAudiobooksProvider = Provider<List<Audiobook>>((ref) {
+  final libState = ref.watch(audiobookLibraryProvider);
+  final filter = ref.watch(audiobookLibraryFilterProvider);
+  return filterAndSortAudiobooks(
+    libState.allBooks,
+    filter,
+    statusOverride: AudiobookStatus.current,
+  );
+});
 
-  // Status filter
-  if (filter.status != null) {
-    books = books.where((b) => b.status == filter.status).toList();
-  }
+/// Derived provider for Not Started audiobooks
+final notStartedAudiobooksProvider = Provider<List<Audiobook>>((ref) {
+  final libState = ref.watch(audiobookLibraryProvider);
+  final filter = ref.watch(audiobookLibraryFilterProvider);
+  return filterAndSortAudiobooks(
+    libState.allBooks,
+    filter,
+    statusOverride: AudiobookStatus.notStarted,
+  );
+});
 
-  // Text search (matches title and author)
-  if (filter.query.trim().isNotEmpty) {
-    final q = filter.query.toLowerCase().trim();
-    books = books.where((b) {
-      final titleMatch = b.title.toLowerCase().contains(q);
-      final authorMatch = b.author.toLowerCase().contains(q);
-      return titleMatch || authorMatch;
-    }).toList();
-  }
-
-  // Sorting
-  switch (filter.sortBy) {
-    case 'title':
-      books.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
-      break;
-    case 'author':
-      books.sort((a, b) => a.author.toLowerCase().compareTo(b.author.toLowerCase()));
-      break;
-    case 'recentlyAdded':
-    default:
-      books.sort((a, b) => b.dateAdded.compareTo(a.dateAdded));
-      break;
-  }
-
-  return books;
+/// Derived provider for Completed audiobooks
+final completedAudiobooksProvider = Provider<List<Audiobook>>((ref) {
+  final libState = ref.watch(audiobookLibraryProvider);
+  final filter = ref.watch(audiobookLibraryFilterProvider);
+  return filterAndSortAudiobooks(
+    libState.allBooks,
+    filter,
+    statusOverride: AudiobookStatus.completed,
+  );
 });

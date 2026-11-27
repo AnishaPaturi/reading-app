@@ -324,6 +324,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           final b = books[index];
           final palette = BookshelfTheme.paletteForId(b.id);
           return ClayBookMini(
+            book: b,
             title: b.title,
             color: palette.base,
             width: 68,
@@ -437,6 +438,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             children: [
               for (final b in sampleBooks)
                 ClayBookMini(
+                  book: b,
                   title: b.title,
                   color: BookshelfTheme.paletteForId(b.id).base,
                   width: 64,
@@ -564,7 +566,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           onTap: () => context.push('/book/${b.id}'),
           child: Row(
             children: [
-              ClayBookMini(title: b.title, color: palette.base, width: 48, height: 68),
+              ClayBookMini(book: b, title: b.title, color: palette.base, width: 48, height: 68),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

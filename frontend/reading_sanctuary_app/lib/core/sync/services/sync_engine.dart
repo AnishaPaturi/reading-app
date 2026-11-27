@@ -14,14 +14,23 @@ class SyncEngine extends ChangeNotifier {
   SyncStatus _status = SyncStatus.synced;
   String? _lastErrorMessage;
   bool _isSyncing = false;
+  bool _isDisposed = false;
+  Future<bool>? _activeSyncFuture;
   Timer? _autoSyncTimer;
 
   SyncStatus get status => _status;
   String? get lastErrorMessage => _lastErrorMessage;
   bool get isSyncing => _isSyncing;
+  Future<bool>? get activeSyncFuture => _activeSyncFuture;
   int get pendingCount => localDb.outboxCount;
   List<SyncConflictItem> get activeConflicts =>
       localDb.getConflicts().where((c) => !c.isResolved).toList();
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
 
   SyncEngine({
     required this.localDb,
@@ -51,7 +60,7 @@ class SyncEngine extends ChangeNotifier {
   String generateChangeId() {
     final timestamp = DateTime.now().microsecondsSinceEpoch;
     final rand = Random().nextInt(999999);
-    return 'c_$timestamp\_$rand';
+    return 'c_${timestamp}_$rand';
   }
 
   Future<String> ensureDeviceId() async {
@@ -105,16 +114,29 @@ class SyncEngine extends ChangeNotifier {
 
     if (_status != SyncStatus.syncing) {
       _status = SyncStatus.pendingChanges;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
-  Future<bool> syncNow() async {
-    if (_isSyncing) return false;
+  Future<bool> syncNow() {
+    if (_isDisposed) return Future.value(false);
+    if (_activeSyncFuture != null) return _activeSyncFuture!;
+    final future = _runSyncNow();
+    _activeSyncFuture = future;
+    future.whenComplete(() {
+      if (identical(_activeSyncFuture, future)) {
+        _activeSyncFuture = null;
+      }
+    });
+    return future;
+  }
+
+  Future<bool> _runSyncNow() async {
+    if (_isSyncing || _isDisposed) return false;
     _isSyncing = true;
     _status = SyncStatus.syncing;
     _lastErrorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final token = syncApi.tokenProvider();
@@ -122,11 +144,15 @@ class SyncEngine extends ChangeNotifier {
         // In offline or guest state
         _status = localDb.outboxCount > 0 ? SyncStatus.pendingChanges : SyncStatus.offline;
         _isSyncing = false;
-        notifyListeners();
+        _safeNotifyListeners();
         return false;
       }
 
       final deviceId = await ensureDeviceId();
+      if (_isDisposed) {
+        _isSyncing = false;
+        return false;
+      }
 
       // 1. Push pending changes
       final outbox = localDb.getOutboxItems();
@@ -197,20 +223,27 @@ class SyncEngine extends ChangeNotifier {
 
       await localDb.setLastSyncTime(DateTime.now());
 
+      if (_isDisposed) {
+        _isSyncing = false;
+        return false;
+      }
+
       if (localDb.outboxCount > 0) {
         _status = SyncStatus.pendingChanges;
       } else {
         _status = SyncStatus.synced;
       }
       _isSyncing = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return true;
     } catch (e) {
       debugPrint('SyncEngine syncNow error: $e');
       _lastErrorMessage = e.toString();
-      _status = localDb.outboxCount > 0 ? SyncStatus.pendingChanges : SyncStatus.error;
+      if (!_isDisposed) {
+        _status = localDb.outboxCount > 0 ? SyncStatus.pendingChanges : SyncStatus.error;
+      }
       _isSyncing = false;
-      notifyListeners();
+      _safeNotifyListeners();
       return false;
     }
   }
@@ -258,7 +291,7 @@ class SyncEngine extends ChangeNotifier {
         break;
     }
 
-    notifyListeners();
+    _safeNotifyListeners();
     // Trigger sync to upload resolution
     unawaited(syncNow());
   }
@@ -275,6 +308,7 @@ class SyncEngine extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     stopAutoSync();
     super.dispose();
   }

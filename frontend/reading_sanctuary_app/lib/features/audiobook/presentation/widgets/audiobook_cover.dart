@@ -1,7 +1,7 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../app/theme/app_colors.dart';
 
 class AudiobookCover extends StatelessWidget {
   final String? coverPath;
@@ -36,7 +36,7 @@ class AudiobookCover extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _buildFallback(context),
         );
-      } else {
+      } else if (!kIsWeb) {
         final file = File(coverPath!);
         if (file.existsSync()) {
           imageWidget = Image.file(
@@ -49,6 +49,8 @@ class AudiobookCover extends StatelessWidget {
         } else {
           imageWidget = _buildFallback(context);
         }
+      } else {
+        imageWidget = _buildFallback(context);
       }
     } else {
       imageWidget = _buildFallback(context);
@@ -62,7 +64,7 @@ class AudiobookCover extends StatelessWidget {
         boxShadow: showShadow
             ? [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.35),
+                  color: Colors.black.withValues(alpha: 0.35),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
@@ -77,6 +79,10 @@ class AudiobookCover extends StatelessWidget {
   }
 
   Widget _buildFallback(BuildContext context) {
+    final effectiveWidth = width.isFinite ? width : 120.0;
+    final effectiveHeight = height.isFinite ? height : 120.0;
+    final isCompact = effectiveWidth < 60 || effectiveHeight < 60;
+
     return Container(
       width: width,
       height: height,
@@ -85,51 +91,65 @@ class AudiobookCover extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF2C1810),
-            Color(0xFF1E140F),
+            Color(0xFF5E35B1),
+            Color(0xFF382761),
           ],
         ),
         border: Border.all(
-          color: AppColors.gold.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.headphones_rounded,
-            color: AppColors.gold.withOpacity(0.8),
-            size: width * 0.28,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              color: AppColors.ivory,
-              fontSize: (width * 0.09).clamp(10.0, 15.0),
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          if (author != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              author!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                color: AppColors.gold.withOpacity(0.7),
-                fontSize: (width * 0.075).clamp(8.0, 11.0),
+      padding: EdgeInsets.all(isCompact ? 4 : 8),
+      child: isCompact
+          ? Center(
+              child: Icon(
+                Icons.headphones_rounded,
+                color: Colors.white,
+                size: (effectiveWidth * 0.45).clamp(14.0, 26.0),
+              ),
+            )
+          : FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SizedBox(
+                width: (effectiveWidth - 16).clamp(40.0, 400.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.headphones_rounded,
+                      color: Colors.white,
+                      size: (effectiveWidth * 0.28).clamp(20.0, 48.0),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: (effectiveWidth * 0.09).clamp(10.0, 15.0),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (author != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        author!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          color: Colors.white70,
+                          fontSize: (effectiveWidth * 0.075).clamp(8.0, 11.0),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
-          ],
-        ],
-      ),
     );
   }
 }

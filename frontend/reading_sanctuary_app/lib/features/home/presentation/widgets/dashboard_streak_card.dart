@@ -18,12 +18,12 @@ class DashboardStreakCard extends ConsumerWidget {
       loading: () => Container(
         height: 140,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFFEADBFC)),
+          color: ClayColors.cardSurface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: ClayColors.clayBorder),
         ),
         child: const Center(
-          child: CircularProgressIndicator(color: ClayColors.deepPurple, strokeWidth: 2),
+          child: CircularProgressIndicator(color: ClayColors.royalLilac, strokeWidth: 2),
         ),
       ),
       error: (_, __) => const SizedBox.shrink(),
@@ -48,16 +48,16 @@ class DashboardStreakCard extends ConsumerWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFFFF8A65), Color(0xFFFF5722)],
+                    colors: [ClayColors.creamsicleCoral, Color(0xFFFF8A65)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFF5722).withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
+                      color: ClayColors.creamsicleCoral.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -76,28 +76,32 @@ class DashboardStreakCard extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          '${streak.currentStreakDays} ${streak.currentStreakDays == 1 ? 'Day' : 'Days'} Streak',
-                          style: GoogleFonts.inter(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: ClayColors.textDark,
+                        Flexible(
+                          child: Text(
+                            '${streak.currentStreakDays} ${streak.currentStreakDays == 1 ? 'Day' : 'Days'} Streak',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: ClayColors.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF3E0),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFFFFCC80)),
+                            color: ClayColors.sunnyButtercup.withValues(alpha: 0.22),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: ClayColors.sunnyButtercup.withValues(alpha: 0.8)),
                           ),
                           child: Text(
                             'Best: ${streak.longestStreakDays}d',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFFE65100),
+                              color: const Color(0xFF9A5B00),
                             ),
                           ),
                         ),
@@ -114,17 +118,21 @@ class DashboardStreakCard extends ConsumerWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: streak.momentumDaysActiveLast7 >= 4
-                                ? const Color(0xFF2E7D32)
-                                : const Color(0xFFFF9800),
+                                ? ClayColors.sageMint
+                                : ClayColors.creamsicleCoral,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          'Reading Momentum: ${streak.momentumStatus} (${streak.momentumDaysActiveLast7} of 7 days active)',
-                          style: GoogleFonts.inter(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: ClayColors.textMuted,
+                        Expanded(
+                          child: Text(
+                            'Reading Momentum: ${streak.momentumStatus} (${streak.momentumDaysActiveLast7} of 7 days active)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: ClayColors.dustyPlum,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -135,7 +143,7 @@ class DashboardStreakCard extends ConsumerWidget {
 
               // Calendar button
               IconButton(
-                icon: const Icon(Icons.calendar_month_rounded, color: ClayColors.deepPurple, size: 24),
+                icon: const Icon(Icons.calendar_month_rounded, color: ClayColors.deepLavender, size: 24),
                 tooltip: 'Reading Calendar',
                 onPressed: () => context.push('/calendar'),
               ),
@@ -148,7 +156,7 @@ class DashboardStreakCard extends ConsumerWidget {
           _buildWeeklyCalendar(streak),
 
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFEDE4FA)),
+          Divider(height: 1, color: ClayColors.clayBorder.withValues(alpha: 0.5)),
           const SizedBox(height: 12),
 
           // Actions row: Mark Today Complete, Streak Freeze & Freezes Available
@@ -171,27 +179,29 @@ class DashboardStreakCard extends ConsumerWidget {
                 icon: Icon(
                   isComplete ? Icons.check_circle_rounded : Icons.check_rounded,
                   size: 16,
-                  color: isComplete ? const Color(0xFF2E7D32) : Colors.white,
+                  color: isComplete ? const Color(0xFF1E6358) : Colors.white,
                 ),
                 label: Text(
                   isComplete ? 'Today Complete!' : 'Mark Today Complete',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isComplete ? const Color(0xFF2E7D32) : Colors.white,
+                    color: isComplete ? const Color(0xFF1E6358) : Colors.white,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isComplete ? const Color(0xFFE8F5E9) : ClayColors.deepPurple,
-                  disabledBackgroundColor: const Color(0xFFE8F5E9),
+                  backgroundColor: isComplete
+                      ? ClayColors.sageMint.withValues(alpha: 0.25)
+                      : ClayColors.royalLilac,
+                  disabledBackgroundColor: ClayColors.sageMint.withValues(alpha: 0.25),
                   elevation: isComplete ? 0 : 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(999),
                     side: isComplete
-                        ? const BorderSide(color: Color(0xFFA5D6A7))
+                        ? const BorderSide(color: ClayColors.sageMint, width: 1.2)
                         : BorderSide.none,
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
               ),
 
@@ -205,21 +215,21 @@ class DashboardStreakCard extends ConsumerWidget {
                 icon: const Icon(
                   Icons.ac_unit_rounded,
                   size: 15,
-                  color: Color(0xFF0288D1),
+                  color: ClayColors.deepLavender,
                 ),
                 label: Text(
                   'Streak Freeze (${streak.freezesAvailable} left)',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF0277BD),
+                    color: ClayColors.deepLavender,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE1F5FE),
-                  side: const BorderSide(color: Color(0xFFB3E5FC)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  backgroundColor: ClayColors.pastelMutedViolet.withValues(alpha: 0.35),
+                  side: const BorderSide(color: ClayColors.clayBorder, width: 1.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 ),
               ),
             ],
@@ -245,39 +255,46 @@ class DashboardStreakCard extends ConsumerWidget {
     Color bg;
     Color textColor;
     Widget icon;
+    Border? border;
 
     if (day.isFuture) {
-      bg = const Color(0xFFF7F4FB);
-      textColor = const Color(0xFFB0A4C8);
-      icon = const Icon(Icons.remove, size: 12, color: Color(0xFFD1C4E9));
+      bg = ClayColors.background;
+      textColor = ClayColors.mutedMauve;
+      border = Border.all(color: ClayColors.clayBorder.withValues(alpha: 0.3));
+      icon = Icon(Icons.remove, size: 12, color: ClayColors.mutedMauve.withValues(alpha: 0.5));
     } else if (day.isCompleted) {
-      bg = const Color(0xFFE8F5E9);
-      textColor = const Color(0xFF2E7D32);
-      icon = const Icon(Icons.check_rounded, size: 14, color: Color(0xFF2E7D32));
+      bg = ClayColors.sageMint.withValues(alpha: 0.22);
+      textColor = const Color(0xFF267368);
+      border = Border.all(color: ClayColors.sageMint.withValues(alpha: 0.6));
+      icon = const Icon(Icons.check_rounded, size: 14, color: Color(0xFF267368));
     } else {
-      bg = const Color(0xFFFFEBEE);
-      textColor = const Color(0xFFC62828);
-      icon = const Icon(Icons.close_rounded, size: 12, color: Color(0xFFEF5350));
+      bg = ClayColors.creamsicleCoral.withValues(alpha: 0.18);
+      textColor = const Color(0xFFC0392B);
+      border = Border.all(color: ClayColors.creamsicleCoral.withValues(alpha: 0.5));
+      icon = const Icon(Icons.close_rounded, size: 12, color: Color(0xFFC0392B));
+    }
+
+    if (day.isToday) {
+      border = Border.all(color: ClayColors.sunnyButtercup, width: 2);
+      if (!day.isCompleted) {
+        bg = ClayColors.sunnyButtercup.withValues(alpha: 0.22);
+        textColor = const Color(0xFF9A5B00);
+      }
     }
 
     return Container(
-      width: 40,
+      width: 42,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: day.isToday
-              ? const Color(0xFFFFB300)
-              : Colors.transparent,
-          width: day.isToday ? 2 : 0,
-        ),
+        borderRadius: BorderRadius.circular(14),
+        border: border,
       ),
       child: Column(
         children: [
           Text(
             day.dayOfWeek,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: textColor,

@@ -74,7 +74,7 @@ class _AudiobookBookmarksPageState extends ConsumerState<AudiobookBookmarksPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.bookmark_border_rounded, size: 54, color: Colors.grey.withOpacity(0.5)),
+                          Icon(Icons.bookmark_border_rounded, size: 54, color: Colors.grey.withValues(alpha: 0.5)),
                           const SizedBox(height: 12),
                           Text(
                             'No bookmarks saved yet',
@@ -142,7 +142,7 @@ class _AudiobookBookmarksPageState extends ConsumerState<AudiobookBookmarksPage>
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontStyle: bm.category == 'quote' ? FontStyle.italic : FontStyle.normal,
-                                    color: isDark ? AppColors.ivory.withOpacity(0.8) : AppColors.textDark.withOpacity(0.8),
+                                    color: isDark ? AppColors.ivory.withValues(alpha: 0.8) : AppColors.textDark.withValues(alpha: 0.8),
                                   ),
                                 ),
                               ],

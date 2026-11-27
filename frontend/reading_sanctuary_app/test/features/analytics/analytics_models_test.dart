@@ -14,7 +14,7 @@ import 'package:reading_sanctuary_app/features/analytics/data/models/yearly_wrap
 void main() {
   group('Analytics Models Test', () {
     test('ActivitySessionRequest and Response JSON', () {
-      final req = const ActivitySessionRequest(
+      const req = ActivitySessionRequest(
         activityType: ActivityType.READING,
         bookId: 'b-1',
         bookFileId: 'f-1',
@@ -44,7 +44,7 @@ void main() {
     });
 
     test('ReadingGoalRequest and Response JSON', () {
-      final req = const ReadingGoalRequest(
+      const req = ReadingGoalRequest(
         goalType: GoalType.READING_MINUTES,
         targetValue: 30,
         periodType: GoalPeriod.DAILY,

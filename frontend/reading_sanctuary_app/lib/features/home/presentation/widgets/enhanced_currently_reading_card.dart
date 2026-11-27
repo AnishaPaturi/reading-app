@@ -92,6 +92,7 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClayBookMini(
+                book: book,
                 title: book.title,
                 color: palette.base,
                 width: 68,
@@ -108,7 +109,7 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
                       book.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 16.5,
                         fontWeight: FontWeight.w800,
                         color: ClayColors.textDark,
@@ -120,10 +121,10 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
                       book.author,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: ClayColors.textMuted,
+                        color: ClayColors.dustyPlum,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -134,25 +135,27 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
                       runSpacing: 4,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFECE5FA),
-                            borderRadius: BorderRadius.circular(8),
+                            color: ClayColors.pastelMutedViolet.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: ClayColors.clayBorder.withValues(alpha: 0.6)),
                           ),
                           child: Text(
                             book.genre,
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: ClayColors.primaryPurple,
+                              color: ClayColors.deepLavender,
                             ),
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE0F2FE),
-                            borderRadius: BorderRadius.circular(8),
+                            color: ClayColors.sageMint.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: ClayColors.sageMint.withValues(alpha: 0.6)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -160,15 +163,15 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
                               Icon(
                                 isAudio ? Icons.headphones_rounded : Icons.menu_book_rounded,
                                 size: 12,
-                                color: const Color(0xFF0284C7),
+                                color: const Color(0xFF236B61),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 formatLabel,
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF0369A1),
+                                  color: const Color(0xFF236B61),
                                 ),
                               ),
                             ],
@@ -188,20 +191,30 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '$progressPct% Completed',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: ClayColors.coral,
+              Flexible(
+                child: Text(
+                  '$progressPct% Completed',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: ClayColors.creamsicleCoral,
+                  ),
                 ),
               ),
-              Text(
-                'Page $currentPage of $totalPages',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: ClayColors.textDark,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'Page $currentPage of $totalPages',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: ClayColors.textDark,
+                  ),
                 ),
               ),
             ],
@@ -212,10 +225,10 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               trackHeight: 6,
-              activeTrackColor: ClayColors.coral,
-              inactiveTrackColor: const Color(0xFFEDE6FA),
-              thumbColor: ClayColors.coral,
-              overlayColor: ClayColors.coral.withValues(alpha: 0.2),
+              activeTrackColor: ClayColors.creamsicleCoral,
+              inactiveTrackColor: ClayColors.pastelMutedViolet.withValues(alpha: 0.45),
+              thumbColor: ClayColors.creamsicleCoral,
+              overlayColor: ClayColors.creamsicleCoral.withValues(alpha: 0.2),
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
             ),
@@ -232,8 +245,8 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
               IconButton.filledTonal(
                 icon: const Icon(Icons.remove, size: 16),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFF1EDF9),
-                  foregroundColor: ClayColors.deepPurple,
+                  backgroundColor: ClayColors.pastelMutedViolet.withValues(alpha: 0.4),
+                  foregroundColor: ClayColors.deepLavender,
                   minimumSize: const Size(36, 36),
                 ),
                 tooltip: 'Previous Page',
@@ -243,15 +256,22 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
               ),
               const SizedBox(width: 14),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFDDD2F5)),
+                  color: ClayColors.cardSurface,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: ClayColors.clayBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: ClayColors.royalLilac.withValues(alpha: 0.06),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Text(
                   'Page $currentPage',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: ClayColors.textDark,
@@ -262,8 +282,8 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
               IconButton.filledTonal(
                 icon: const Icon(Icons.add, size: 16),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFF1EDF9),
-                  foregroundColor: ClayColors.deepPurple,
+                  backgroundColor: ClayColors.pastelMutedViolet.withValues(alpha: 0.4),
+                  foregroundColor: ClayColors.deepLavender,
                   minimumSize: const Size(36, 36),
                 ),
                 tooltip: 'Next Page',
@@ -275,15 +295,16 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
           ),
 
           const SizedBox(height: 14),
-          const Divider(height: 1, color: Color(0xFFEDE6FA)),
+          Divider(height: 1, color: ClayColors.clayBorder.withValues(alpha: 0.5)),
           const SizedBox(height: 12),
 
           // 5. Reading statistics: Start Date, Days Spent, Avg pages/day, Estimated remaining
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8F5FC),
-              borderRadius: BorderRadius.circular(14),
+              color: ClayColors.background,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: ClayColors.clayBorder.withValues(alpha: 0.4)),
             ),
             child: Column(
               children: [
@@ -321,7 +342,7 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
                       book.description,
                       maxLines: _isDescriptionExpanded ? 20 : 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         height: 1.4,
                         color: ClayColors.textDark.withValues(alpha: 0.8),
@@ -330,10 +351,10 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
                     const SizedBox(height: 4),
                     Text(
                       _isDescriptionExpanded ? 'Read less ▲' : 'Read more ▼',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: ClayColors.primaryPurple,
+                        color: ClayColors.royalLilac,
                       ),
                     ),
                   ],
@@ -347,9 +368,9 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
           // 7. Action Button
           ClayPillButton(
             text: 'Continue Reading  →',
-            height: 38,
+            height: 40,
             fontSize: 13,
-            color: ClayColors.deepPurple,
+            color: ClayColors.royalLilac,
             textColor: Colors.white,
             onTap: widget.onContinue ?? () => openBookDocument(context, book),
           ),
@@ -359,27 +380,31 @@ class _EnhancedCurrentlyReadingCardState extends ConsumerState<EnhancedCurrently
   }
 
   Widget _buildMetaItem(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 10.5,
-            fontWeight: FontWeight.w500,
-            color: ClayColors.textMuted,
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: ClayColors.dustyPlum,
+            ),
           ),
-        ),
-        const SizedBox(height: 1),
-        Text(
-          value,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: ClayColors.textDark,
+          const SizedBox(height: 1),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: ClayColors.textDark,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

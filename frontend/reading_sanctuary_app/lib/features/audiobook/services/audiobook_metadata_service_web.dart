@@ -5,6 +5,7 @@ class AudiobookMetadataService {
   bool _initialized = false;
 
   Future<void> initialize() async {
+    if (_initialized) return;
     _initialized = true;
   }
 

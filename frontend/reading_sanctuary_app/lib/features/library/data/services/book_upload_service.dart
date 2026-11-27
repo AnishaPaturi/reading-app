@@ -6,6 +6,7 @@ import '../../../../core/network/api_config.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../shared/models/book.dart';
 import '../models/book_metadata.dart';
+import '../models/reconcile_response.dart';
 import '../models/selected_book_file.dart';
 
 class BookUploadService {
@@ -135,5 +136,27 @@ class BookUploadService {
     }
 
     throw Exception('Invalid server response when confirming book');
+  }
+
+  /// Reconciles client import state with the server after network interruptions or lost responses.
+  Future<ReconcileResponse> reconcileUpload({
+    String? uploadId,
+    required String checksum,
+  }) async {
+    final queryParams = <String, dynamic>{
+      'checksum': checksum,
+      if (uploadId != null && uploadId.isNotEmpty) 'uploadId': uploadId,
+    };
+
+    final response = await _apiClient.get(
+      '/books/reconcile',
+      queryParameters: queryParams,
+    );
+
+    if (response is Map<String, dynamic>) {
+      return ReconcileResponse.fromJson(response);
+    }
+
+    return const ReconcileResponse(status: ReconcileStatus.notFound);
   }
 }

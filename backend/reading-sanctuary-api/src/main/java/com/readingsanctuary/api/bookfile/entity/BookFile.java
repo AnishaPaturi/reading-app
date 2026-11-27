@@ -4,11 +4,17 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import com.readingsanctuary.api.book.entity.Book;
+import com.readingsanctuary.api.user.entity.User;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "book_files")
+@Table(
+    name = "book_files",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_book_files_user_checksum", columnNames = {"user_id", "checksum"})
+    }
+)
 public class BookFile {
 
     @Id
@@ -18,6 +24,10 @@ public class BookFile {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(name = "file_name", nullable = false)
     private String fileName;
@@ -53,12 +63,19 @@ public class BookFile {
     }
 
     @PrePersist
-    protected void onCreate() {
-        uploadedAt = OffsetDateTime.now();
+    @PreUpdate
+    protected void onCreateOrUpdate() {
+        if (uploadedAt == null) {
+            uploadedAt = OffsetDateTime.now();
+        }
+        if (user == null && book != null && book.getCreatedBy() != null) {
+            user = book.getCreatedBy();
+        }
     }
 
     public UUID getId() { return id; }
     public Book getBook() { return book; }
+    public User getUser() { return user; }
     public String getFileName() { return fileName; }
     public String getFileFormat() { return fileFormat; }
     public String getStorageKey() { return storageKey; }
@@ -66,7 +83,13 @@ public class BookFile {
     public String getChecksum() { return checksum; }
     public OffsetDateTime getUploadedAt() { return uploadedAt; }
 
-    public void setBook(Book book) { this.book = book; }
+    public void setBook(Book book) {
+        this.book = book;
+        if (book != null && this.user == null && book.getCreatedBy() != null) {
+            this.user = book.getCreatedBy();
+        }
+    }
+    public void setUser(User user) { this.user = user; }
     public void setFileName(String fileName) { this.fileName = fileName; }
     public void setFileFormat(String fileFormat) { this.fileFormat = fileFormat; }
     public void setStorageKey(String storageKey) { this.storageKey = storageKey; }

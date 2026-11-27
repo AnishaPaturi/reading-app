@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/audiobook_local_datasource.dart';
-import '../../data/models/audiobook.dart';
 import '../../data/models/audiobook_bookmark.dart';
 import '../../data/models/listening_event.dart';
 import '../../services/audiobook_metadata_service.dart';
@@ -12,10 +11,17 @@ import '../../services/audiobook_sleep_timer_service.dart';
 import '../../services/audiobook_history_service.dart';
 import '../../services/audiobook_playback_service.dart';
 import '../../services/audiobook_bookmark_service.dart';
+import '../../services/audiobook_duplicate_detection_service.dart';
 
 final audiobookLocalDatasourceProvider = Provider<AudiobookLocalDatasource>((ref) {
   final ds = AudiobookLocalDatasource();
   return ds;
+});
+
+final audiobookDuplicateDetectionServiceProvider = Provider<AudiobookDuplicateDetectionService>((ref) {
+  return AudiobookDuplicateDetectionService(
+    dataSource: ref.watch(audiobookLocalDatasourceProvider),
+  );
 });
 
 final audiobookMetadataServiceProvider = Provider<AudiobookMetadataService>((ref) {

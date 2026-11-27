@@ -29,13 +29,17 @@ class LibraryToolbar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(
-              child: Column(
+        SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     title,
@@ -56,80 +60,77 @@ class LibraryToolbar extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-
-            // Manage button (if provided)
-            if (onManageTap != null) ...[
-              OutlinedButton.icon(
-                onPressed: onManageTap,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: ClayColors.primaryPurple,
-                  side: const BorderSide(color: ClayColors.softLilac, width: 1.2),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (onManageTap != null)
+                    OutlinedButton.icon(
+                      onPressed: onManageTap,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: ClayColors.primaryPurple,
+                        side: const BorderSide(color: ClayColors.softLilac, width: 1.2),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      icon: const Icon(Icons.tune_rounded, size: 16),
+                      label: Text(
+                        'Manage',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  if (onAddBookTap != null)
+                    ElevatedButton.icon(
+                      onPressed: onAddBookTap,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ClayColors.deepPurple,
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: ClayColors.softLilac, width: 1),
+                        ),
+                      ),
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: Text(
+                        'Add Book',
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ElevatedButton.icon(
+                    onPressed: onCreateShelfTap,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ClayColors.primaryPurple,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: ClayColors.softLilac, width: 1),
+                      ),
+                    ),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: Text(
+                      'New Shelf',
+                      style: GoogleFonts.inter(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
-                icon: const Icon(Icons.tune_rounded, size: 16),
-                label: Text(
-                  'Manage',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
             ],
-
-            if (onAddBookTap != null) ...[
-              ElevatedButton.icon(
-                onPressed: onAddBookTap,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ClayColors.deepPurple,
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: ClayColors.softLilac, width: 1),
-                  ),
-                ),
-                icon: const Icon(Icons.add_rounded, size: 18),
-                label: Text(
-                  'Add Book',
-                  style: GoogleFonts.inter(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-
-            ElevatedButton.icon(
-              onPressed: onCreateShelfTap,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ClayColors.primaryPurple,
-                foregroundColor: Colors.white,
-                elevation: 2,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: ClayColors.softLilac, width: 1),
-                ),
-              ),
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: Text(
-                'New Shelf',
-                style: GoogleFonts.inter(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: 12),
 

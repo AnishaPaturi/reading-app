@@ -5,6 +5,7 @@ class AudioTrack {
   final String fileName;
   final int trackOrder;
   final int durationMs;
+  final int discNumber;
   final String format;
   final String? chapterTitle;
   final int fileSizeBytes;
@@ -21,6 +22,7 @@ class AudioTrack {
     String? title,
     this.trackOrder = 0,
     this.durationMs = 0,
+    this.discNumber = 1,
     required this.format,
     this.chapterTitle,
     this.fileSizeBytes = 0,
@@ -44,6 +46,7 @@ class AudioTrack {
     String? title,
     int? trackOrder,
     int? durationMs,
+    int? discNumber,
     String? format,
     String? chapterTitle,
     int? fileSizeBytes,
@@ -57,6 +60,7 @@ class AudioTrack {
       fileName: fileName ?? title ?? this.fileName,
       trackOrder: trackOrder ?? this.trackOrder,
       durationMs: durationMs ?? this.durationMs,
+      discNumber: discNumber ?? this.discNumber,
       format: format ?? this.format,
       chapterTitle: chapterTitle ?? this.chapterTitle,
       fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
@@ -76,6 +80,7 @@ class AudioTrack {
       fileName: name,
       trackOrder: (json['trackOrder'] as num?)?.toInt() ?? 0,
       durationMs: (json['durationMs'] as num?)?.toInt() ?? 0,
+      discNumber: (json['discNumber'] as num?)?.toInt() ?? 1,
       format: (json['format'] ?? json['fileFormat'] ?? 'MP3') as String,
       chapterTitle: json['chapterTitle'] as String?,
       fileSizeBytes: (json['fileSizeBytes'] as num?)?.toInt() ?? 0,
@@ -95,6 +100,7 @@ class AudioTrack {
       'title': title,
       'trackOrder': trackOrder,
       'durationMs': durationMs,
+      'discNumber': discNumber,
       'format': format,
       'fileFormat': format,
       if (chapterTitle != null) 'chapterTitle': chapterTitle,

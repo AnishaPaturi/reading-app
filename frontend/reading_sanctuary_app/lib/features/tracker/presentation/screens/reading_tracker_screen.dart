@@ -136,6 +136,7 @@ class ReadingTrackerScreen extends ConsumerWidget {
           child: Row(
             children: [
               ClayBookMini(
+                book: book,
                 title: book.title,
                 color: palette.base,
                 width: 54,

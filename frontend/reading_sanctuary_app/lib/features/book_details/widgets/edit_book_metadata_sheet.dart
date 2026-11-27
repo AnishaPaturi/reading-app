@@ -596,7 +596,7 @@ class _EditBookMetadataSheetState extends ConsumerState<EditBookMetadataSheet> {
                   _buildSectionHeader('Acquisition & Pricing', Icons.shopping_bag_outlined),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
-                    value: _acquisitionMethod,
+                    initialValue: _acquisitionMethod,
                     decoration: _inputDecoration('Acquisition Method'),
                     dropdownColor: Colors.white,
                     items: _acquisitionOptions.map((opt) {
@@ -610,7 +610,7 @@ class _EditBookMetadataSheetState extends ConsumerState<EditBookMetadataSheet> {
                       SizedBox(
                         width: 90,
                         child: DropdownButtonFormField<String>(
-                          value: _currency,
+                          initialValue: _currency,
                           decoration: _inputDecoration('Currency'),
                           dropdownColor: Colors.white,
                           items: _currencyOptions.map((c) {

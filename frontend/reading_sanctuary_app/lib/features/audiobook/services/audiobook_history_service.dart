@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../data/datasources/audiobook_local_datasource.dart';
 import '../data/models/audiobook.dart';
@@ -46,6 +47,22 @@ class AudiobookHistoryService {
     _logEvent('play', trackIndex, positionMs);
   }
 
+  void _persistSession(ListeningSession session) {
+    unawaited(
+      _localDatasource.recordSession(session).catchError((Object e) {
+        debugPrint('AudiobookHistoryService: failed to persist session: $e');
+      }),
+    );
+  }
+
+  void _persistEvent(ListeningEvent event) {
+    unawaited(
+      _localDatasource.recordEvent(event).catchError((Object e) {
+        debugPrint('AudiobookHistoryService: failed to persist event: $e');
+      }),
+    );
+  }
+
   void onPlaybackPaused(int trackIndex, int positionMs) {
     if (_lastPlayTimestamp != null && _currentSession != null) {
       final elapsed = DateTime.now().difference(_lastPlayTimestamp!).inMilliseconds;
@@ -53,7 +70,7 @@ class AudiobookHistoryService {
         actualListeningMs: _currentSession!.actualListeningMs + elapsed,
       );
       _lastPlayTimestamp = null;
-      _localDatasource.recordSession(_currentSession!);
+      _persistSession(_currentSession!);
     }
 
     _logEvent('pause', trackIndex, positionMs);
@@ -80,10 +97,10 @@ class AudiobookHistoryService {
         endedAt: DateTime.now(),
       );
       _lastPlayTimestamp = null;
-      _localDatasource.recordSession(_currentSession!);
+      _persistSession(_currentSession!);
     } else if (_currentSession != null) {
       _currentSession = _currentSession!.copyWith(endedAt: DateTime.now());
-      _localDatasource.recordSession(_currentSession!);
+      _persistSession(_currentSession!);
     }
     _currentSession = null;
   }
@@ -98,7 +115,7 @@ class AudiobookHistoryService {
       positionMs: positionMs,
       createdAt: DateTime.now(),
     );
-    _localDatasource.recordEvent(event);
+    _persistEvent(event);
   }
 
   List<ListeningSession> getHistoryForBook(String bookId) {

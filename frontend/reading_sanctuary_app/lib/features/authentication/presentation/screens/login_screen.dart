@@ -11,7 +11,15 @@ import '../widgets/forgot_password_dialog.dart';
 import '../widgets/social_login_row.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  final String? redirectTo;
+  final bool sessionExpired;
+
+  const LoginScreen({
+    super.key,
+    this.redirectTo,
+    this.sessionExpired = false,
+  });
+
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
@@ -22,10 +30,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.sessionExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _showAuthError('Your session has expired. Please sign in again.');
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  String get _postAuthDestination {
+    final r = widget.redirectTo;
+    if (r != null && r.startsWith('/') && !r.startsWith('/login') && !r.startsWith('/signup')) {
+      return r;
+    }
+    return '/home';
   }
 
   Future<void> _handleLogin() async {
@@ -34,7 +61,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       email: _emailController.text.trim(), password: _passwordController.text.trim());
     if (!mounted) return;
     if (success) {
-      context.go('/home');
+      context.go(_postAuthDestination);
     } else {
       _showAuthError(ref.read(authNotifierProvider).error ?? 'Login failed');
     }
@@ -44,7 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final success = await ref.read(authNotifierProvider.notifier).loginWithSocial(provider);
     if (!mounted) return;
     if (success) {
-      context.go('/home');
+      context.go(_postAuthDestination);
     } else {
       final error = ref.read(authNotifierProvider).error;
       if (error != null && error.isNotEmpty) _showAuthError(error);
@@ -104,7 +131,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             alignment: WrapAlignment.center, children: [
             Text("Don't have an account? ", style: GoogleFonts.inter(
               color: AuthPalette.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
-            GestureDetector(onTap: () => context.go('/signup'),
+            GestureDetector(onTap: () {
+              final redirect = widget.redirectTo;
+              context.go(redirect != null
+                  ? '/signup?redirect=${Uri.encodeComponent(redirect)}'
+                  : '/signup');
+            },
               child: Text('Sign Up', style: GoogleFonts.inter(
                 color: AuthPalette.textLink, fontSize: 14, fontWeight: FontWeight.w700))),
           ])),

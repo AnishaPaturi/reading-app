@@ -479,6 +479,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               title: b.title,
               imagePath: 'assets/images/dashboard/book_midnight.png',
               progress: b.progress,
+              book: b,
             )).toList();
 
             final recentCard = RecentlyReadCard(

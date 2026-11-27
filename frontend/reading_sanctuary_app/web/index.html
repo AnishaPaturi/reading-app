@@ -32,6 +32,9 @@
 
   <title>reading_sanctuary_app</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Initialize flutter_inappwebview_web bridge before Flutter plugin registration -->
+  <script type="application/javascript" src="assets/packages/flutter_inappwebview_web/assets/web/web_support.js" defer></script>
 </head>
 <body>
   <!--
@@ -42,6 +45,6 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
-  <script src="flutter_bootstrap.js" async></script>
+  <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>

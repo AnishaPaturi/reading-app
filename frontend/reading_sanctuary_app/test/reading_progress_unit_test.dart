@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -350,7 +349,7 @@ void main() {
       expect(find.text('Currently Reading'), findsOneWidget);
       expect(find.text('Bone Year'), findsNWidgets(2));
       expect(find.text('Page 57 of 363'), findsOneWidget);
-      expect(find.text('15.7% Completed'), findsOneWidget);
+      expect(find.text('16% Completed'), findsOneWidget);
       expect(find.text('0% Completed'), findsNothing);
     });
   });

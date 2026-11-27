@@ -268,6 +268,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
             children: [
               // 3D Mini Book Cover
               ClayBookMini(
+                book: book,
                 title: book.title,
                 color: palette.base,
                 motif: const Icon(Icons.nightlight_round, color: Color(0xFFFFD460), size: 14),
@@ -555,6 +556,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                   final b = books[index];
                   final palette = BookshelfTheme.paletteForId(b.id);
                   return ClayBookMini(
+                    book: b,
                     title: b.title,
                     color: palette.base,
                     hasHeart: index % 2 == 0,

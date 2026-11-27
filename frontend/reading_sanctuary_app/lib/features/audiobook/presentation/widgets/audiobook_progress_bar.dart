@@ -35,15 +35,13 @@ class _AudiobookProgressBarState extends State<AudiobookProgressBar> {
 
     final primary = widget.activeColor ?? (isDark ? AppColors.gold : AppColors.brown);
     final background = widget.inactiveColor ??
-        (isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.12));
+        (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.12));
     final thumb = widget.thumbColor ?? primary;
 
     final totalMs = widget.duration.inMilliseconds;
     final currentMs = _dragValue != null
         ? _dragValue!.toInt()
         : widget.position.inMilliseconds.clamp(0, totalMs > 0 ? totalMs : 0);
-
-    final progressRatio = totalMs > 0 ? (currentMs / totalMs).clamp(0.0, 1.0) : 0.0;
 
     final displayedPosition = _dragValue != null
         ? Duration(milliseconds: _dragValue!.toInt())
@@ -60,7 +58,7 @@ class _AudiobookProgressBarState extends State<AudiobookProgressBar> {
             activeTrackColor: primary,
             inactiveTrackColor: background,
             thumbColor: thumb,
-            overlayColor: primary.withOpacity(0.2),
+            overlayColor: primary.withValues(alpha: 0.2),
           ),
           child: Slider(
             min: 0,
@@ -87,15 +85,15 @@ class _AudiobookProgressBarState extends State<AudiobookProgressBar> {
                 AudiobookDurationUtils.formatDuration(displayedPosition),
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: isDark ? AppColors.ivory.withOpacity(0.7) : AppColors.textDark.withOpacity(0.7),
+                  color: isDark ? AppColors.ivory.withValues(alpha: 0.7) : AppColors.textDark.withValues(alpha: 0.7),
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
               Text(
-                AudiobookDurationUtils.formatDuration(widget.duration),
+                '-${AudiobookDurationUtils.formatDuration(totalMs > currentMs ? Duration(milliseconds: totalMs - currentMs) : Duration.zero)}',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: isDark ? AppColors.ivory.withOpacity(0.7) : AppColors.textDark.withOpacity(0.7),
+                  color: isDark ? AppColors.ivory.withValues(alpha: 0.7) : AppColors.textDark.withValues(alpha: 0.7),
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),

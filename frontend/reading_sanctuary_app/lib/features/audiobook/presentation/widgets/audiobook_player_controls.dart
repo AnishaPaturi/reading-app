@@ -75,7 +75,7 @@ class AudiobookPlayerControls extends StatelessWidget {
               tooltip: 'Previous Track',
               color: hasPrevious
                   ? (isDark ? AppColors.ivory : AppColors.textDark)
-                  : Colors.grey.withOpacity(0.4),
+                  : Colors.grey.withValues(alpha: 0.4),
               onPressed: hasPrevious ? onPreviousTrack : null,
             ),
             const SizedBox(width: 14),
@@ -87,7 +87,7 @@ class AudiobookPlayerControls extends StatelessWidget {
                 color: primary,
                 boxShadow: [
                   BoxShadow(
-                    color: primary.withOpacity(0.4),
+                    color: primary.withValues(alpha: 0.4),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
@@ -123,7 +123,7 @@ class AudiobookPlayerControls extends StatelessWidget {
               tooltip: 'Next Track',
               color: hasNext
                   ? (isDark ? AppColors.ivory : AppColors.textDark)
-                  : Colors.grey.withOpacity(0.4),
+                  : Colors.grey.withValues(alpha: 0.4),
               onPressed: hasNext ? onNextTrack : null,
             ),
             const SizedBox(width: 8),
@@ -147,7 +147,7 @@ class AudiobookPlayerControls extends StatelessWidget {
               style: TextButton.styleFrom(
                 foregroundColor: primary,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                backgroundColor: primary.withOpacity(0.12),
+                backgroundColor: primary.withValues(alpha: 0.12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
               onPressed: onSpeedPressed,

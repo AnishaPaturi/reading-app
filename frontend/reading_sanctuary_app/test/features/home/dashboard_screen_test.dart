@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,10 @@ import 'package:reading_sanctuary_app/shared/services/book_repository.dart';
 import 'package:reading_sanctuary_app/shared/services/providers.dart';
 
 void main() {
+  setUpAll(() {
+    dotenv.testLoad(fileInput: 'GOOGLE_WEB_CLIENT_ID=dummy\nGOOGLE_SERVER_CLIENT_ID=dummy\nAPI_BASE_URL=http://localhost:8080');
+  });
+
   Widget buildTestableWidget({Size size = const Size(1200, 900)}) {
     final sampleRepo = MockBookRepository(MockBookRepository.sample());
     return ProviderScope(

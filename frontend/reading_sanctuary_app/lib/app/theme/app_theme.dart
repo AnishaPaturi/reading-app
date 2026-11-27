@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'app_colors.dart';
 
 enum AppThemeChoice { dark, parchment }
 
@@ -31,7 +30,7 @@ abstract final class AppTheme {
     const primary = Color(0xFF6B45B3);
     const secondary = Color(0xFF9482E6);
 
-    final scheme = const ColorScheme(
+    const scheme = ColorScheme(
       brightness: Brightness.light,
       primary: primary,
       onPrimary: Colors.white,

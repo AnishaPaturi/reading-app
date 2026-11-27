@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.readingsanctuary.api.book.dto.BookResponse;
 import com.readingsanctuary.api.book.dto.BookUploadResponse;
+import com.readingsanctuary.api.book.dto.CheckDuplicatesRequest;
+import com.readingsanctuary.api.book.dto.CheckDuplicatesResponse;
 import com.readingsanctuary.api.book.dto.ConfirmBookRequest;
+import com.readingsanctuary.api.book.dto.ReconcileUploadResponse;
 import com.readingsanctuary.api.book.service.BookUploadService;
 
 import jakarta.validation.Valid;
@@ -83,5 +87,39 @@ public class BookUploadController {
         UUID userId = UUID.fromString(jwt.getSubject());
         BookResponse response = bookUploadService.confirmBook(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Batch duplicate pre-check: verify whether discovered files are already in the library.
+     */
+    @PostMapping(
+            value = "/check-duplicates",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<CheckDuplicatesResponse> checkDuplicates(
+            @Valid @RequestBody CheckDuplicatesRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        CheckDuplicatesResponse response = bookUploadService.checkDuplicates(request, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Reconcile client state after dropped connection or timeout.
+     */
+    @GetMapping(
+            value = "/reconcile",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<ReconcileUploadResponse> reconcileUpload(
+            @RequestParam(name = "checksum", required = false) String checksum,
+            @RequestParam(name = "uploadId", required = false) String uploadId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        UUID userId = UUID.fromString(jwt.getSubject());
+        ReconcileUploadResponse response = bookUploadService.reconcileUpload(userId, checksum, uploadId);
+        return ResponseEntity.ok(response);
     }
 }

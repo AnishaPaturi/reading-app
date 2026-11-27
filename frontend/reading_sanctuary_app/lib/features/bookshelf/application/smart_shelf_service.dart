@@ -552,7 +552,7 @@ class SmartShelfService {
     final shelves = <AutoShelf>[];
     var idx = 0;
     for (final entry in map.entries) {
-      if (entry.value.length >= 1) {
+      if (entry.value.isNotEmpty) {
         shelves.add(AutoShelf(
           id: 'trope_${entry.key}',
           title: entry.key,

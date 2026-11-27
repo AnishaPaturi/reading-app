@@ -1,1433 +1,468 @@
 # 📚 Reading Sanctuary
-### Your Personal Digital Reading Ecosystem
+### Your Personal Digital Reading & Listening Ecosystem
 
 **Read. Listen. Annotate. Organize. Remember.**
 
-Reading Sanctuary is a cross-platform personal reading application designed to bring an entire reading life into one organized, customizable and private digital space.
+Reading Sanctuary is a cross-platform personal reading and audiobook application designed to bring an entire reading life into one organized, customizable, and private digital space.
 
-It combines an ebook reader, audiobook player, digital bookshelf, reading tracker, annotation system and personal reading journal into a unified platform.
-
-Instead of switching between multiple applications to read books, listen to audiobooks, track reading progress, save quotes, write notes and organize a personal library, users can manage everything through Reading Sanctuary.
-
-The goal is to recreate the comfort and organization of a personal library while providing the flexibility and accessibility of modern digital technology.
+It unifies a multi-format ebook reader (`EPUB`, `PDF`, `DOCX`), a dedicated audiobook player (`MP3`, `M4B`, `M4A`, `OGG`, `OGA`, `OPUS`), device-native Text-to-Speech (`TTS`), customizable visual bookshelves (covers & spines with smart shelves and per-book sizing), a monthly Reading Calendar & streak tracker, highlights/annotations/journal workflows, offline downloads, and delta cloud synchronization.
 
 ---
 
-# 1. Project Overview
+## 1. Project Overview
 
 | Attribute | Details |
 |---|---|
-| Project Name | Reading Sanctuary |
-| Project Type | Cross-platform Reading Management Application |
-| Domain | Application Development / Digital Reading |
-| Frontend | Flutter & Dart |
-| Backend | Java & Spring Boot |
-| Database | PostgreSQL |
-| Local Database | SQLite (mobile) |
-| Database Migration | Flyway |
-| API Architecture | REST APIs |
-| Authentication | Spring Security |
-| File Storage | Private cloud object storage (AWS S3 planned) |
-| API Documentation | Swagger / OpenAPI |
-| Version Control | Git & GitHub |
-| Containerization | Docker |
-| Development IDE | VS Code |
-| Target Platforms | Android, iOS, Web and Windows Desktop |
-
-## 2. The Problem Statement
-
-Readers often use multiple applications to manage different aspects of their reading experience.
-
-For example:
-
-- One application for reading PDFs and EPUBs.
-- Another application for listening to audiobooks.
-- Separate applications for tracking reading progress.
-- Notes applications for saving quotes and thoughts.
-- Spreadsheets or journals for maintaining reading lists.
-- Cloud storage applications for organizing book files.
-
-This creates a fragmented reading experience.
-
-Readers also struggle to maintain a centralized record of their reading history, annotations, unfinished books, personal ratings and reading progress.
-
-**Reading Sanctuary addresses this problem by providing one centralized platform for managing the complete digital reading experience.**
-
-## 3. Project Vision
-
-The vision is to build a personal digital library where users can:
-
-- Maintain their entire digital book collection.
-- Read ebooks in a comfortable reading environment.
-- Listen to audiobooks.
-- Convert supported ebook text into speech.
-- Organize books into personalized bookshelves.
-- Track reading progress and maintain reading history.
-- Highlight important passages and attach notes.
-- Maintain personal reading journals.
-- Save memorable quotes.
-- Track books they want to read.
-- Access their library across multiple devices.
-- Continue reading offline and synchronize changes when internet connectivity returns.
-
-The application will prioritize:
-
-1. Reading experience.
-2. User privacy and data ownership.
-3. Personalization and customization.
-4. Reliable offline access.
-5. Seamless synchronization.
-6. Long-term preservation of reading history.
+| **Project Name** | Reading Sanctuary |
+| **Project Type** | Cross-platform Personal Reading & Audiobook Management Platform |
+| **Frontend** | Flutter & Dart (Riverpod, GoRouter, Claymorphism + Dark Academia / Warm Parchment themes) |
+| **Localization** | **25 languages** via Flutter `l10n` (`lib/l10n/app_*.arb`) |
+| **Backend** | Java 25 & Spring Boot (modular monolith, 31 REST controllers across 24 domain packages) |
+| **Database** | PostgreSQL 18 (versioned via **22 Flyway migrations**, `V1`–`V22`) |
+| **Local Persistence** | SharedPreferences / SQLite outbox cache (Mobile & Desktop) + IndexedDB (Flutter Web audiobooks) |
+| **Authentication** | JWT Bearer Auth + Spring Security + Google OAuth 2.0 ID/userinfo verification |
+| **File Storage** | Local disk object storage (`LocalStorageService`) & private AWS S3 presigned storage (`S3StorageService`) |
+| **API Documentation** | Swagger / OpenAPI (`/swagger-ui.html`) |
+| **Target Platforms** | Android, Web, Windows Desktop, and iOS |
 
 ---
 
-# 4. Core Features
+## 2. The Problem Statement & Vision
 
-## 4.1 User Authentication and Profiles
+Readers typically split their reading life across separate reader apps, audiobook players, note-taking tools, spreadsheets, and cloud folders. **Reading Sanctuary** consolidates all reading and listening into one private, user-owned ecosystem built around six priorities:
 
-- User registration and login.
-- Secure password storage.
-- Individual user accounts.
-- Profile customization.
-- User preferences and reading settings.
-- Multi-device account access.
-- Private library by default.
-
-## 4.2 Personal Digital Library
-
-Users can maintain a centralized collection of digital books.
-
-Supported ebook formats:
-
-- PDF
-- EPUB
-- DOCX
-
-Supported audiobook formats:
-
-- MP3
-- M4B
-
-Features:
-
-- Upload books directly into the library.
-- Automatically create a book entry when a book is uploaded.
-- Extract available book metadata.
-- Automatically extract the book cover where possible.
-- Allow users to upload or replace covers manually.
-- Maintain multiple formats of the same book under one book entry.
-- Store author, title, genre and description.
-- Add personal descriptions and extra information.
-- Rate books.
-- Maintain reading status.
-- Search and filter the library.
-
-**Important design principle:** A book and its uploaded files are separate entities. One book can have multiple ebook and audiobook files without creating duplicate book entries.
-
-## 4.3 Custom Digital Bookshelves
-
-Users can organize their library through customizable bookshelves.
-
-Features:
-
-- Create multiple bookshelves.
-- Customize bookshelf appearance.
-- Create personal collections.
-- Organize books by author, genre or reading status.
-- Create nested folders.
-- Assign multiple collections to the same book.
-- Add custom tags.
-- Move books between collections.
-- Search within collections.
-
-The visual design will follow a dark academia and cozy library aesthetic.
-
-## 4.4 Ebook Reader
-
-An integrated ebook reading experience supporting:
-
-- PDF reading.
-- EPUB reading.
-- DOCX reading.
-- Reading progress preservation.
-- Bookmarks.
-- Adjustable reading settings.
-- Reading themes.
-- Font and text customization where supported.
-- Full-screen reading.
-- Page navigation.
-- Resume reading from the last saved position.
-
-## 4.5 Audiobook Player
-
-An integrated audiobook listening experience.
-
-Features:
-
-- MP3 playback.
-- M4B playback.
-- Play, pause and resume.
-- Playback speed controls.
-- Seek forward and backward.
-- Audio progress tracking.
-- Resume playback from the previous position.
-- Chapter navigation for supported M4B files.
-- Background audio playback.
-- Lock-screen media controls.
-
-## 4.6 Text-to-Speech (TTS)
-
-When an audiobook is unavailable, users can listen to supported ebook content through text-to-speech.
-
-Features:
-
-- Voice playback of ebook text.
-- Play and pause controls.
-- Adjustable speech speed.
-- Voice selection.
-- Resume listening.
-- Device-native TTS voices.
-- Optional cloud-based voices in future releases.
-
-The application will prioritize native device voices initially to reduce infrastructure costs.
-
-Scanned PDFs may require OCR before their text can be used for speech.
-
-## 4.7 Highlights and Annotations
-
-Users can interact with the content of their books.
-
-Features:
-
-- Highlight selected text.
-- Multiple highlight colors.
-- Add notes to individual highlights.
-- Edit or delete annotations.
-- View all annotations associated with a book.
-- Navigate back to the original highlighted passage.
-- Maintain annotations across reading sessions.
-
-Annotations will preserve format-specific location information so that the application can identify the original passage.
-
-## 4.8 Personal Reading Journal
-
-A dedicated space for recording personal reading experiences.
-
-Features:
-
-- Add personal notes to books.
-- Write reading reflections.
-- Save memorable quotes.
-- Add personal reviews.
-- Record thoughts and interpretations.
-- Maintain a journal independently of book highlights.
-
-## 4.9 Reading Tracker
-
-Users can track their reading journey.
-
-Features:
-
-- Record reading start dates.
-- Record completion dates.
-- Maintain reading status.
-- Track reading progress.
-- Track multiple currently-reading books.
-- Maintain reading history.
-- Track rereading sessions.
-- Rate completed books.
-
-Reading statuses:
-
-- Want to Read (TBR)
-- Currently Reading
-- Completed
-- Did Not Finish (DNF)
-- On Hold
-
-DNF books will remain in the user's library. Their reading history, notes, annotations and progress will not be deleted.
-
-## 4.10 Offline Access and Cloud Synchronization
-
-Reading Sanctuary will follow an offline-first approach.
-
-Features:
-
-- Download books for offline access.
-- Read previously downloaded books without internet.
-- Store reading progress locally.
-- Store annotations and notes locally.
-- Synchronize changes when connectivity returns.
-- Support multiple devices.
-- Handle synchronization conflicts.
-- Maintain reliable user data across devices.
-
-Cloud synchronization will be automatic whenever an internet connection is available.
-
-## 4.11 Reading Statistics and Goals
-
-Planned features:
-
-- Daily reading time.
-- Weekly and monthly reading activity.
-- Books completed.
-- Books currently being read.
-- Reading streaks.
-- Reading goals.
-- Yearly reading summaries.
-- Genre-based reading statistics.
-- Reading history visualization.
+1. **Distraction-free Reading & Listening** across ebooks, audiobooks, and Text-to-Speech.
+2. **Privacy & Data Ownership** with private-by-default libraries and strict per-user backend isolation.
+3. **Deep Personalization** with custom shelves, smart shelf rules, book spine/cover size controls, themes, and 25 locales.
+4. **Separate Book vs. File Modeling** so `EPUB`, `PDF`, `DOCX`, and audio formats stay attached to a single book record without duplicate entries.
+5. **Non-destructive Reading History**, preserving progress, sessions, and notes even when marking a book **Did Not Finish (DNF)** or moving it to the Forgotten Shelf (Trash).
+6. **Offline-First & Multi-Device Sync** using monotonic sequence cursors, idempotent client outbox operations, and SHA-256 checksum verification.
 
 ---
 
-# 5. Functional Requirements
+## 3. Feature Ecosystem Overview
 
-| Module | Main Responsibility |
-|---|---|
-| Authentication | Registration, login and account security |
-| User Management | User profiles and preferences |
-| Book Management | Book metadata and library records |
-| File Management | Ebook and audiobook uploads |
-| Bookshelf Management | Personalized shelves and collections |
-| Reader | PDF, EPUB and DOCX reading |
-| Audiobook | Audio playback and chapter management |
-| TTS | Text-to-speech functionality |
-| Annotation | Highlights and notes |
-| Journal | Personal notes, reviews and quotes |
-| Reading Tracker | Reading status and progress |
-| Synchronization | Offline-first synchronization |
-| Statistics | Reading analytics and goals |
+Reading Sanctuary synthesizes capabilities documented across:
+- [Features.md](Features.md) — Reading Calendar, Analytics, Library Management, My Bookshelf, Smart Shelves, Individual Book Sizing, and Rich Book Metadata.
+- [BOOK.md](BOOK.md) — Ebook library organization, multi-format reader architecture (`EPUB`, `PDF`, `DOCX`), highlights, quotes, notes, bookmarks, reading customization, TTS, file discovery, and offline reading.
+- [AUDIO.md](AUDIO.md) — Complete 11-module Audiobook subsystem covering library management, import/metadata extraction, playback, sleep timer, bookmarks, history, artwork palettes, widgets, background audio, and 25-language localization.
 
----
+### 3.1 Book Library, Reader & Ebook Capabilities ([BOOK.md](BOOK.md))
+- **Unified Book & File Model:** Separate `Book` and `BookFile` entities allow attaching multiple digital formats (`EPUB`, `PDF`, `DOCX`, `MP3`, `M4B`, `M4A`) under one book without duplication.
+- **Integrated Readers:**
+  - **EPUB (`flutter_epub_viewer`):** Reflowable chapters, Table of Contents drawer, chapter/CFI reading progress persistence, in-book search, font/reader preferences, and reading themes.
+  - **PDF (`pdfrx`):** Page-by-page navigation slider, page count tracking, and progress sync.
+  - **DOCX (`docx_viewer`):** Structured Word document reading and progress tracking.
+- **Book Discovery & Duplicate Detection:** Platform-aware `BookDiscovery` module (`DiscoverBooksScreen`) with Android Storage Access Framework (`SAF`) folder registration, desktop directory scanning, in-browser Web scanning, file-signature validation, SHA-256 duplicate reconciliation (`V22`), and batch upload.
+- **Annotations, Highlights, Bookmarks & Journal:** Color-coded text highlights (`HighlightColorPicker`), anchored chapter notes, favorite quotes (`V19`), reading bookmarks (`V4`, `V18`), centralized annotation panel, and a dedicated Reading Journal screen.
+- **Text-to-Speech (TTS):** On-device narration fallback (`flutter_tts`) backed by extracted document text chunks (`DocumentTextController`), adjustable speed, voice selection, and server/offline position tracking (`V7`).
+- **Reading Lists, DNF & Trash:** `Want to Read`, `Currently Reading`, `Completed`, `On Hold`, `DNF` (with cinematic DNF screen preserving progress & notes), `Favorites`, and recoverable **Forgotten Shelf / Trash** (`V20`).
 
-# 6. Technology Stack
-
-## Frontend
-
-### Flutter
-The application frontend will be developed using Flutter.
-
-Reasons for choosing Flutter:
-
-- Single codebase for Android, iOS and Web.
-- Consistent UI across platforms.
-- Customizable user interface.
-- Responsive layouts.
-- Strong ecosystem of packages.
-- Native platform integration.
-
-### Dart
-Used as the primary programming language for the Flutter application.
-
-Frontend responsibilities:
-
-- User interface.
-- Navigation.
-- State management.
-- API communication.
-- Local data management.
-- File selection and uploads.
-- Ebook reading interface.
-- Audio playback.
-- Offline functionality.
-
-## Backend
-
-### Java 25
-
-Java will be the primary backend programming language.
-
-### Spring Boot 3.5.x
-
-Spring Boot will provide the backend application framework.
-
-Backend responsibilities:
-
-- Authentication and authorization.
-- User management.
-- Book management.
-- File management.
-- Reading progress management.
-- Collection management.
-- Annotation and journal APIs.
-- Cloud storage integration.
-- Synchronization logic.
-
-### Spring Security
-
-Used for:
-
-- Authentication.
-- Authorization.
-- Password security.
-- Protected REST endpoints.
-- Role and ownership-based access control.
-
-### Spring Data JPA / Hibernate
-
-Used for database access and object-relational mapping.
-
-### Maven
-
-Used for dependency management and backend builds.
-
-## Database
-
-### PostgreSQL
-
-Primary relational database.
-
-Used to store:
-
-- User accounts.
-- User profiles.
-- Book metadata.
-- Author information.
-- Book formats and file references.
-- Collections and tags.
-- Reading progress.
-- Reading history.
-- Bookmarks.
-- Annotations.
-- Journal entries.
-- Reviews and quotes.
-- Synchronization metadata.
-
-### SQLite
-
-Planned local database for mobile devices.
-
-Used for offline data storage and local synchronization queues.
-
-### Flyway
-
-Used for database version control and migrations.
-
-Every database schema change will be maintained as a versioned SQL migration.
-
-## Cloud and File Storage
-
-### AWS S3 (planned)
-
-Private object storage for uploaded ebooks, audiobooks and cover images.
-
-Files will not be publicly accessible by default.
-
-The initial development phase will use local storage or a compatible development storage solution before cloud deployment.
-
-## API Documentation
-
-### Swagger / OpenAPI
-
-Used to document and test backend REST APIs.
-
-## Development and Infrastructure
-
-| Technology | Purpose |
-|---|---|
-| Git | Version control |
-| GitHub | Source code repository |
-| Docker | Containerization |
-| VS Code | Development environment |
-| Android Studio | Android SDK and emulator |
-| Postman / Thunder Client | API testing |
-| pgAdmin 4 | PostgreSQL administration |
-| Maven | Backend build management |
-| Flyway | Database migrations |
+### 3.2 Complete Audiobook System — All 11 Feature Groups ([AUDIO.md](AUDIO.md))
+1. **Personal Audiobook Library:** `Current`, `Not started`, and `Completed` sections with cover art, narrator/author metadata, completion percentages, and Grid / List view switcher.
+2. **Importing & Multi-Track Grouping:** Supports DRM-free `M4B`, `MP3`, `M4A`, `OGG`, `OGA`, and `OPUS`; extracts tags (`TIT2`, `TPE1`, `TALB`, `TRCK`), durations, and embedded cover art via `audio_metadata_reader`; groups multi-file chapters into a single `Audiobook` record (`AudiobookGroupingUtils`) with duplicate checks.
+3. **Playback Engine (`just_audio` + `audio_service` + `audio_session`):** Play/pause, variable playback speed, `-15s` / `+30s` jump controls, chapter list navigation, chapter rollover, silence skipping & volume boost settings UI, and `Resume Playback`.
+4. **Sleep Timer:** Timed duration presets (`15`, `30`, `45`, `60 min`), `End of chapter` and `End of track` boundary stops, smooth volume fade-out, shake-to-extend (`sensors_plus`), and Night appearance mode.
+5. **Bookmarks & Listening Notes:** Timestamped bookmarks organized by category (`Note`, `Quote`, `Revisit`) and favorites, viewable per-book and on a global `All Bookmarks` screen.
+6. **Listening History:** Records listening sessions, pauses, jumps, and previous resume positions (`AudiobookHistoryPage`).
+7. **Cover Management & Dynamic Player Colors:** Uses embedded audio artwork, user-selected custom covers (`Change Cover`), or fallback generated covers; derives adaptive player colors via `palette_generator`.
+8. **Search & Discovery:** Instant title/author search and completion-status filtering across the audiobook collection.
+9. **Android Home-Screen Widgets:** Native Kotlin app widgets (`AudiobookNowPlayingWidgetProvider.kt` and `AudiobookShelfWidgetProvider.kt`) integrated via `home_widget`.
+10. **Background Audio & Media Integration:** Android foreground service (`AudioService`) and `MediaButtonReceiver` declarations for background playback and headset/Bluetooth media buttons *(see §11 for Phase 8 release-APK media notification bug note)*.
+11. **Appearance & 25-Language Localization:** Dark Academia, Warm Parchment, and Clay themes plus localized ARB resources for **25 languages** (`ar`, `bn`, `de`, `en`, `es`, `fr`, `gu`, `hi`, `id`, `it`, `ja`, `kn`, `ko`, `ml`, `mr`, `nl`, `pa`, `pl`, `pt`, `ru`, `ta`, `te`, `tr`, `vi`, `zh`).
 
 ---
 
-# 7. System Architecture
+## 4. Reading Sanctuary — Complete Feature Checklist (8 Categories / 99+ Checklist Items)
 
-Reading Sanctuary will initially follow a **modular monolithic architecture**.
+Master checklist aligned with [Features.md](Features.md):
 
-This approach keeps the application manageable while separating responsibilities into independent backend modules.
+### 4.1 Reading Dashboard & Tracker
+- [x] **Daily Greeting & Date** — Personalized time-of-day greeting and formatted current date on the Home dashboard.
+- [x] **Reading Momentum** — 7-day consistency indicator showing active reading days and momentum tier.
+- [x] **Daily Reading Streak** — Consecutive daily reading streak counter backed by reading-session analytics.
+- [x] **Personal Best Streak** — Displays the user's longest recorded reading streak.
+- [x] **Weekly Streak Calendar** — Seven-day (`MON`–`SUN`) strip highlighting completed reading days.
+- [x] **Mark Today Complete** — One-tap action to log daily reading completion.
+- [x] **Streak Freeze** — Protects an active reading streak across a missed day (`V8` streak freeze records).
+- [x] **Streak Freeze Availability** — Displays remaining and previously consumed streak freezes.
+- [x] **Currently Reading Section** — Dedicated Home carousel highlighting active reads.
+- [x] **Multiple Currently Reading Books** — Horizontal carousel navigation across multiple active books.
+- [x] **Book Cover & Title** — Displays cover art and book title on dashboard cards.
+- [x] **Author & Genre** — Displays author name and genre metadata on active reading cards.
+- [x] **Reading Format** — Displays associated format pills (`eBook`, `EPUB`, `PDF`, `DOCX`, `Audiobook`).
+- [x] **Reading Progress Slider** — Visual slider and percentage bar synced with `reading_progress`.
+- [x] **Current Page Controls** — Controls to increment, decrement, or jump directly to the current page.
+- [x] **Total Page Count** — Displays total book page count alongside current page.
+- [x] **Reading Start Date** — Records and displays when reading began (`started_at`).
+- [x] **Days Spent Reading** — Calculates elapsed days since starting the book.
+- [x] **Average Pages Per Day** — Calculates average daily reading pace from session history.
+- [x] **Estimated Days Remaining** — Projects remaining days to finish based on current pace and remaining pages.
+- [x] **Expandable Book Description** — Expand/collapse synopses cleanly without cluttering cards.
 
-Microservices are intentionally avoided in the initial development phase to reduce deployment complexity and infrastructure overhead.
+### 4.2 Reading Calendar — Additional Feature
+- [x] **Monthly Calendar View** — Proper calendar grid displaying exact dates aligned by day of week (`ReadingCalendarScreen`).
+- [x] **Weekday Headings** — Monday through Sunday column headers above the monthly grid.
+- [x] **Green Reading Indicator** — Marks dates with recorded reading/listening activity in green.
+- [x] **Red Missed-Day Indicator** — Marks elapsed past dates without reading activity in red.
+- [x] **Future Date Indicators** — Keeps upcoming dates visually neutral rather than marking them missed.
+- [x] **Today's Highlight** — Visually distinguishes the current date cell.
+- [x] **Month Navigation** — Previous/next month controls to browse historical and current months.
+- [x] **Daily Reading Details** — Tapping any date displays pages read, time spent, and books read on that day.
+- [x] **Monthly Reading Summary** — Summarizes total days read, days missed, and streak metrics for the month.
+- [x] **Monthly Pages & Reading Time** — Totals pages read and reading/listening duration for the selected month.
 
-### High-Level Architecture
+### 4.3 Library Management
+- [x] **Select / Import Books** — Device file picker import (`AddBookScreen`) for `EPUB`, `PDF`, `DOCX`, and audio formats with server upload (`BookUploadController`).
+- [x] **Scan Books** — Multi-platform folder discovery (`DiscoverBooksScreen`) via SAF (Android), directory traversal (Desktop), and file chooser (Web).
+- [x] **Manual Book Addition** — Add book records manually without attaching a digital file (`/library/add-manual`).
+- [x] **Advanced Book Search** — Live search matching book title, author, and genre (`library_logic.dart`, `/search`).
+- [x] **Recently Added Sorting** — Sort library collections by added date and additional sort criteria.
+- [x] **Reading Status Filter** — Filter by `All Books`, `Reading`, `TBR`, `Completed`, `On Hold`, `DNF`.
+- [x] **Book Status Filter** — Filter by availability / library status (including Trash / Deleted views).
+- [x] **Author Filter** — Filter library books by selected author (`AdvancedFilterSheet`).
+- [x] **Genre Filter** — Filter library books by selected genres (`LibraryFilterSheet` / `AdvancedFilterSheet`).
+- [x] **Format Filter** — Filter by `EPUB`, `PDF`, `DOCX`, and `Audiobook`.
+- [x] **Rating Filter** — Filter books by star rating thresholds.
+- [x] **More Filters** — Multi-criteria combinable filter sheets.
+- [x] **Book Cover Grid** — Responsive multi-column cover grid (`BookGridCard`).
+- [x] **Book Titles & Authors** — Title and author labels rendered on library cards.
+- [x] **Reading Status Indicators** — Status pills rendered directly on each library card.
+- [x] **Star Ratings on Book Cards** — Saved star rating display rendered on library cards.
+
+### 4.4 My Bookshelf
+- [x] **Dedicated My Bookshelf Screen** — Separate `BookshelvesScreen` and `BookshelfDetailScreen` views.
+- [x] **Covers View** — Front cover shelf display (`BookCoverGrid` / shelf cards).
+- [x] **Spines View** — Physical bookshelf layout rendering vertical 3D/clay book spines (`BookshelfBookSpine`, `ClayBookSpine`).
+- [x] **Covers / Spines Switcher** — Layout selector (`BookshelfLayoutSelector`) toggling Covers vs. Spines views.
+- [x] **Scan Spines** — Interactive Spine Scanner modal sheet (`ScanSpinesSheet`) that previews detected titles and adds them to the user's library *(note: currently uses a simulated scan workflow; live hardware camera OCR is a future enhancement)*.
+- [x] **Adjust Book Sizes** — Interactive resize mode for customizing bookshelf book dimensions (`BookSizeSlider`).
+- [x] **Small Size Preset** — `S` dimension preset for shelf items.
+- [x] **Medium Size Preset** — `M` dimension preset for shelf items.
+- [x] **Large Size Preset** — `L` dimension preset for shelf items.
+
+### 4.5 Bookshelf Statistics
+- [x] **Total Books** — Total library book count (`LibraryStatistics`).
+- [x] **Completed Books** — Count of completed books.
+- [x] **Completion Percentage** — Computed percentage of completed books across the library.
+- [x] **Currently Reading Count** — Count of books marked `Currently Reading`.
+- [x] **Want to Read Count** — Count of books on the `Want to Read` (`TBR`) list.
+- [x] **Average Book Rating** — Computed average score across rated books.
+- [x] **Genre Statistics** — Per-genre book breakdown & charts (`GenrePieChart`, `TopGenresChart`).
+- [x] **Favourite Genre** — Highlights the top-represented genre in the user's library.
+
+### 4.6 Automatic Bookshelf Organisation
+All 14 smart-shelf categories are driven by [`SmartShelfService`](frontend/reading_sanctuary_app/lib/features/bookshelf/application/smart_shelf_service.dart):
+- [x] **Genre-Based Shelves** (`SmartShelfCategory.genre`)
+- [x] **Author-Based Shelves** (`SmartShelfCategory.author`)
+- [x] **Reading Status Shelves** (`SmartShelfCategory.readingStatus`)
+- [x] **Book Status Shelves** (`SmartShelfCategory.bookStatus`)
+- [x] **Page Count Shelves** (`SmartShelfCategory.pageCount`)
+- [x] **Rating-Based Shelves** (`SmartShelfCategory.rating`)
+- [x] **Publisher-Based Shelves** (`SmartShelfCategory.publisher`)
+- [x] **Format-Based Shelves** (`SmartShelfCategory.format`)
+- [x] **Price-Based Shelves** (`SmartShelfCategory.price`)
+- [x] **Spice Rating Shelves** (`SmartShelfCategory.spice`)
+- [x] **Recommendation Shelves** (`SmartShelfCategory.recommendation`)
+- [x] **Mood-Based Shelves** (`SmartShelfCategory.mood`)
+- [x] **Series-Based Shelves** (`SmartShelfCategory.series`)
+- [x] **Collection-Based Shelves** (`SmartShelfCategory.collections`)
+- [x] **Book Count Per Shelf** — Displays count badges per shelf.
+- [x] **Automatic Book Matching** — Dynamically recomputes shelf membership whenever book metadata updates.
+- [x] **Multiple Shelf Columns** — Responsive multi-column layout on wider viewports.
+- [x] **Vertical Bookshelf Scrolling** — Vertical scroll across shelf categories and rows.
+- [x] **Horizontal Shelf Scrolling** — Horizontal scrolling through books inside each shelf row.
+
+### 4.7 Individual Book Size Customisation
+Managed via `BookSizeProvider` and `BookSizeSlider`:
+- [x] **Resize Mode** — Dedicated editing mode toggled from bookshelf controls.
+- [x] **Individual Book Selection** — Tap any shelf book to target it for resizing.
+- [x] **Selected Book Highlight** — Highlights the active book during customization.
+- [x] **Individual Height Slider** — Continuous height slider controlling scale factor (`BookSizeSlider`).
+- [x] **Live Size Preview** — Immediate visual scaling as the slider or preset changes.
+- [x] **Automatic Width Adjustment** — Maintains proportional aspect ratio when height changes.
+- [x] **Auto Reset** — `Reset All` button restores default book dimensions.
+- [x] **Done / Save Changes** — Persists size customizations and exits resize mode.
+- [x] **Preserve Neighbour Positions** — Resizing one book preserves neighboring book sizing and order.
+
+### 4.8 Book Details & Metadata
+Implemented across `BookDetailsScreen`, `EditBookMetadataSheet`, `Book` model, and Flyway `V21`:
+- [x] **Enlarged Book Cover** — Prominent cover card with upload/replace capability (`BookCoverController`).
+- [x] **Book Title** — Editable title field.
+- [x] **Author Name** — Editable author field.
+- [x] **Reading Status** — Selector across `Want to Read`, `Currently Reading`, `Completed`, `On Hold`, `DNF`.
+- [x] **Book Format** — Interactive format switcher tabs (`Book`, `eBook`, `Audiobook`).
+- [x] **Personal Recommendation** — Classification tags (`Highly Recommend`, etc.).
+- [x] **Star Rating** — Interactive 5-star overall rating.
+- [x] **Numerical Rating Out of 100** — Detailed `0–100` score input (`ratingOutOf100`).
+- [x] **Genre** — Editable primary genre and tags.
+- [x] **Page Count** — Editable total pages (`totalPages`) and quick `Update page` dialog.
+- [x] **Acquisition Method** — Tracks `Purchased`, `Borrowed`, `Gifted`, etc. (`acquisitionMethod`).
+- [x] **Reading Start Date** — Stored and editable `startedAt`.
+- [x] **Completion Date** — Stored and editable `completedAt`.
+- [x] **Purchase Date** — Stored and editable `purchaseDate`.
+- [x] **Purchase Price** — Amount (`purchasePrice`) and `currency` support.
+- [x] **Publisher** — Editable `publisher` metadata.
+- [x] **ISBN** — Stored and editable `isbn` identifier.
+- [x] **Spice Rating** — Interactive 1–5 spice meter + Fluff & Tear ratings.
+- [x] **Book Tropes** — Multi-tag trope chips (e.g., *Enemies to Lovers*, *Slow Burn*).
+- [x] **Book Mood** — Mood categorization (e.g., *Dark*, *Cozy*, *Emotional*, *Romantic*).
+
+---
+
+## 5. System Architecture
 
 ```text
-                 READING SANCTUARY
-                         |
-             +-----------+-----------+
-             |                       |
-       Flutter Web             Flutter Mobile
-             |                       |
-             +-----------+-----------+
-                         |
-                    HTTPS / REST
-                         |
-                SPRING BOOT BACKEND
-                         |
-       +-----------------+------------------+
-       |                 |                  |
-   Auth Module       Book Module       Reading Module
-       |                 |                  |
-       +-----------------+------------------+
-                         |
-                  SERVICE LAYER
-                         |
-                REPOSITORY LAYER
-                         |
-                    PostgreSQL
-                         |
-          +--------------+--------------+
-          |                             |
-    Flyway Migrations             Data Records
-          |
-          +-------------------------------+
-
-Additional integrations:
-
-Spring Boot --> Private Object Storage (AWS S3)
-Flutter --> Local Database (SQLite on mobile)
-Flutter --> Device TTS / Audio Services
-Flutter <--> Backend Synchronization APIs
+                           READING SANCTUARY
+                                   |
+           +-----------------------+-----------------------+
+           |                       |                       |
+      Flutter Web           Flutter Android        Flutter Desktop
+    (IndexedDB Audio)      (SAF + AudioService)    (Local FS + SQLite)
+           |                       |                       |
+           +-----------------------+-----------------------+
+                                   |
+                             HTTPS / REST
+                          (/api/v1/ + JWT Auth)
+                                   |
+                         SPRING BOOT BACKEND
+             (Java 25, Spring Security, JPA, Flyway V1-V22)
+                                   |
+     +-------------------+---------+---------+-------------------+
+     |                   |                   |                   |
+  Auth & User      Books & Metadata     Reader & Audio      Analytics & Sync
+(auth, user)    (book, bookfile,     (readerposition,    (analytics, sync,
+                 bookshelf,           readingprogress,    activity sessions,
+                 bookmetadata,        bookmark, note,     reading goals,
+                 collection)          highlight, tts)     streak freezes)
+                                   |
+                     PostgreSQL 18 + Storage
+                 (Local Storage / Private AWS S3)
 ```
 
-### Architectural Principles
+---
 
-- Modular monolithic backend.
-- REST-based frontend/backend communication.
-- Separation of controller, service and repository layers.
-- Secure file access.
-- User-level data isolation.
-- Offline-first mobile architecture.
-- Version-controlled database migrations.
-- Centralized error handling.
-- API validation.
-- Consistent response formats.
-- Secure authentication and authorization.
+## 6. Database Schema (Flyway Migrations `V1`–`V22`)
+
+| Migration | Scope |
+|---|---|
+| `V1__initial_schema.sql` | Core `users`, authentication, and initial tables |
+| `V2__book_metadata_and_covers.sql` | Books, metadata fields, and cover storage keys |
+| `V3__reading_progress_and_library_organization.sql` | Bookshelves, collections, reading status, and initial progress |
+| `V4__bookmarks_highlights_and_notes.sql` | Bookmarks, highlights, and notes tables |
+| `V5__reader_positions.sql` | Reader position snapshots across book files |
+| `V6__audiobook_playback.sql` | Backend audiobook playback tracking |
+| `V7__tts_playback_positions.sql` | Text-to-Speech listening position tracking |
+| `V8__create_reading_analytics.sql` | Activity sessions, daily reading history, reading goals, and streak freezes |
+| `V9__create_sync_infrastructure.sql` | `user_devices` and `sync_change_log` monotonic cursor tables |
+| `V10__google_authentication.sql` | Google OAuth subject linking (`google_sub`) |
+| `V11__add_user_gender.sql` | User profile gender attribute |
+| `V12__bookshelf_customization.sql` | Shelf themes, layouts, and custom book sizing persistence |
+| `V13__expand_book_file_formats_and_pending_uploads.sql` | Expanded ebook/document format support & pending multi-step uploads |
+| `V14__add_dnf_details.sql` | `dnf_at`, `dnf_reason`, `dnf_notes`, `previous_reading_status` |
+| `V15__support_m4a_format.sql` | `.m4a` audio format constraint update |
+| `V16__create_audiobook_module.sql` | Audiobook metadata, tracks, bookmarks, and listening session sync tables |
+| `V17__create_reading_progress.sql` | Unified per-file `reading_progress` (`epub_cfi`, page, percentage, audio ms) |
+| `V18__create_annotations.sql` | Unified format-aware `annotations` schema |
+| `V19__support_quote_annotations.sql` | Dedicated quote annotation support |
+| `V20__book_trash_and_restore.sql` | Soft delete (`deleted_at`) & Forgotten Shelf restoration |
+| `V21__expand_book_metadata_and_reading_tracker.sql` | Publisher, ISBN, `rating_out_of_100`, spice/recommendation, tropes, mood, purchase price/date, acquisition method |
+| `V22__book_file_checksum_index_and_duplicate_tracking.sql` | File SHA-256 checksum index & duplicate upload detection |
 
 ---
 
-# 8. Database Design
-
-The database will use PostgreSQL with UUID primary keys and relational constraints.
-
-The design separates book records from their physical or digital files.
-
-A single book can have multiple file formats, editions and associated audio files.
-
-## Planned Database Tables
-
-### A. User Management
-
-1. users
-2. user_profiles
-3. user_preferences
-4. user_devices
-5. user_tts_preferences
-
-### B. Book Management
-
-6. books
-7. authors
-8. book_authors
-9. genres
-10. book_genres
-11. book_files
-12. book_covers
-13. audio_chapters
-
-### C. Organization
-
-14. collections
-15. collection_books
-16. tags
-17. book_tags
-
-### D. Reading Management
-
-18. reading_cycles
-19. reading_progress
-20. reading_sessions
-21. bookmarks
-22. reading_goals
-
-### E. Journal and Annotations
-
-23. annotations
-24. annotation_comments
-25. book_notes
-26. book_reviews
-27. favorite_quotes
-
-### F. Synchronization and Privacy
-
-28. sync_operations
-29. device_downloads
-30. book_shares
-31. collection_shares
-
-These are the planned logical tables. Their exact columns, relationships and constraints will be finalized during database implementation.
-
-## Important Database Design Decisions
-
-1. A book record is independent of its uploaded files.
-2. One book can have multiple ebook and audiobook files.
-3. A book can belong to multiple collections.
-4. A user can maintain multiple active reading cycles.
-5. Rereading a book creates a new reading cycle.
-6. DNF does not delete a book or its history.
-7. Annotations are associated with the relevant book and file.
-8. Reading progress is maintained for the relevant file and reading cycle.
-9. User data must be isolated between accounts.
-10. Synchronization operations must be idempotent to avoid duplicate changes.
-
----
-
-# 9. Repository Folder Structure
-
-The project will follow a monorepo structure so that frontend, backend, database scripts, infrastructure and documentation remain together.
+## 7. Repository Folder Structure
 
 ```text
 reading-app/
 │
 ├── frontend/
 │   └── reading_sanctuary_app/
-│       │
-│       ├── android/                       # Android native project and Gradle setup
-│       ├── ios/                           # iOS native project and Xcode runner
-│       ├── web/                           # Flutter Web entry point, manifest, and icons
-│       ├── windows/                       # Windows native C++ desktop runner and CMake
-│       │
+│       ├── android/                       # Android project, Gradle build, SAF channel & Home Widgets
+│       │   └── app/src/main/kotlin/com/example/reading_sanctuary_app/
+│       │       ├── MainActivity.kt
+│       │       ├── AudiobookNowPlayingWidgetProvider.kt
+│       │       └── AudiobookShelfWidgetProvider.kt
+│       ├── ios/ web/ windows/             # Platform runners
 │       ├── lib/
-│       │   ├── main.dart                  # Application entry point with ProviderScope
-│       │   │
+│       │   ├── main.dart                  # ProviderScope entry point + dotenv initialization
 │       │   ├── app/
-│       │   │   ├── app.dart               # Root widget & MaterialApp.router configuration
-│       │   │   ├── router.dart            # GoRouter configuration & ShellRoute navigation
-│       │   │   └── theme/
-│       │   │       ├── app_colors.dart    # Cozy Library / Dark Academia color palette
-│       │   │       └── app_theme.dart     # Dark Academia & Warm Parchment ThemeData
-│       │   │
+│       │   │   ├── app.dart               # MaterialApp.router, themes & 25-locale delegates
+│       │   │   ├── router.dart            # GoRouter session restore, auth redirect & ShellRoute
+│       │   │   └── theme/                 # Dark Academia, Warm Parchment & Clay themes
 │       │   ├── core/
-│       │   │   ├── utils/
-│       │   │   │   ├── breakpoints.dart   # Responsive screen breakpoints (mobile/tablet/desktop)
-│       │   │   │   └── time_ago.dart      # Relative timestamp formatter helper
-│       │   │   └── widgets/
-│       │   │       ├── book_cover.dart    # Adaptive & procedural book cover widget
-│       │   │       └── common_widgets.dart# Reusable UI components (SanctuaryCard, StatPill, StatusBadge)
-│       │   │
-│       │   ├── features/
-│       │   │   ├── shell/
-│       │   │   │   ├── app_shell.dart     # Responsive layout shell (BottomNav vs Sidebar)
-│       │   │   │   ├── destinations.dart  # Navigation destination routes and icons
-│       │   │   │   └── sidebar.dart       # Collapsible sidebar for desktop and web
-│       │   │   ├── splash/
-│       │   │   │   └── splash_screen.dart # Splash screen with animated branding
-│       │   │   ├── home/
-│       │   │   │   └── home_screen.dart   # Home dashboard (resume reading, statistics, recommendations)
-│       │   │   ├── library/
-│       │   │   │   ├── library_screen.dart# Library grid with search and status tabs
-│       │   │   │   └── library_logic.dart # Search query & status filtering business logic
-│       │   │   ├── book_details/
-│       │   │   │   └── book_details_screen.dart # Book details view with status changer
-│       │   │   ├── placeholder/
-│       │   │   │   └── placeholder_screen.dart  # Milestone placeholder screen
-│       │   │   ├── annotations/           # Milestone placeholder (planned)
-│       │   │   ├── audiobook/             # Milestone placeholder (planned)
-│       │   │   ├── authentication/        # Milestone placeholder (planned)
-│       │   │   ├── bookshelf/             # Milestone placeholder (planned)
-│       │   │   ├── journal/               # Milestone placeholder (planned)
-│       │   │   ├── profile/               # Milestone placeholder (planned)
-│       │   │   └── reader/                # Milestone placeholder (planned)
-│       │   │
-│       │   └── shared/
-│       │       ├── models/
-│       │       │   └── book.dart          # Book data model & ReadingStatus enum
-│       │       └── services/
-│       │           ├── book_repository.dart # Book repository & MockBookRepository sample data
-│       │           └── providers.dart       # Riverpod state providers
-│       │
-│       ├── test/
-│       │   └── library_logic_test.dart    # Unit & logic tests (search, filter, DNF, repo)
-│       │
-│       ├── analysis_options.yaml          # Dart analysis and linter rules
-│       ├── pubspec.yaml                   # Flutter dependencies and project metadata
-│       ├── pubspec.lock                   # Lockfile for reproducible dependencies
-│       └── README.md                      # Frontend-specific documentation
+│       │   │   ├── network/               # ApiConfig (Web/Android/CLI), ApiClient, ApiException
+│       │   │   ├── sync/                  # SyncEngine, LocalStorageDb, SyncApiService
+│       │   │   ├── utils/                 # Breakpoints, relative time helpers
+│       │   │   └── widgets/               # BookCover, ClayComponents, ClayBottomNavBar
+│       │   ├── l10n/                      # 25 language ARB files & generated localizations
+│       │   ├── shared/                    # Book model, repositories, Riverpod providers
+│       │   └── features/                  # 28 modular feature packages:
+│       │       ├── analytics/             # Analytics dashboard, goals, yearly wrap-up, charts
+│       │       ├── annotations/           # Highlights, color picker, notes & panel
+│       │       ├── audiobook/             # Full 11-feature audiobook module + IndexedDB storage
+│       │       ├── authentication/        # Email/password auth, Google OAuth, session storage
+│       │       ├── book_details/          # Book details, format tabs & metadata editor sheet
+│       │       ├── book_discovery/        # Multi-platform folder discovery, SAF & batch upload
+│       │       ├── books/                 # Single-book file validation & import flows
+│       │       ├── bookshelf/             # My Bookshelf, SmartShelfService, Spine View, BookSizeSlider
+│       │       ├── calendar/              # Monthly Reading Calendar grid & daily activity details
+│       │       ├── cloud_storage/         # Cloud storage quota & file management screen
+│       │       ├── discover/              # In-app curated book discovery
+│       │       ├── dnf/                   # Cinematic DNF screen with preserved history
+│       │       ├── favorites/             # Favorites collection screen
+│       │       ├── help/                  # In-app help & documentation
+│       │       ├── home/                  # Dashboard, greeting, streaks, Currently Reading carousel
+│       │       ├── journal/               # Personal reading reflections & journal screen
+│       │       ├── landing/               # Onboarding slides
+│       │       ├── library/               # Library grid, advanced filters, AddBookScreen
+│       │       ├── offline/               # DownloadManager (SHA-256) & DownloadsScreen
+│       │       ├── profile/               # User profile, stats & Shelves/Settings tab
+│       │       ├── reader/                # EPUB (WebView/JS), PDF (pdfrx), DOCX (docx_viewer) readers
+│       │       ├── reading/               # Active reading overview screen
+│       │       ├── search/                # Global library & metadata search
+│       │       ├── settings/              # Theme, sync, localization & app settings
+│       │       ├── shell/                 # Responsive AppShell (BottomNav / Collapsible Sidebar)
+│       │       ├── splash/                # Startup session restoration loading view
+│       │       ├── text_to_speech/        # Device TTS reader screen, chunker & voice selector
+│       │       └── tracker/               # Reading status trackers, Saved Highlights & Favorite Quotes
+│       └── test/                          # 63 test files (373 unit & widget tests)
 │
 ├── backend/
 │   └── reading-sanctuary-api/
-│       │
-│       ├── src/
-│       │   ├── main/
-│       │   │   ├── java/
-│       │   │   │   └── com/readingsanctuary/
-│       │   │   │       │
-│       │   │   │       ├── ReadingSanctuaryApplication.java
-│       │   │   │       │
-│       │   │   │       ├── config/
-│       │   │   │       ├── security/
-│       │   │   │       ├── common/
-│       │   │   │       │
-│       │   │   │       ├── auth/
-│       │   │   │       ├── user/
-│       │   │   │       ├── book/
-│       │   │   │       ├── file/
-│       │   │   │       ├── author/
-│       │   │   │       ├── collection/
-│       │   │   │       ├── bookshelf/
-│       │   │   │       ├── reading/
-│       │   │   │       ├── annotation/
-│       │   │   │       ├── journal/
-│       │   │   │       ├── audiobook/
-│       │   │   │       ├── statistics/
-│       │   │   │       └── sync/
-│       │   │   │
-│       │   │   └── resources/
-│       │   │       ├── application.yml
-│       │   │       └── db/
-│       │   │           └── migration/
-│       │   │
-│       │   └── test/
-│       │       └── java/
-│       │
-│       └── pom.xml
+│       └── src/
+│           ├── main/java/com/readingsanctuary/api/  # 24 modules, 31 REST controllers
+│           ├── main/resources/db/migration/         # Flyway V1__ through V22__
+│           └── test/java/                           # 34 test suites (178 tests)
 │
-├── database/
-│   ├── migrations/
-│   ├── seeds/
-│   ├── diagrams/
-│   └── documentation/
-│
-├── infrastructure/
-│   ├── docker/
-│   ├── deployment/
-│   └── scripts/
-│
-├── docs/
-│   ├── PRD.md
-│   ├── DATABASE_DESIGN.md
-│   ├── API_SPECIFICATION.md
-│   ├── SYSTEM_ARCHITECTURE.md
-│   ├── IMPLEMENTATION_PLAN.md
-│   └── CONTRIBUTING.md
-│
-├── .gitignore
-├── README.md
-└── LICENSE
+├── docs/                                  # Architecture, setup, testing & deployment guides
+├── Features.md                            # 89 + Reading Calendar implementation guide & checklist
+├── BOOK.md                                # Ebook library & reader capability reference
+├── AUDIO.md                               # 11-feature Audiobook architecture & guide
+└── README.md                              # Project documentation (this file)
 ```
 
-The folder structure represents the intended architecture. Directories will be created progressively as their corresponding modules are implemented.
+---
+
+## 8. Backend REST API Surface (`/api/v1/`)
+
+Protected endpoints enforce Spring Security JWT Bearer authentication and per-user data ownership:
+
+| Domain | Controller(s) | Key Base Paths |
+|---|---|---|
+| **Auth & Users** | `AuthController`, `UserController` | `/api/v1/auth/signup`, `/api/v1/auth/login`, `/api/v1/auth/google`, `/api/v1/users/me` |
+| **Books & Upload** | `BookController`, `BookUploadController`, `BookMetadataController`, `BookCoverController` | `/api/v1/books`, `/api/v1/books/upload`, `/api/v1/books/check-duplicates`, `/api/v1/books/{id}/cover` |
+| **Book Files & Storage** | `BookFileController`, `CloudStorageController`, `DocumentTextController` | `/api/v1/books/{bookId}/files`, `/api/v1/storage/files/{fileId}/download-url`, `/api/v1/storage/local/download` |
+| **Reading Progress & Positions** | `ReadingProgressController`, `BookReadingPositionController`, `BookReadingController`, `BookHistoryController` | `/api/v1/reading-progress/{fileId}`, `/api/v1/books/{bookId}/reading-position` |
+| **Annotations, Bookmarks & Notes** | `AnnotationController`, `BookmarkController`, `HighlightController`, `BookNoteController`, `BookReviewController` | `/api/v1/annotations`, `/api/v1/bookmarks`, `/api/v1/highlights`, `/api/v1/notes` |
+| **Bookshelves & Collections** | `BookshelfController`, `CollectionController`, `ReferenceDataController` | `/api/v1/bookshelves`, `/api/v1/collections` |
+| **Audiobooks & TTS** | `AudiobookController`, `AudiobookPlaybackController`, `AudiobookProgressController`, `AudiobookBookmarkController`, `AudiobookHistoryController`, `TtsPlaybackController` | `/api/v1/audiobooks`, `/api/v1/tts` |
+| **Analytics, Calendar & Sync** | `AnalyticsController`, `ActivitySessionController`, `ReadingGoalController`, `SyncController`, `DeviceController` | `/api/v1/analytics/*`, `/api/v1/reading-goals`, `/api/v1/sync/*`, `/api/v1/devices` |
 
 ---
 
-# 10. API Design
-
-The backend will expose REST APIs using JSON.
-
-Planned API groups:
-
-| API Group | Example Endpoints |
-|---|---|
-| Authentication | `/api/v1/auth/register`, `/api/v1/auth/login` |
-| Users | `/api/v1/users/me` |
-| Books | `/api/v1/books` |
-| Files | `/api/v1/books/{bookId}/files` |
-| Collections | `/api/v1/collections` |
-| Reading | `/api/v1/reading/progress` |
-| Bookmarks | `/api/v1/bookmarks` |
-| Annotations | `/api/v1/annotations` |
-| Journal | `/api/v1/notes` |
-| Reviews | `/api/v1/reviews` |
-| Audiobooks | `/api/v1/audiobooks` |
-| Synchronization | `/api/v1/sync` |
-| Statistics | `/api/v1/statistics` |
-
-All protected endpoints will enforce authentication and user-level authorization.
-
-API versioning will use `/api/v1/`.
-
----
-
-# 11. Implementation Roadmap
-
-Development will be divided into phases to ensure that the foundation is stable before advanced features are introduced.
-
-## Phase 1 — Environment and Project Initialization
-
-- Install and configure Flutter.
-- Configure Android Studio and Android SDK.
-- Install and configure PostgreSQL.
-- Configure Java and Maven.
-- Create GitHub repository.
-- Initialize Flutter project.
-- Initialize Spring Boot project.
-- Configure the monorepo.
-- Configure Git and `.gitignore`.
-
-**Deliverable:** A working frontend and backend project structure.
-
-## Phase 2 — Backend Foundation and Database
-
-- Configure PostgreSQL connection.
-- Configure Spring Data JPA.
-- Configure Flyway.
-- Design the complete ER diagram.
-- Create database migrations.
-- Implement initial entities.
-- Create repositories.
-- Create service and controller layers.
-- Implement centralized exception handling.
-- Configure Swagger.
-- Create health-check endpoint.
-
-**Deliverable:** A functioning backend connected to PostgreSQL.
-
-## Phase 3 — Authentication and User Management
-
-- Registration.
-- Login.
-- Password hashing.
-- Authentication and authorization.
-- User profiles.
-- User preferences.
-- Protected API endpoints.
-
-**Deliverable:** Users can create accounts and securely access their personal library.
-
-## Phase 4 — Personal Library and File Management
-
-- Upload PDF, EPUB and DOCX.
-- Extract metadata where available.
-- Extract book covers.
-- Add manual metadata editing.
-- Support multiple files per book.
-- Store file references securely.
-- Detect possible duplicate uploads.
-- Create book entries automatically.
-
-**Deliverable:** Users can upload and manage their personal digital libraries.
-
-## Phase 5 — Bookshelf and Organization
-
-- Create bookshelves.
-- Create collections.
-- Create nested folders.
-- Add tags.
-- Organize books.
-- Search and filter books.
-- Customize bookshelf appearance.
-
-**Deliverable:** A functional personal digital bookshelf.
-
-## Phase 6 — Ebook Reader
-
-- PDF reader.
-- EPUB reader.
-- DOCX reader.
-- Reading progress.
-- Bookmarks.
-- Resume reading.
-- Reader customization.
-- Basic reading settings.
-
-**Deliverable:** Users can read supported ebook formats inside the application.
-
-## Phase 7 — Reading Tracker
-
-- Reading status management.
-- TBR list.
-- Start and completion dates.
-- DNF functionality.
-- Book ratings.
-- Reading history.
-- Multiple active reading cycles.
-- Rereading support.
-
-**Deliverable:** A complete personal reading tracker.
-
-## Phase 8 — Annotations and Journal
-
-- Text highlighting.
-- Multiple highlight colors.
-- Notes attached to highlights.
-- Personal book notes.
-- Favorite quotes.
-- Reviews.
-- Reading journal.
-
-**Deliverable:** Users can preserve their thoughts and important passages.
-
-## Phase 9 — Audiobooks and TTS
-
-- MP3 playback.
-- M4B playback.
-- Playback controls.
-- Audio progress tracking.
-- Chapter navigation.
-- Background playback.
-- Device-native text-to-speech.
-- Voice preferences.
-
-**Deliverable:** Integrated audiobook and text-to-speech experience.
-
-## Phase 10 — Offline Access and Synchronization
-
-- Local database.
-- Offline book access.
-- Local reading progress.
-- Local annotations.
-- Synchronization queue.
-- Automatic synchronization.
-- Conflict resolution.
-- Multi-device synchronization.
-
-**Deliverable:** A reliable offline-first reading ecosystem.
-
-## Phase 11 — Statistics and Personalization
-
-- Reading statistics.
-- Reading goals.
-- Reading streaks.
-- Activity summaries.
-- Custom themes.
-- Advanced bookshelf customization.
-
-**Deliverable:** A personalized reading dashboard.
-
-## Phase 12 — Testing and Deployment
-
-- Unit testing.
-- Integration testing.
-- API testing.
-- UI testing.
-- Security testing.
-- Performance testing.
-- Docker configuration.
-- Backend deployment.
-- Cloud storage integration.
-- Web deployment.
-- Android release build.
-- iOS release build.
-
-**Deliverable:** A production-ready application with deployment and publishing workflows.
-
----
-
-# 12. Minimum Viable Product (MVP)
-
-The first release will focus on the essential reading and library experience.
-
-### Included in MVP
-
-- User registration and login.
-- Personal library.
-- PDF, EPUB and DOCX uploads.
-- Multiple formats under one book entry.
-- Automatic book entry creation.
-- Basic metadata extraction.
-- Personalized bookshelves.
-- Collections and folders.
-- Ebook reading.
-- Reading progress preservation.
-- Bookmarks and basic notes.
-- TBR list.
-- Reading statuses.
-- Start and completion dates.
-- Book ratings.
-- PostgreSQL persistence.
-- Basic cloud file storage.
-- Initial offline reading support.
-
-### Features for Later Releases
-
-- Advanced annotation system.
-- Full audiobook player.
-- Text-to-speech.
-- Advanced reading journal.
-- Reading analytics.
-- Reading goals.
-- Multi-device synchronization.
-- Advanced offline conflict resolution.
-- Optional sharing.
-- Cloud-based TTS voices.
-
-### Explicitly Out of Scope for Initial Releases
-
-- Book purchasing.
-- E-commerce functionality.
-- Public social media feed.
-- Collaborative annotations.
-- AI-generated book summaries.
-- AI book recommendations.
-- Public author profiles.
-
----
-
-# 13. Security and Privacy
-
-Privacy is a fundamental part of Reading Sanctuary.
-
-Planned security measures:
-
-- Secure password hashing.
-- Authentication for protected resources.
-- Authorization based on resource ownership.
-- Private file storage.
-- Secure file access.
-- Input validation.
-- File type and file size validation.
-- Protection against unauthorized access.
-- HTTPS communication.
-- Secure token management.
-- Database access restrictions.
-- Backup and recovery mechanisms.
-
-All libraries will be private by default.
-
-Users may receive optional sharing capabilities in future releases.
-
-Users should retain control over their personal reading data and uploaded content.
-
----
-
-# 14. Testing Strategy
-
-Testing will be performed throughout development.
-
-### Backend Testing
-
-- JUnit 5.
-- Mockito.
-- Spring Boot Test.
-- Repository tests.
-- Service tests.
-- Controller integration tests.
-- Database integration tests.
-
-### Frontend Testing
-
-- Flutter unit tests.
-- Widget tests.
-- Integration tests.
-- Responsive UI tests.
-
-### API Testing
-
-- Swagger UI.
-- Postman.
-- Thunder Client.
-
-### Database Testing
-
-- Migration validation.
-- Referential integrity.
-- Constraint validation.
-- Transaction testing.
-- Data ownership testing.
-
----
-
-# 15. Deployment Strategy
-
-The deployment architecture will be finalized after local development and testing.
-
-Planned deployment components:
-
-| Component | Technology |
-|---|---|
-| Web frontend | Flutter Web hosting |
-| Android application | Google Play Store |
-| iOS application | Apple App Store |
-| Backend | Spring Boot deployment |
-| Database | Managed PostgreSQL |
-| File storage | Private AWS S3 |
-| Containerization | Docker |
-| Version control | GitHub |
-| API documentation | Swagger/OpenAPI |
-
-Development will initially happen locally.
-
-Cloud infrastructure will be introduced incrementally rather than creating unnecessary infrastructure costs at the beginning.
-
-**Platform note:** Android and web development can be performed on Windows. Building and publishing the iOS application requires macOS and Xcode.
-
----
-
-# 16. Development Principles
-
-The following principles will guide implementation:
-
-1. Build a stable foundation before advanced features.
-2. Maintain clean separation between frontend, backend and database.
-3. Avoid unnecessary microservices.
-4. Use modular and reusable code.
-5. Maintain version-controlled SQL migrations.
-6. Implement proper validation and exception handling.
-7. Never silently discard user data.
-8. Preserve reading history even when a book is marked DNF.
-9. Design offline support into the architecture early.
-10. Prioritize data integrity and security.
-11. Write tests for critical functionality.
-12. Document APIs and architectural decisions.
-13. Keep the application responsive across screen sizes.
-14. Avoid unnecessary infrastructure and operational costs.
-
----
-
-# 17. Current Development Status
-
-**Project stage: Initial Environment Setup**
-
-| Component | Current Status |
-|---|---|
-| Flutter SDK | Installed |
-| Dart SDK | Installed |
-| Android Studio | Installed |
-| Android SDK | Configured |
-| Android licenses | Accepted |
-| Java 25 | Installed |
-| Maven 3.9.15 | Installed |
-| Git | Installed |
-| PostgreSQL 18 | Installed and running |
-| pgAdmin 4 | Installed and connected |
-| GitHub repository | Created |
-| Flutter frontend | Milestone 1 (Foundation) Implemented & Tested |
-| Spring Boot backend | To be initialized |
-| Database schema | Pending |
-| API implementation | Pending |
-
-Repository: https://github.com/AnishaPaturi/reading-app
-
----
-
-# 18. Expected Final Outcome
-
-Reading Sanctuary aims to become a complete personal digital reading ecosystem.
-
-A user should be able to:
-
-1. Create an account.
-2. Upload their books.
-3. Organize books into personalized bookshelves.
-4. Open and read ebooks.
-5. Listen to audiobooks.
-6. Use text-to-speech when an audiobook is unavailable.
-7. Highlight important passages.
-8. Attach notes to highlights.
-9. Maintain a personal reading journal.
-10. Track reading progress and history.
-11. Manage TBR and DNF books.
-12. Access their library offline.
-13. Synchronize their reading activity across devices.
-14. View their personal reading statistics.
-
-The ultimate goal is simple:
-
-**A personal sanctuary for everything a reader reads, listens to, highlights, remembers and loves.**
-
----
-
-# 19. Project Repository
-
-GitHub: https://github.com/AnishaPaturi/reading-app
-
-**Project Name:** Reading Sanctuary
-
-**Tagline:** Your books. Your thoughts. Your sanctuary.
-
----
-
-# 20. Running the Frontend
-
-To run the Flutter frontend, follow the steps below:
-
-### Step 1: Open the Frontend Directory
-
-Open your terminal and navigate to the Flutter project folder:
-
-```powershell
-cd frontend\reading_sanctuary_app
-```
-
-### Step 2: Choose Your Target Device
-
-#### Option A: Run in the Web Browser (Fastest / Recommended for Development)
-
-Your system already has Google Chrome and Microsoft Edge detected.
-
-Run on Google Chrome:
-
-```powershell
-flutter run -d chrome
-```
-
-Run on Microsoft Edge:
-
-```powershell
-flutter run -d edge
-```
-
-**Alternative (Fastest & Most Reliable for Web Development):**
-To run without remote debugging port attachments or browser locks, start the local web server:
-
-```powershell
-flutter run -d web-server --web-port 3000
-```
-Then navigate to **http://localhost:3000** in your browser.
-
-#### Option B: Run on an Android Emulator
-
-You have two configured Android Virtual Devices (`Medium_Phone_API_36.1` and `Pixel_5`):
-
-1. Launch the emulator:
-   ```powershell
-   flutter emulators --launch Pixel_5
-   ```
-   *(or launch `Medium_Phone_API_36.1`)*
-
-2. Run the app:
-   ```powershell
-   flutter run
-   ```
-
-#### Option C: Run on Windows Desktop
-
-To run natively as a Windows desktop application:
-
-1. Enable **Developer Mode** in Windows Settings (required for plugin symlinks):
-   ```powershell
-   start ms-settings:developers
-   ```
-   Toggle **Developer Mode** to **On** and accept the confirmation prompt.
-2. Run:
-   ```powershell
-   flutter run -d windows
-   ```
-
----
-
-### Step 3: Connecting to the Backend API (Optional)
-
-The frontend connects by default to `http://localhost:8080/api/v1` via `ApiConfig`.
-
-To run the full stack with live backend services:
-1. In a separate terminal, launch the Spring Boot backend:
+## 9. Running the Project Locally
+
+### Prerequisites
+- **Java 25**, **Maven** (or included `./mvnw` / `.\mvnw.cmd`), **PostgreSQL 18**
+- **Flutter SDK (`>=3.3.0`)** & **Android SDK** (for Android builds/emulators)
+
+### 9.1 Start PostgreSQL & Spring Boot Backend
+1. Ensure PostgreSQL is running locally on `localhost:5432` with database `reading_sanctuary_db`.
+2. Configure `backend/reading-sanctuary-api/.env` (or environment variables): `DATABASE_URL`, `DATABASE_USERNAME`, `DB_PASSWORD`, `READING_SANCTUARY_JWT_SECRET`, and `GOOGLE_CLIENT_ID`.
+3. Launch the backend (using a clean build avoids stale incremental `$1` inner classes):
    ```powershell
    cd backend\reading-sanctuary-api
-   .\mvnw spring-boot:run
+   .\mvnw.cmd clean spring-boot:run
    ```
-2. You can pass a custom API endpoint to Flutter using `--dart-define`:
-   ```powershell
-   flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080/api/v1
-   ```
+4. Health check: `http://localhost:8080/actuator/health`
+
+### 9.2 Run the Flutter Frontend
+Create/verify `frontend/reading_sanctuary_app/.env` with `GOOGLE_WEB_CLIENT_ID` and `GOOGLE_SERVER_CLIENT_ID`, then run from `frontend\reading_sanctuary_app`:
+
+```powershell
+# Flutter Web (fixed port 3000)
+flutter run -d chrome --web-port 3000
+
+# Build release Web bundle & serve statically
+flutter build web --no-pub
+python -m http.server 3000 --bind 127.0.0.1 --directory build/web
+
+# Android Emulator (defaults to http://10.0.2.2:8080/api/v1 via ApiConfig)
+flutter emulators --launch Pixel_5
+flutter run
+
+# Build Android Release APK
+flutter build apk --no-pub
+
+# Windows Desktop (requires Windows Developer Mode for plugin symlinks)
+flutter run -d windows
+```
+
+### 9.3 Google OAuth Configuration Notes
+To enable live Google Sign-In in Google Cloud Console:
+- **Web Client:** Add exact authorized JavaScript origins (e.g., `http://localhost:3000`, `http://127.0.0.1:3000`, and your production HTTPS origin).
+- **Android Client:** Create an Android OAuth 2.0 Client ID for package `com.example.reading_sanctuary_app` with both your local debug SHA-1 and a dedicated production release keystore SHA-1, while keeping `GOOGLE_SERVER_CLIENT_ID` set to your Web OAuth Client ID so ID tokens pass backend audience validation (`GoogleTokenVerifier`).
+- **OAuth Consent Screen:** While in Testing mode, list QA Google accounts under **Test users**.
 
 ---
 
-### Troubleshooting Common Issues (Windows & Web)
+## 10. Automated Verification Baseline
 
-#### Issue 1: `build\flutter_assets` Directory Lock / Access Denied
-- **Error message**:
-  ```
-  Flutter failed to delete a directory at "...build\flutter_assets". The flutter tool cannot access the file or directory.
-  ```
-- **Cause**: On Windows systems, cloud synchronization (such as Microsoft OneDrive) or an existing background Dart process temporarily locks files inside the `build/` directory during rebuilds.
-- **Solution**: Delete the locked build folder directly from the command prompt:
-  ```powershell
-  cmd /c "rd /s /q build"
-  flutter pub get
-  flutter run -d chrome
-  ```
-  Or run with the web server target:
-  ```powershell
-  flutter run -d web-server --web-port 3000
-  ```
+Latest full verification results across the repository:
 
-#### Issue 2: `Building with plugins requires symlink support`
-- **Error message**:
-  ```
-  Error: Building with plugins requires symlink support.
-  Please enable Developer Mode in your system settings. Run start ms-settings:developers to open settings.
-  ```
-- **Cause**: Flutter Windows desktop plugins use symbolic links. Windows requires Developer Mode or Administrator privileges to create symlinks.
-- **Solution**:
-  1. Open Developer Settings:
-     ```powershell
-     start ms-settings:developers
-     ```
-  2. Toggle **Developer Mode** to **On** (click **Yes** in the confirmation dialog).
-  3. Re-run `flutter run -d windows`.
+| Check | Command | Scope & Result | Status |
+|---|---|---|---|
+| **Backend Test Suite** | `.\mvnw.cmd test` | **178 tests run, 0 failures, 0 errors, 0 skipped** (JUnit 5 + Mockito + MockMvc) | **PASS** |
+| **Flutter Static Analysis** | `flutter analyze` | **0 issues found** across entire Flutter codebase | **PASS** |
+| **Flutter Test Suite** | `flutter test` | **373 / 373 tests passed** across 63 test files | **PASS** |
+| **Flutter Web Release Build** | `flutter build web --no-pub` | Compiled cleanly to `build/web` | **PASS** |
+| **Android Release APK** | `flutter build apk --no-pub` | Built cleanly (`build/app/outputs/flutter-apk/app-release.apk`, 95.6 MB) | **PASS** |
 
 ---
 
-### Useful Commands
+## 11. Platform Acceptance Summary & Known Issues
 
-| Task | Command |
-|---|---|
-| Run unit & widget tests | `flutter test` |
-| Check for lint or code issues | `flutter analyze` |
-| Check connected devices | `flutter devices` |
-| Clean locked build artifacts | `cmd /c "rd /s /q build"; flutter clean` |
-| Hot reload during active run | Press `r` in the terminal |
-| Hot restart during active run | Press `R` in the terminal |
-| Stop running app | Press `q` in the terminal |
+Live end-to-end acceptance testing was executed against PostgreSQL 18 + Spring Boot (`localhost:8080`), Flutter Web (`http://127.0.0.1:3000`), and Android Emulator `Pixel_5` (Android 16 / SDK 36):
+
+### Verified End-to-End (`PASS`)
+- **Authentication & Sessions:** Account signup, email/password login, sign-out, session persistence across browser reload & Android `force-stop`, and expired-JWT redirect to `/login?redirect=...&expired=1`.
+- **Library & EPUB Reader (Web & Android):** Uploading EPUBs, rendering chapters via reader WebView/iframe, Table of Contents navigation, advancing & syncing reading progress (`epubcfi`), direct `#/reader/...` browser reload restoring the open book & saved position, Android restart progress restoration (`Continue Reading`), and saving Reader notes (`Add Note`).
+- **Audiobooks on Android:** ID3 metadata + embedded PNG artwork extraction (`audio_metadata_reader`), multi-track import via `Pick Files`, play/pause/`-15s`/`+30s`, chapter switching & track rollover, continuous background audio playback (`KEYCODE_HOME`), `15 min` sleep timer countdown, bookmarking, listening progress (`29% completed`), and reboot persistence.
+- **Android SAF Folder Registration:** Granting Storage Access Framework access on `Documents/Phase8Books` (`Active & Accessible • Scanned 1 books`).
+
+### Open Platform Issues Tracked for Remediation
+1. **Android Release Media Notification Controls:** `AudioService` raises `IllegalArgumentException: You must specify an icon resource id to build a CustomAction` in release builds (plus `POST_NOTIFICATIONS` is not declared in `AndroidManifest.xml`), keeping system media notifications from posting while background playback runs.
+2. **Offline File Download (`Download for Offline`):** `BookDetailsScreen` currently passes `bookId` instead of `fileId` into `OfflineDownloadButton` (`HTTP 404` on `/api/v1/storage/files/{fileId}/download-url`); `LocalStorageService` returns a relative download path; Web `#/downloads` & Android 16 scoped `/storage/emulated/0/Download` scanning hit `dart:io` / scoped-storage limits.
+3. **Web Audiobook Import & Android Audio `Scan Folder`:** `AudiobookImportService` accesses `dart:io` `File`/`Directory`, causing `Unsupported operation: _Namespace` when picking MP3s on Web and `"No supported audio files found"` for SAF folders on Android 16.
+4. **Reader `Add Bookmark` & `Discover Books` Scan List UI:** Reader toolbar `Add Bookmark` did not populate ToC `Bookmarks (0)` on Android; `DiscoverBooksScreen` updated the folder card count (`Scanned 1 books`) without updating the main results list.
+5. **Google OAuth & Concurrent Reading-Progress Race:** Live Google Sign-In requires Google Cloud Console origin/SHA-1 configuration; simultaneous initial reading-progress PUTs can race on `uq_user_book_file`; Android compact UI has minor spacing overlap on `Add Bookmark` chips, Reader AppBar badge, and Onboarding slide CTA offset.
 
 ---
 
-# 21. Frontend Architecture & File Directory
+## 12. Engineering Documentation Library
 
-The frontend is built using **Flutter & Dart** following a modular, feature-first architecture with **Riverpod** for reactive state management, **GoRouter** for declarative navigation with an adaptive shell, and a custom **Dark Academia** and **Warm Parchment** design system.
-
-### 21.1 Core Frontend Technologies & Libraries
-
-| Package / Tool | Version | Purpose |
+| Category | Document | Description |
 |---|---|---|
-| `flutter` | `>=3.3.0 <4.0.0` | Cross-platform UI framework targeting Web, Android, iOS, and Windows |
-| `flutter_riverpod` | `^2.5.1` | Reactive, compile-safe state management across the application |
-| `go_router` | `^14.2.0` | Declarative routing, deep linking, and ShellRoute adaptive navigation |
-| `google_fonts` | `^6.2.1` | Typography pairing for the Dark Academia aesthetic (Cinzel, Lora, Faustina) |
-| `intl` | `^0.19.0` | Number, currency, and date/time formatting |
-| `flutter_test` | SDK | Unit, widget, and logic testing framework |
-| `flutter_lints` | `^4.0.0` | Official recommended Dart code style and analysis rules |
+| **Architecture** | [`SYSTEM_ARCHITECTURE.md`](docs/architecture/SYSTEM_ARCHITECTURE.md) | Multi-tier architecture & data flows |
+| **Architecture** | [`DATABASE_SCHEMA.md`](docs/architecture/DATABASE_SCHEMA.md) | Relational schema & Flyway overview |
+| **Architecture** | [`API_ARCHITECTURE.md`](docs/architecture/API_ARCHITECTURE.md) | REST conventions, JWT lifecycle & endpoints |
+| **Architecture** | [`OFFLINE_SYNC_ARCHITECTURE.md`](docs/architecture/OFFLINE_SYNC_ARCHITECTURE.md) | Cursor delta sync, outbox & conflict rules |
+| **Setup** | [`DEVELOPMENT_SETUP.md`](docs/setup/DEVELOPMENT_SETUP.md) | Full-stack local development setup |
+| **Setup** | [`BACKEND_SETUP.md`](docs/setup/BACKEND_SETUP.md) | Java 25, Maven & Spring Boot guide |
+| **Setup** | [`FRONTEND_SETUP.md`](docs/setup/FRONTEND_SETUP.md) | Flutter Web, Android, iOS & Windows setup |
+| **Setup** | [`GOOGLE_SIGN_IN_SETUP.md`](docs/GOOGLE_SIGN_IN_SETUP.md) | Google OAuth client configuration guide |
+| **Setup** | [`AWS_SETUP.md`](docs/setup/AWS_SETUP.md) | AWS S3, RDS & ECS configuration |
+| **Testing** | [`TEST_STRATEGY.md`](docs/testing/TEST_STRATEGY.md) | Testing pyramid & security isolation tests |
+| **Testing** | [`API_TESTING.md`](docs/testing/API_TESTING.md) | cURL reference across backend APIs |
+| **Testing** | [`END_TO_END_TESTING.md`](docs/testing/END_TO_END_TESTING.md) | End-to-end verification flows |
+| **Operations** | [`PRODUCTION_DEPLOYMENT.md`](docs/deployment/PRODUCTION_DEPLOYMENT.md) | Production deployment runbook |
+| **Operations** | [`ENVIRONMENT_VARIABLES.md`](docs/deployment/ENVIRONMENT_VARIABLES.md) | Environment variable reference |
+| **Operations** | [`DATABASE_BACKUP.md`](docs/deployment/DATABASE_BACKUP.md) | PostgreSQL backup & recovery |
+| **Operations** | [`ROLLBACK_GUIDE.md`](docs/deployment/ROLLBACK_GUIDE.md) | Release rollback procedures |
+| **Backlog & Guides** | [`Features.md`](Features.md) · [`BOOK.md`](BOOK.md) · [`AUDIO.md`](AUDIO.md) | Master 99-feature plan, ebook & audiobook guides |
 
 ---
 
-### 21.2 Complete Frontend File Guide
-
-All frontend source code is located within `frontend/reading_sanctuary_app/`. Below is a breakdown of all files and their roles:
-
-#### A. Entry Point & Application Setup (`lib/`)
-
-| File Path | Description & Responsibility |
-|---|---|
-| `lib/main.dart` | Application entry point. Wraps the app in a `ProviderScope` to enable Riverpod state management and runs `ReadingSanctuaryApp`. |
-| `lib/app/app.dart` | Root application widget (`ReadingSanctuaryApp`). Configures `MaterialApp.router` with the central GoRouter instance, application titles, and light/dark theme data. |
-| `lib/app/router.dart` | Central routing configuration using GoRouter. Implements `ShellRoute` to wrap primary screens with the adaptive `AppShell`, defines top-level routes (`/splash`, `/`, `/library`, `/book/:id`), and registers placeholder routes for upcoming milestone features. |
-
-#### B. Theme System (`lib/app/theme/`)
-
-| File Path | Description & Responsibility |
-|---|---|
-| `lib/app/theme/app_colors.dart` | Color palette defining the Cozy Library / Dark Academia and Warm Parchment aesthetic. Defines ebony/obsidian backgrounds, antique gold accents, burgundy, sage green, card surfaces, and reading status indicator colors. |
-| `lib/app/theme/app_theme.dart` | Produces `ThemeData` for dark mode ("Dark Academia") and light mode ("Warm Parchment"). Sets up typography using Google Fonts (Cinzel for headers, Faustina and Lora for body and quotes), card styling, navigation bar/rail themes, and button styles. |
-
-#### C. Core Utilities & Reusable Widgets (`lib/core/`)
-
-| File Path | Description & Responsibility |
-|---|---|
-| `lib/core/utils/breakpoints.dart` | Responsive design utilities defining `AppBreakpoints` (`mobile: <600`, `tablet: 600-1024`, `desktop: >1024`) and helper methods to query active screen form factors (`isCompact`, `isMedium`, `isExpanded`). |
-| `lib/core/utils/time_ago.dart` | Timestamp formatting utility converting `DateTime` instances into clean, relative time strings (e.g., "Just now", "5m ago", "2 hours ago", "Yesterday"). |
-| `lib/core/widgets/book_cover.dart` | Flexible book cover component (`BookCover`). Renders custom cover images, with a procedural fallback displaying an ornate Dark Academia frame, title typography, author name, and aspect ratio handling. |
-| `lib/core/widgets/common_widgets.dart` | Foundational UI building blocks: `SanctuaryCard` (styled container with parchment border and elevation), `SectionHeader` (ornate heading with optional action link), `StatPill` (compact stat display), and `StatusBadge` (reading status tag with matching color token). |
-
-#### D. Shell & Navigation (`lib/features/shell/`)
-
-| File Path | Description & Responsibility |
-|---|---|
-| `lib/features/shell/app_shell.dart` | Master responsive scaffold wrapping active routes. Automatically swaps between a bottom navigation bar on mobile/compact screens and a collapsible sidebar navigation on tablet, desktop, and web. |
-| `lib/features/shell/destinations.dart` | Defines the `NavDestination` model and the full destination list (Home, Library, Bookshelves, Reader, Audiobooks, Journal, Stats, Settings) with route paths, icons, and badge support. |
-| `lib/features/shell/sidebar.dart` | Collapsible sidebar component for wide screens. Includes header branding, navigation item tiles with active indicator styling, collapse/expand toggle, and profile/settings shortcut. |
-
-#### E. Feature Screens & Logic (`lib/features/`)
-
-| File Path | Description & Responsibility |
-|---|---|
-| `lib/features/splash/splash_screen.dart` | Launch screen displaying app branding, animated logo icon, and sanctuary tagline, automatically navigating to the Home dashboard. |
-| `lib/features/home/home_screen.dart` | Home dashboard. Features a "Currently Reading" hero card with progress bar and quick resume action, quick stats pills (Books Read, Current Streak, Hours Spent), and an "Up Next / Recommendations" book carousel. |
-| `lib/features/library/library_screen.dart` | Main library catalog screen. Provides live instant search, reading status filter chips (All, Reading, Want to Read, Completed, DNF), layout toggle, and an adaptive responsive grid of book cards. |
-| `lib/features/library/library_logic.dart` | Pure functional business logic for searching and filtering books (`filterBooks`), supporting multi-attribute search (title, author, genre) combined with reading status sets. |
-| `lib/features/book_details/book_details_screen.dart` | Comprehensive book view. Displays full-size book cover, title, author, rating stars, genre tags, synopses, reading progress, and an interactive status selector dropdown allowing users to change reading states. |
-| `lib/features/placeholder/placeholder_screen.dart` | Standardized placeholder screen for upcoming milestones (Bookshelves, Ebook Reader, Audiobook Player, Annotations, Journal, Statistics, and Settings). |
-
-#### F. Shared Data Layer & State Management (`lib/shared/`)
-
-| File Path | Description & Responsibility |
-|---|---|
-| `lib/shared/models/book.dart` | Domain model `Book` and `ReadingStatus` enum (`wantToRead`, `currentlyReading`, `completed`, `dnf`). Contains fields for ID, title, author, cover URL, total pages, current page, rating, genre, tags, and timestamps. |
-| `lib/shared/services/book_repository.dart` | `BookRepository` interface and `MockBookRepository` implementation. Provides an initial curated collection of sample classics and contemporary titles with asynchronous CRUD operations and state updating. |
-| `lib/shared/services/providers.dart` | Riverpod providers: `bookRepositoryProvider` (repository instance), `booksProvider` (reactive state notifier managing book lists and updates), and `isSidebarCollapsedProvider` (sidebar collapse state). |
-
-#### G. Platform Runners & Configuration
-
-| File Path | Description & Responsibility |
-|---|---|
-| `android/` | Android project files, manifest (`AndroidManifest.xml`), Gradle build scripts (`build.gradle.kts`), and launcher icons. |
-| `ios/` | iOS runner project (`Runner.xcodeproj`, `AppDelegate.swift`, `Info.plist`, asset catalogs). |
-| `web/` | Web entry point (`index.html`), web app manifest (`manifest.json`), and favicon/touch icons. |
-| `windows/` | Native C++ Windows desktop runner (`main.cpp`, `Runner.rc`, `CMakeLists.txt`, `flutter_window.cpp`). |
-| `pubspec.yaml` | Flutter package manifest declaring dependencies, fonts, assets, and project version. |
-| `analysis_options.yaml` | Dart static analysis configuration specifying linting rules for clean, idiomatic code. |
-
-#### H. Automated Tests (`test/`)
-
-| File Path | Description & Responsibility |
-|---|---|
-| `test/library_logic_test.dart` | Unit and logic tests validating sample data integrity (12+ books), multi-attribute search filtering, combined status filtering, preservation of progress on DNF transition, and screen breakpoint classification. |
-
----
-
-### 21.3 Key Architectural Patterns
-
-1. **Feature-Driven Structure**: Each domain is organized inside `lib/features/` with isolated screens and logic, making it simple to scale as new milestones are completed.
-2. **Unidirectional Data Flow**: State is managed via Riverpod `StateNotifierProvider`. UI widgets dispatch actions to `booksProvider.notifier`, which updates state immutably and notifies listening widgets.
-3. **Adaptive UI**: Responsive layouts adapt between mobile (bottom navigation) and desktop/web (collapsible navigation rail/sidebar) using `AppBreakpoints` without duplicating screen logic.
-4. **Resilient Data Contracts**: Domain models like `Book` and `ReadingStatus` are designed to support offline local SQLite caching and future synchronization with the Spring Boot REST backend.
-
-
-
----
-
-# 22. Milestone Roadmap & Production Release (12 / 12 Milestones Complete)
-
-Reading Sanctuary has achieved full production readiness across all 12 planned engineering milestones.
-
-### 22.1 Complete Milestone Summary
-
-| Milestone | Domain | Deliverables & Scope | Status |
-|---|---|---|---|
-| **01–06** | Foundation & Core Library | Spring Boot 3 API, PostgreSQL schema, JWT authentication, book catalog, file uploads, bookshelf management, and multi-platform responsive Flutter shell. | **Complete** |
-| **07** | Annotations & Personal Notes | Flyway `V7`, Bookmarks, color-coded BookHighlights, chapter BookNotes, and format-aware location anchors across EPUB, PDF, and DOCX. | **Complete** |
-| **08** | Reading Experience & Document Readers | High-fidelity multi-format reader engine (EPUB CFI navigation, PDF page renderer, DOCX reflow) with Dark Academia and Warm Parchment reading themes. | **Complete** |
-| **09** | Audiobook Player & TTS | Audio playback engine for MP3/M4B, chapter scrubber, playback rates (0.75x–2.0x), sleep timers, and on-device Text-to-Speech (TTS) reading fallback. | **Complete** |
-| **10** | Reading Statistics & Analytics | Flyway `V8`, session duration logging, reading goals (daily/monthly/yearly), streak calculators, calendar heatmap, and yearly wrap-up summaries. | **Complete** |
-| **11** | Cloud Storage, Sync & Offline Support | AWS S3 presigned URLs, Flyway `V9`, monotonic cursor delta sync (`sync_change_log`), client outbox idempotency, offline `DownloadManager` with SHA-256 verification, and conflict resolution (LWW & 3-way note fork). | **Complete** |
-| **12** | Frontend Integration, Testing & Deployment | Centralized network layer (`ApiConfig`, `ApiClient`), multi-tenant security verification (`UserDataIsolationTest`), 97 passing backend tests, multi-stage `Dockerfile`, GitHub Actions CI/CD workflows, and production AWS runbooks. | **Complete** |
-
----
-
-### 22.2 Verification & Test Results
-
-| Component | Test Suite | Result | Status |
-|---|---|---|---|
-| **Backend Unit & Domain** | `CloudStorageServiceTest`, `SyncServiceTest`, `Step11ControllerValidationTest` | 17 passed | **100% Passed** |
-| **Backend Security** | `UserDataIsolationTest` (Multi-tenant isolation & IDOR prevention) | 5 passed | **100% Passed** |
-| **Backend Integration** | `BookManagementIT`, `ReadingProgressIT`, `AnnotationWorkflowIT`, etc. | 75 passed | **100% Passed** |
-| **Total Backend Verification** | Maven Surefire Test Engine (Java 25) | **97 passed / 0 failures** | **BUILD SUCCESS** |
-| **Frontend Serialization** | `sync_models_test.dart` (Device models, changes, conflicts) | All passed | **100% Passed** |
-| **Frontend Offline Engine** | `local_storage_db_test.dart`, `sync_engine_test.dart`, `download_manager_test.dart` | All passed | **100% Passed** |
-| **Frontend Widgets** | `sync_widgets_test.dart` (Status indicator, download buttons, conflict cards) | All passed | **100% Passed** |
-
----
-
-### 22.3 Engineering Documentation Library
-
-Comprehensive technical documentation is maintained under the [`docs/`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/) directory:
-
-#### System Architecture & Specifications
-- [`SYSTEM_ARCHITECTURE.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/architecture/SYSTEM_ARCHITECTURE.md): Multi-tier architecture, component diagram, and cloud data flow.
-- [`DATABASE_SCHEMA.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/architecture/DATABASE_SCHEMA.md): Entity relationship diagram, Flyway migrations (`V1` to `V9`), and table schemas.
-- [`API_ARCHITECTURE.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/architecture/API_ARCHITECTURE.md): REST conventions, JWT lifecycle, error schema, and endpoint directory.
-- [`OFFLINE_SYNC_ARCHITECTURE.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/architecture/OFFLINE_SYNC_ARCHITECTURE.md): Monotonic sequence cursors, client outbox, and conflict resolution heuristics.
-
-#### Developer Setup Guides
-- [`DEVELOPMENT_SETUP.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/setup/DEVELOPMENT_SETUP.md): Quick start instructions for Docker, Spring Boot, and Flutter.
-- [`AWS_SETUP.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/setup/AWS_SETUP.md): Amazon S3 private bucket CORS, IAM policies, RDS PostgreSQL, and ECS Fargate setup.
-- [`BACKEND_SETUP.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/setup/BACKEND_SETUP.md): Java 25 environment, Maven profiles, and Docker container build.
-- [`FRONTEND_SETUP.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/setup/FRONTEND_SETUP.md): Multi-platform compilation for Web, Android, iOS, and Windows.
-
-#### Verification & Quality Assurance
-- [`TEST_STRATEGY.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/testing/TEST_STRATEGY.md): Testing pyramid, security isolation tests, and CI automation.
-- [`API_TESTING.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/testing/API_TESTING.md): Manual cURL command reference for all 8 endpoint domains.
-- [`END_TO_END_TESTING.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/testing/END_TO_END_TESTING.md): 12-step user verification journey from registration through offline reading and cache eviction.
-
-#### Production Operations & Runbooks
-- [`PRODUCTION_DEPLOYMENT.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/deployment/PRODUCTION_DEPLOYMENT.md): Amazon ECS Fargate container deployment, S3 sync, and CloudFront cache invalidation.
-- [`ENVIRONMENT_VARIABLES.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/deployment/ENVIRONMENT_VARIABLES.md): Master environment variable catalog across backend, frontend, and CI/CD.
-- [`DATABASE_BACKUP.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/deployment/DATABASE_BACKUP.md): RDS automated backups, Point-In-Time-Recovery (PITR), and disaster recovery runbook.
-- [`ROLLBACK_GUIDE.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/deployment/ROLLBACK_GUIDE.md): Zero-downtime rollback procedures for backend containers, frontend assets, and database migrations.
-- [`STEP12_RELEASE_CHECKLIST.md`](file:///C:/Users/anish/OneDrive/College/Projects/reading-app/docs/STEP12_RELEASE_CHECKLIST.md): 32-point production readiness sign-off audit.
+**Tagline:** *Your books. Your thoughts. Your sanctuary.*  
+**Repository:** https://github.com/AnishaPaturi/reading-app

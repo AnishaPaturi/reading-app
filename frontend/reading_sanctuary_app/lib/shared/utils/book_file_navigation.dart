@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/offline/domain/models/download_task.dart';
 import '../models/book.dart';
 
 /// Opens the exact attached file matching the requested format.
@@ -119,4 +121,46 @@ void _showMissingFileMessage(
       ),
     ),
   );
+}
+
+/// Opens a downloaded or discovered book directly using the existing reading experience.
+/// Restores saved reading position and bookmarks seamlessly.
+/// Handles missing or deleted physical files gracefully with user feedback.
+Future<T?> openDownloadedBook<T>(
+  BuildContext context,
+  DownloadTask task,
+) {
+  final file = File(task.localPath);
+  if (!file.existsSync()) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Cannot open "${task.bookTitle}". The physical file was not found on device storage.',
+        ),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
+    return Future.value(null);
+  }
+
+  final formatUpper = task.format.toUpperCase();
+  final isAudio =
+      formatUpper == 'MP3' || formatUpper == 'M4B' || formatUpper == 'M4A';
+
+  final path = isAudio
+      ? '/listen/${task.bookId}/${task.fileId}'
+      : '/reader/${task.bookId}/${task.fileId}';
+
+  final queryParameters = <String, String>{
+    'title': task.bookTitle,
+    'format': formatUpper,
+    if (task.author != null && task.author!.isNotEmpty) 'author': task.author!,
+  };
+
+  final uri = Uri(
+    path: path,
+    queryParameters: queryParameters,
+  );
+
+  return context.push<T>(uri.toString());
 }

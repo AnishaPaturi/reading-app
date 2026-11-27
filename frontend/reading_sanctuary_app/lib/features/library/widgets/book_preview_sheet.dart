@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/widgets/book_cover.dart';
 import '../../../shared/models/book.dart';
 import '../../../shared/services/providers.dart';
 import '../../../shared/utils/book_file_navigation.dart';
 import '../../bookshelf/presentation/widgets/book_delete_dialog.dart';
 import '../../dnf/screens/dnf_cinematic_screen.dart';
 import '../theme/bookshelf_theme.dart';
-import 'clay_book_spine.dart';
 
 class BookPreviewSheet extends ConsumerWidget {
   final Book book;
@@ -47,12 +47,20 @@ class BookPreviewSheet extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Mini Clay Spine
-                ClayBookSpine(
-                  book: book,
-                  customHeight: 120,
-                  customWidth: 38,
-                  onTap: () {},
+                // Upright Front Book Cover
+                SizedBox(
+                  width: 80,
+                  height: 120,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: BookCover(
+                      book: book,
+                      borderRadius: 10,
+                      fit: BoxFit.cover,
+                      elevation: 4,
+                      aspectRatio: null,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(width: 18),

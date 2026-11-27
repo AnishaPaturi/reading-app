@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+
+import '../../../../core/widgets/clay_components.dart';
 import 'package:reading_sanctuary_app/features/authentication/presentation/providers/auth_provider.dart';
 
 class HeroReadingBanner extends ConsumerWidget {
@@ -48,11 +51,25 @@ class HeroReadingBanner extends ConsumerWidget {
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
+            border: Border.all(
+              color: ClayColors.clayBorder.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF9482E6).withValues(alpha: 0.18),
+                color: ClayColors.royalLilac.withValues(alpha: 0.12),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+              const BoxShadow(
+                color: Colors.white,
+                blurRadius: 3,
+                offset: Offset(0, -1),
               ),
             ],
           ),
@@ -65,7 +82,7 @@ class HeroReadingBanner extends ConsumerWidget {
                 width: double.infinity,
               ),
 
-              // Dynamic Greeting & Subtitle (Start Reading button removed)
+              // Dynamic Greeting & Subtitle
               Positioned(
                 left: constraints.maxWidth * 0.40,
                 right: constraints.maxWidth * 0.10,
@@ -86,11 +103,11 @@ class HeroReadingBanner extends ConsumerWidget {
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 '$greeting, $userName!',
-                                style: TextStyle(
-                                  color: const Color(0xFF2D234A),
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: ClayColors.textHeading,
                                   fontSize: titleFontSize,
                                   fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.3,
+                                  letterSpacing: -0.4,
                                 ),
                                 maxLines: 1,
                               ),
@@ -111,8 +128,8 @@ class HeroReadingBanner extends ConsumerWidget {
                       SizedBox(height: spacing),
                       Text(
                         DateFormat('EEEE, d MMMM y').format(currentTime ?? DateTime.now()),
-                        style: TextStyle(
-                          color: const Color(0xFF6B588F),
+                        style: GoogleFonts.plusJakartaSans(
+                          color: ClayColors.dustyPlum,
                           fontSize: (subtitleFontSize * 0.95).clamp(9.5, 13.5),
                           fontWeight: FontWeight.w600,
                         ),
@@ -122,10 +139,10 @@ class HeroReadingBanner extends ConsumerWidget {
                       SizedBox(height: spacing * 0.5),
                       Text(
                         "Let's read some books today!",
-                        style: TextStyle(
-                          color: const Color(0xFF4C3D6E),
+                        style: GoogleFonts.plusJakartaSans(
+                          color: ClayColors.textDark,
                           fontSize: subtitleFontSize,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -11,6 +11,7 @@ import '../../domain/services/audio_position_service.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../analytics/application/analytics_providers.dart';
 import '../../../analytics/data/models/activity_session.dart';
+import '../../../analytics/data/services/activity_tracking_service.dart';
 
 final audiobookRepositoryProvider = Provider<AudiobookRepository>((ref) {
   final token = ref.watch(authTokenProvider);
@@ -110,6 +111,7 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
   final AudioPlayerService _playerService;
   final AudioPositionService _positionService;
   final Ref _ref;
+  late final ActivityTrackingService _activityTracking;
 
   StreamSubscription? _posSub;
   StreamSubscription? _durSub;
@@ -126,6 +128,7 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
         _positionService = positionService,
         _ref = ref,
         super(const AudiobookState()) {
+    _activityTracking = _ref.read(activityTrackingServiceProvider);
     _initStreams();
   }
 
@@ -408,7 +411,7 @@ class AudiobookNotifier extends StateNotifier<AudiobookState> {
     _speedSub?.cancel();
     _sleepTimer?.cancel();
     _sleepTicker?.cancel();
-    _ref.read(activityTrackingServiceProvider).closeSession();
+    _activityTracking.closeSession();
     super.dispose();
   }
 }

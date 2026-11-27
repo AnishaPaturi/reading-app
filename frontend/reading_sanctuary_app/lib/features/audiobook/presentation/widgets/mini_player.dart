@@ -93,7 +93,7 @@ class MiniAudiobookPlayer extends ConsumerWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.inter(
                                     fontSize: 11,
-                                    color: isDark ? AppColors.gold.withOpacity(0.8) : AppColors.brown,
+                                    color: isDark ? AppColors.gold.withValues(alpha: 0.8) : AppColors.brown,
                                   ),
                                 ),
                               ],

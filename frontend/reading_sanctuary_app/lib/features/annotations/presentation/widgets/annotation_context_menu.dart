@@ -445,10 +445,10 @@ class _AnnotationContextMenuState extends State<AnnotationContextMenu> {
           children: [
             Container(
               padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEDE5F8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEDE5F8),
                 shape: BoxShape.circle,
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
                     color: Color(0x12382761),
                     blurRadius: 4,

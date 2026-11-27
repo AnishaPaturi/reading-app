@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
@@ -153,12 +152,16 @@ class AudiobookPlayerHandler extends BaseAudioHandler with SeekHandler {
         title: t.chapterTitle ?? t.fileName,
         artist: author,
         artUri: coverPath != null
-            ? (coverPath.startsWith('http') ? Uri.tryParse(coverPath) : Uri.file(coverPath))
+            ? (coverPath.startsWith('http')
+                ? Uri.tryParse(coverPath)
+                : (kIsWeb ? null : Uri.file(coverPath)))
             : null,
       );
       mediaItems.add(tag);
 
-      if (t.filePath.startsWith('http://') || t.filePath.startsWith('https://')) {
+      if (t.filePath.startsWith('http://') ||
+          t.filePath.startsWith('https://') ||
+          kIsWeb) {
         audioSources.add(AudioSource.uri(Uri.parse(t.filePath), tag: tag));
       } else {
         audioSources.add(AudioSource.file(t.filePath, tag: tag));
@@ -167,13 +170,8 @@ class AudiobookPlayerHandler extends BaseAudioHandler with SeekHandler {
 
     queue.add(mediaItems);
 
-    final concatenatingSource = ConcatenatingAudioSource(
-      children: audioSources,
-      useLazyPreparation: true,
-    );
-
-    await _player.setAudioSource(
-      concatenatingSource,
+    await _player.setAudioSources(
+      audioSources,
       initialIndex: _currentTrackIndex,
       initialPosition: initialPosition,
     );

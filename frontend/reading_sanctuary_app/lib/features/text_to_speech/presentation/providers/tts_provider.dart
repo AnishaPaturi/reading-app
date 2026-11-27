@@ -7,6 +7,7 @@ import '../../data/services/tts_service.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../analytics/application/analytics_providers.dart';
 import '../../../analytics/data/models/activity_session.dart';
+import '../../../analytics/data/services/activity_tracking_service.dart';
 
 final ttsRepositoryProvider = Provider<TtsRepository>((ref) {
   final token = ref.watch(authTokenProvider);
@@ -122,6 +123,7 @@ class TtsNotifier extends StateNotifier<TtsState> {
   final TtsService _ttsService;
   final TtsRepository _repository;
   final Ref? _ref;
+  late final ActivityTrackingService? _activityTracking;
   Timer? _debounceSaveTimer;
 
   TtsNotifier({
@@ -132,6 +134,7 @@ class TtsNotifier extends StateNotifier<TtsState> {
         _repository = repository,
         _ref = ref,
         super(const TtsState()) {
+    _activityTracking = _ref?.read(activityTrackingServiceProvider);
     _initTts();
   }
 
@@ -415,7 +418,7 @@ class TtsNotifier extends StateNotifier<TtsState> {
   @override
   void dispose() {
     _debounceSaveTimer?.cancel();
-    _ref?.read(activityTrackingServiceProvider).closeSession();
+    _activityTracking?.closeSession();
     super.dispose();
   }
 }

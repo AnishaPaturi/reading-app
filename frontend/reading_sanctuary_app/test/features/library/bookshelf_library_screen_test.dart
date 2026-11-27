@@ -7,6 +7,7 @@ import 'package:reading_sanctuary_app/features/bookshelf/data/models/bookshelf_m
 import 'package:reading_sanctuary_app/features/bookshelf/data/repositories/bookshelf_repository.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/data/services/bookshelf_api_service.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/providers/bookshelf_provider.dart';
+import 'package:reading_sanctuary_app/features/bookshelf/presentation/screens/bookshelves_screen.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/bookshelf_section.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/empty_library_state.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/library_header.dart';
@@ -70,6 +71,7 @@ void main() {
     Size size = const Size(400, 850),
     List<Book> books = const [],
     List<BookshelfModel> initialShelves = const [],
+    Widget screen = const BookshelvesScreen(),
   }) {
     return ProviderScope(
       overrides: [
@@ -79,7 +81,7 @@ void main() {
       child: MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(size: size),
-          child: const LibraryScreen(),
+          child: screen,
         ),
       ),
     );
@@ -100,14 +102,18 @@ void main() {
 
     // Verify LibraryStatistics
     expect(find.byType(LibraryStatistics), findsOneWidget);
-    expect(find.text('Books'), findsOneWidget);
-    expect(find.text('Read'), findsOneWidget);
-    expect(find.text('Reading'), findsOneWidget);
+    expect(find.text('Total Books'), findsOneWidget);
+    expect(find.text('Completed'), findsOneWidget);
+    expect(find.text('Currently Reading'), findsOneWidget);
 
     // Verify LibraryToolbar
     expect(find.byType(LibraryToolbar), findsOneWidget);
     expect(find.text('Your Bookshelves'), findsOneWidget);
     expect(find.text('New Shelf'), findsOneWidget);
+
+    // Scroll down to reveal EmptyLibraryState in mobile sliver viewport
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -450));
+    await tester.pumpAndSettle();
 
     // Verify empty library state when no shelves and no books
     expect(find.byType(EmptyLibraryState), findsOneWidget);
@@ -172,5 +178,21 @@ void main() {
     expect(find.byType(ReaderSidebar), findsOneWidget);
     expect(find.text('Library'), findsWidgets);
     expect(find.byType(ClayBottomNav), findsNothing);
+  });
+
+  testWidgets('LibraryScreen mobile layout renders without toolbar overflow', (tester) async {
+    tester.view.physicalSize = const Size(400, 850);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(buildTestableWidget(
+      size: const Size(400, 850),
+      screen: const LibraryScreen(),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Library'), findsOneWidget);
+    expect(find.text('Add Books'), findsOneWidget);
+    expect(find.text('Discover Books'), findsOneWidget);
   });
 }

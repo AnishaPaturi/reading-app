@@ -472,7 +472,7 @@ class _JournalScreenState extends ConsumerState<JournalScreen> {
                 // Associated Book
                 if (books.isNotEmpty)
                   DropdownButtonFormField<String>(
-                    value: bookTitle,
+                    initialValue: bookTitle,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFFF6F3FB),

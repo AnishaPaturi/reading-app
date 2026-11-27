@@ -253,6 +253,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
               alignment: Alignment.center,
               children: [
                 ClayBookMini(
+                  book: book,
                   title: book.title,
                   color: ClayColors.deepPurple,
                   width: 90,
@@ -456,6 +457,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
           child: Row(
             children: [
               ClayBookMini(
+                book: b,
                 title: b.title,
                 color: palette.base,
                 width: 52,
@@ -541,6 +543,7 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
           final palette = BookshelfTheme.paletteForId(b.id);
 
           return ClayBookMini(
+            book: b,
             title: b.title,
             color: palette.base,
             width: 66,

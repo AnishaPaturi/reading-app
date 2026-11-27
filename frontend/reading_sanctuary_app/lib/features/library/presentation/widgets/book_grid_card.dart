@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/widgets/book_cover.dart';
 import '../../../../core/widgets/clay_components.dart';
 import '../../../../shared/models/book.dart';
-import '../../theme/bookshelf_theme.dart';
 
 class BookGridCard extends StatelessWidget {
   final Book book;
@@ -14,8 +13,6 @@ class BookGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = BookshelfTheme.paletteForId(book.id);
-
     return InkWell(
       onTap: () => context.push('/book/${book.id}'),
       borderRadius: BorderRadius.circular(16),

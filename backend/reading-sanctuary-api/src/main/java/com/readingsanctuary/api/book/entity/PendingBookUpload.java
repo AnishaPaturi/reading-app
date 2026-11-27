@@ -8,7 +8,12 @@ import com.readingsanctuary.api.user.entity.User;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "pending_book_uploads")
+@Table(
+    name = "pending_book_uploads",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_pending_user_checksum", columnNames = {"user_id", "checksum"})
+    }
+)
 public class PendingBookUpload {
 
     @Id

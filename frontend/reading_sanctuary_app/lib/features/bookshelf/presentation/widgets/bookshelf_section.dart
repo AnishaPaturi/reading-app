@@ -302,7 +302,8 @@ class BookshelfSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          height: 90,
+          constraints: const BoxConstraints(minHeight: 90),
+          alignment: Alignment.center,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
@@ -313,15 +314,17 @@ class BookshelfSection extends ConsumerWidget {
               style: BorderStyle.solid,
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 10,
+            runSpacing: 4,
             children: [
               Icon(
                 Icons.auto_stories_outlined,
                 size: 26,
                 color: ClayColors.textMuted.withValues(alpha: 0.5),
               ),
-              const SizedBox(width: 10),
               Text(
                 'This shelf is empty',
                 style: GoogleFonts.inter(
@@ -330,8 +333,7 @@ class BookshelfSection extends ConsumerWidget {
                   color: ClayColors.textMuted,
                 ),
               ),
-              if (onAddBooksTap != null) ...[
-                const SizedBox(width: 10),
+              if (onAddBooksTap != null)
                 TextButton(
                   onPressed: onAddBooksTap,
                   child: Text(
@@ -343,7 +345,6 @@ class BookshelfSection extends ConsumerWidget {
                     ),
                   ),
                 ),
-              ],
             ],
           ),
         ),
@@ -357,22 +358,24 @@ class BookshelfSection extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          height: 10,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFE4DAF5),
-                Color(0xFFD6C7EE),
-              ],
-            ),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
-            border: Border(
-              top: BorderSide(color: Colors.white.withValues(alpha: 0.7), width: 1.0),
-              left: const BorderSide(color: Color(0xFFC7B8E8), width: 0.5),
-              right: const BorderSide(color: Color(0xFFC7B8E8), width: 0.5),
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+          child: Container(
+            height: 10,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFE4DAF5),
+                  Color(0xFFD6C7EE),
+                ],
+              ),
+              border: Border(
+                top: BorderSide(color: Colors.white.withValues(alpha: 0.7), width: 1.0),
+                left: const BorderSide(color: Color(0xFFC7B8E8), width: 0.5),
+                right: const BorderSide(color: Color(0xFFC7B8E8), width: 0.5),
+              ),
             ),
           ),
         ),

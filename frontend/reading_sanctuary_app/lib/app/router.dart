@@ -12,6 +12,7 @@ import '../features/audiobook/presentation/pages/audiobook_player_page.dart';
 import '../features/audiobook/presentation/pages/audiobook_bookmarks_page.dart';
 import '../features/audiobook/presentation/pages/audiobook_history_page.dart';
 import '../features/audiobook/presentation/pages/audiobook_settings_page.dart';
+import '../features/authentication/presentation/providers/auth_provider.dart';
 import '../features/authentication/presentation/screens/login_screen.dart';
 import '../features/authentication/presentation/screens/signup_screen.dart';
 import '../features/calendar/presentation/screens/reading_calendar_screen.dart';
@@ -19,7 +20,9 @@ import '../features/bookshelf/presentation/screens/bookshelves_screen.dart';
 import '../features/bookshelf/presentation/screens/bookshelf_detail_screen.dart';
 import '../features/bookshelf/presentation/screens/deleted_books_screen.dart';
 import '../features/book_details/book_details_screen.dart';
+import '../features/book_discovery/presentation/screens/discover_books_screen.dart';
 import '../features/cloud_storage/presentation/screens/storage_management_screen.dart';
+import '../features/offline/presentation/screens/downloads_screen.dart';
 import '../core/sync/presentation/screens/sync_settings_screen.dart';
 import '../features/discover/presentation/discover_screen.dart';
 import '../features/favorites/presentation/screens/favorites_screen.dart';
@@ -43,27 +46,116 @@ import '../shared/services/providers.dart';
 
 Page<void> _page(GoRouterState s, Widget w) => NoTransitionPage(key: s.pageKey, child: w);
 
+const _publicAuthPaths = {'/', '/landing', '/login', '/signup'};
+
+bool _isProtectedPath(String path) {
+  if (_publicAuthPaths.contains(path)) return false;
+  if (path == '/audiobooks' || path.startsWith('/audiobooks/')) return false;
+  return true;
+}
+
+String? _sanitizeRedirectTarget(String? raw) {
+  if (raw == null || raw.isEmpty) return null;
+  if (!raw.startsWith('/')) return null;
+  if (raw == '/' || raw.startsWith('/login') || raw.startsWith('/signup')) return null;
+  return raw;
+}
+
+class _RouterAuthRefreshNotifier extends ChangeNotifier {
+  _RouterAuthRefreshNotifier(Ref ref) {
+    _subRestored = ref.listen<bool>(authSessionRestoredProvider, (_, __) {
+      notifyListeners();
+    });
+    _subAuth = ref.listen<AuthState>(authNotifierProvider, (prev, next) {
+      if (prev?.isAuthenticated != next.isAuthenticated) {
+        notifyListeners();
+      }
+    });
+  }
+
+  late final ProviderSubscription<bool> _subRestored;
+  late final ProviderSubscription<AuthState> _subAuth;
+
+  @override
+  void dispose() {
+    _subRestored.close();
+    _subAuth.close();
+    super.dispose();
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
+  final refreshNotifier = _RouterAuthRefreshNotifier(ref);
+  ref.onDispose(refreshNotifier.dispose);
+
+  // Trigger session restoration once on startup before protected routes run API calls.
+  Future.microtask(() => ref.read(authNotifierProvider.notifier).restoreSession());
+
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: refreshNotifier,
+    redirect: (context, state) {
+      final isRestored = ref.read(authSessionRestoredProvider);
+      if (!isRestored) return null;
+
+      final isAuthenticated = ref.read(authNotifierProvider).isAuthenticated;
+      final path = state.uri.path;
+
+      if (!isAuthenticated && _isProtectedPath(path)) {
+        final expired = ref.read(authSessionExpiredProvider);
+        final redirectParam = Uri.encodeComponent(state.uri.toString());
+        return expired
+            ? '/login?redirect=$redirectParam&expired=1'
+            : '/login?redirect=$redirectParam';
+      }
+
+      if (isAuthenticated && (path == '/login' || path == '/signup')) {
+        return _sanitizeRedirectTarget(state.uri.queryParameters['redirect']) ?? '/home';
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
       GoRoute(path: '/landing', builder: (_, __) => const LandingScreen()),
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/signup', builder: (_, __) => const SignUpScreen()),
+      GoRoute(
+        path: '/login',
+        builder: (_, s) => LoginScreen(
+          redirectTo: _sanitizeRedirectTarget(s.uri.queryParameters['redirect']),
+          sessionExpired: s.uri.queryParameters['expired'] == '1',
+        ),
+      ),
+      GoRoute(
+        path: '/signup',
+        builder: (_, s) => SignUpScreen(
+          redirectTo: _sanitizeRedirectTarget(s.uri.queryParameters['redirect']),
+        ),
+      ),
       GoRoute(
         path: '/dnf/:id',
         pageBuilder: (context, state) {
           final bookId = state.pathParameters['id']!;
-          final books = ref.watch(booksProvider).valueOrNull ?? [];
-          final matches = books.where((b) => b.id == bookId);
-          if (matches.isEmpty) {
-            return const NoTransitionPage(
-              child: Scaffold(body: Center(child: Text('Book not found'))),
-            );
-          }
           return NoTransitionPage(
-            child: DnfCinematicScreen(book: matches.first),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final isRestored = ref.watch(authSessionRestoredProvider);
+                final isAuthenticated =
+                    ref.watch(authNotifierProvider).isAuthenticated;
+                if (!isRestored || !isAuthenticated) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final books = ref.watch(booksProvider).valueOrNull ?? [];
+                final matches = books.where((b) => b.id == bookId);
+                if (matches.isEmpty) {
+                  return const Scaffold(
+                    body: Center(child: Text('Book not found')),
+                  );
+                }
+                return DnfCinematicScreen(book: matches.first);
+              },
+            ),
           );
         },
       ),
@@ -76,13 +168,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           final mode = state.uri.queryParameters['mode'];
           final isTts = mode == 'tts';
 
-          return AudiobookScreen(
-            bookId: bookId,
-            fileId: fileId,
-            bookTitle: state.uri.queryParameters['title'],
-            author: state.uri.queryParameters['author'],
-            format: state.uri.queryParameters['format'],
-            isTtsMode: isTts,
+          return Consumer(
+            builder: (context, ref, _) {
+              final isRestored = ref.watch(authSessionRestoredProvider);
+              final isAuthenticated =
+                  ref.watch(authNotifierProvider).isAuthenticated;
+              if (!isRestored || !isAuthenticated) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              return AudiobookScreen(
+                bookId: bookId,
+                fileId: fileId,
+                bookTitle: state.uri.queryParameters['title'],
+                author: state.uri.queryParameters['author'],
+                format: state.uri.queryParameters['format'],
+                isTtsMode: isTts,
+              );
+            },
           );
         },
       ),
@@ -94,7 +198,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       ShellRoute(
-        builder: (context, state, child) => AppShell(location: state.uri.path, child: child),
+        builder: (context, state, child) => Consumer(
+          builder: (context, ref, _) {
+            final isRestored = ref.watch(authSessionRestoredProvider);
+            final isAuthenticated =
+                ref.watch(authNotifierProvider).isAuthenticated;
+            if (_isProtectedPath(state.uri.path) &&
+                (!isRestored || !isAuthenticated)) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return AppShell(location: state.uri.path, child: child);
+          },
+        ),
         routes: [
           GoRoute(path: '/home', pageBuilder: (c, s) => _page(s, const HomeScreen())),
           GoRoute(path: '/dashboard', pageBuilder: (c, s) => _page(s, const HomeScreen())),
@@ -112,6 +229,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/library/deleted',
             pageBuilder: (c, s) => _page(s, const DeletedBooksScreen()),
+          ),
+          GoRoute(
+            path: '/library/discover',
+            pageBuilder: (c, s) => _page(s, const DiscoverBooksScreen()),
           ),
           GoRoute(
             path: '/library/add',
@@ -183,6 +304,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/sync/settings',
             pageBuilder: (c, s) => _page(s, const SyncSettingsScreen()),
+          ),
+          GoRoute(
+            path: '/downloads',
+            pageBuilder: (c, s) => _page(s, const DownloadsScreen()),
           ),
           GoRoute(
             path: '/storage/manage',

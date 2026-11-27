@@ -166,7 +166,7 @@ void main() {
 
       expect(find.text('DID NOT FINISH'), findsOneWidget);
       expect(find.text("SOME STORIES AREN'T MEANT TO BE FINISHED."), findsOneWidget);
-      expect(find.text('The Great Retirement'), findsOneWidget);
+      expect(find.text('The Great Retirement'), findsNWidgets(2));
       expect(find.text('Sanctuary Author'), findsOneWidget);
       expect(find.text('15%'), findsOneWidget);
       expect(find.text('PROGRESS STOPPED'), findsOneWidget);
@@ -175,12 +175,15 @@ void main() {
       expect(find.text('DNF Shelf'), findsOneWidget);
       expect(find.text('Accidentally retired? Undo DNF'), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Back to Shelf'));
       await tester.tap(find.text('Back to Shelf'));
       expect(backTapped, isTrue);
 
+      await tester.ensureVisible(find.text('DNF Shelf'));
       await tester.tap(find.text('DNF Shelf'));
       expect(dnfShelfTapped, isTrue);
 
+      await tester.ensureVisible(find.text('Accidentally retired? Undo DNF'));
       await tester.tap(find.text('Accidentally retired? Undo DNF'));
       expect(undoTapped, isTrue);
     });
@@ -207,10 +210,12 @@ void main() {
         ),
       );
 
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.pumpAndSettle();
 
       expect(find.text('Did Not Finish'), findsOneWidget);
-      expect(find.text('The Great Retirement'), findsOneWidget);
+      expect(find.text('The Great Retirement'), findsWidgets);
       expect(find.text('Stopped at 12%'), findsOneWidget);
       expect(find.text('LOST_INTEREST'), findsOneWidget);
     });

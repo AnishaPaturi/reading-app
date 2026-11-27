@@ -42,7 +42,7 @@ class ChapterListSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -65,12 +65,12 @@ class ChapterListSheet extends StatelessWidget {
                     'Stop at chapter end',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: isDark ? AppColors.ivory.withOpacity(0.8) : AppColors.textDark.withOpacity(0.8),
+                      color: isDark ? AppColors.ivory.withValues(alpha: 0.8) : AppColors.textDark.withValues(alpha: 0.8),
                     ),
                   ),
                   Switch(
                     value: stopAtChapterEnd,
-                    activeColor: primary,
+                    activeThumbColor: primary,
                     onChanged: onToggleStopAtChapterEnd,
                   ),
                 ],
@@ -106,7 +106,7 @@ class ChapterListSheet extends StatelessWidget {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     leading: CircleAvatar(
                       radius: 14,
-                      backgroundColor: isActive ? primary : Colors.grey.withOpacity(0.15),
+                      backgroundColor: isActive ? primary : Colors.grey.withValues(alpha: 0.15),
                       child: Text(
                         '${index + 1}',
                         style: GoogleFonts.inter(

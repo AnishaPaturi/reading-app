@@ -53,7 +53,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         return Scaffold(
           key: _scaffoldKey,
-          backgroundColor: const Color(0xFFF4F0FB),
+          backgroundColor: ClayColors.canvasBackground,
           drawer: isWide
               ? null
               : Drawer(
@@ -238,12 +238,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECE5FA),
-                      borderRadius: BorderRadius.circular(12),
+                      color: ClayColors.pastelMutedViolet.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
                       Icons.auto_stories_rounded,
-                      color: ClayColors.primaryPurple,
+                      color: ClayColors.royalLilac,
                       size: 20,
                     ),
                   ),
@@ -256,8 +256,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           'Currently Reading',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 19,
                             fontWeight: FontWeight.w800,
                             color: ClayColors.textDark,
                           ),
@@ -266,10 +266,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           'Pick up where you left off',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 11.5,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: ClayColors.textMuted,
+                            color: ClayColors.dustyPlum,
                           ),
                         ),
                       ],
@@ -280,18 +280,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4.5),
               decoration: BoxDecoration(
-                color: ClayColors.peach.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: ClayColors.peach, width: 1),
+                color: ClayColors.pastelMutedViolet.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: ClayColors.clayBorder.withValues(alpha: 0.8), width: 1),
               ),
               child: Text(
                 '${books.length} ${books.length == 1 ? 'Book' : 'Books'}',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF4C2A1E),
+                  color: ClayColors.deepLavender,
                 ),
               ),
             ),
@@ -307,11 +307,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.menu_book_rounded, color: ClayColors.primaryPurple, size: 36),
+                  const Icon(Icons.menu_book_rounded, color: ClayColors.royalLilac, size: 36),
                   const SizedBox(height: 10),
                   Text(
                     'No books currently in progress',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: ClayColors.textDark,
@@ -320,17 +320,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Explore your library to start reading!',
-                    style: GoogleFonts.inter(fontSize: 12.5, color: ClayColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: ClayColors.dustyPlum),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () => context.go('/library'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ClayColors.deepPurple,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                      backgroundColor: ClayColors.royalLilac,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     ),
-                    child: const Text('Browse Library', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    child: Text(
+                      'Browse Library',
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ],
               ),
@@ -343,206 +346,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onContinueReading: (book, progress) => _continueReading(context, book, progress),
           ),
       ],
-    );
-  }
-
-  Widget _buildReadingCard(
-    BuildContext context,
-    Book book,
-    Map<String, ReadingProgress> progressMap,
-  ) {
-    final palette = BookshelfTheme.paletteForId(book.id);
-    final progress = _findReadingProgressForBook(book, progressMap);
-
-    final int totalPages = (progress?.totalPages != null && progress!.totalPages! > 0)
-        ? progress.totalPages!
-        : (book.pages > 0 ? book.pages : 100);
-
-    final int currentPage = (progress?.currentPage != null && progress!.currentPage! > 0)
-        ? progress.currentPage!.clamp(1, totalPages)
-        : (book.currentPage > 0
-            ? book.currentPage.clamp(1, totalPages)
-            : 1);
-
-    final double rawPercentage = progress != null && progress.progressPercentage > 0
-        ? progress.progressPercentage
-        : (book.progress > 0
-            ? book.progress * 100.0
-            : (currentPage > 1 && totalPages > 0 ? (currentPage / totalPages) * 100.0 : 0.0));
-
-    final double progressPctValue = rawPercentage.clamp(0.0, 100.0);
-    final String progressPctText = progressPctValue.truncateToDouble() == progressPctValue
-        ? progressPctValue.toStringAsFixed(0)
-        : progressPctValue.toStringAsFixed(1);
-
-    final pagesRemaining = (totalPages - currentPage).clamp(0, totalPages);
-    final hoursRemaining =
-        (pagesRemaining * 1.5 / 60).clamp(0.1, 24.0).toStringAsFixed(1);
-
-    return ClayCard(
-      padding: const EdgeInsets.all(16),
-      onTap: () {
-        _continueReading(context, book, progress);
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 3D Mini Book Cover
-              ClayBookMini(
-                title: book.title,
-                color: palette.base,
-                width: 58,
-                height: 82,
-                hasHeart: book.rating != null && book.rating! >= 4.0,
-              ),
-              const SizedBox(width: 14),
-
-              // Book Information
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            book.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
-                              fontSize: 15.5,
-                              fontWeight: FontWeight.w800,
-                              color: ClayColors.textDark,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECE5FA),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            book.genre,
-                            style: GoogleFonts.inter(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: ClayColors.primaryPurple,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      book.author,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: ClayColors.textMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Progress Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            '$progressPctText% Completed',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: ClayColors.coral,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'Page $currentPage of $totalPages',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: ClayColors.textMuted,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Progress Bar
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(
-                        value: (progressPctValue / 100.0).clamp(0.0, 1.0),
-                        minHeight: 8,
-                        backgroundColor: const Color(0xFFEDE6FA),
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(ClayColors.coral),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // Action Bar at Bottom of Card
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.timer_outlined, size: 14, color: ClayColors.textMuted),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        '$hoursRemaining hrs left',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: ClayColors.textMuted,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              ClayPillButton(
-                text: 'Continue Reading  →',
-                height: 34,
-                fontSize: 12,
-                color: ClayColors.deepPurple,
-                textColor: Colors.white,
-                onTap: () {
-                  _continueReading(context, book, progress);
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
@@ -565,12 +368,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFDDEEFC),
-                      borderRadius: BorderRadius.circular(12),
+                      color: ClayColors.sageMint.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
                       Icons.headphones_rounded,
-                      color: Color(0xFF4379EE),
+                      color: Color(0xFF236B61),
                       size: 20,
                     ),
                   ),
@@ -583,8 +386,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           'Currently Listening',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 19,
                             fontWeight: FontWeight.w800,
                             color: ClayColors.textDark,
                           ),
@@ -593,10 +396,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           'Audiobooks in progress',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 11.5,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: ClayColors.textMuted,
+                            color: ClayColors.dustyPlum,
                           ),
                         ),
                       ],
@@ -607,18 +410,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4.5),
               decoration: BoxDecoration(
-                color: const Color(0xFFDDEEFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFB9DBFA), width: 1),
+                color: ClayColors.sunnyButtercup.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: ClayColors.sunnyButtercup.withValues(alpha: 0.8), width: 1),
               ),
               child: Text(
                 '${books.length} ${books.length == 1 ? 'Audiobook' : 'Audiobooks'}',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E3A8A),
+                  color: const Color(0xFF9A5B00),
                 ),
               ),
             ),
@@ -634,11 +437,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.headphones_rounded, color: Color(0xFF4379EE), size: 36),
+                  const Icon(Icons.headphones_rounded, color: Color(0xFF236B61), size: 36),
                   const SizedBox(height: 10),
                   Text(
                     'No audiobooks currently in progress',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: ClayColors.textDark,
@@ -647,17 +450,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Browse audiobooks in your library to start listening!',
-                    style: GoogleFonts.inter(fontSize: 12.5, color: ClayColors.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: ClayColors.dustyPlum),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () => context.go('/library'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4379EE),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                      backgroundColor: ClayColors.royalLilac,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     ),
-                    child: const Text('Find Audiobooks', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    child: Text(
+                      'Find Audiobooks',
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ],
               ),
@@ -718,6 +524,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 clipBehavior: Clip.none,
                 children: [
                   ClayBookMini(
+                    book: book,
                     title: book.title,
                     color: palette.base,
                     width: 58,
@@ -729,11 +536,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4379EE),
+                        color: ClayColors.sageMint,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4379EE).withValues(alpha: 0.4),
+                            color: ClayColors.sageMint.withValues(alpha: 0.4),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -762,7 +569,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             book.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 15.5,
                               fontWeight: FontWeight.w800,
                               color: ClayColors.textDark,
@@ -772,17 +579,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         const SizedBox(width: 6),
                         Container(
                           padding:
-                              const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                              const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFDDEEFC),
-                            borderRadius: BorderRadius.circular(8),
+                            color: ClayColors.sageMint.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             'Audiobook',
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF2563EB),
+                              color: const Color(0xFF236B61),
                             ),
                           ),
                         ),
@@ -793,10 +600,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       book.author,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: ClayColors.textMuted,
+                        color: ClayColors.dustyPlum,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -810,10 +617,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             '$progressPct% Listened',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF4379EE),
+                              color: ClayColors.creamsicleCoral,
                             ),
                           ),
                         ),
@@ -823,10 +630,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             'Chapter $currentChapter of $totalChapters',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: ClayColors.textMuted,
+                              color: ClayColors.dustyPlum,
                             ),
                           ),
                         ),
@@ -840,9 +647,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: LinearProgressIndicator(
                         value: progressPct / 100.0,
                         minHeight: 8,
-                        backgroundColor: const Color(0xFFDDEEFC),
+                        backgroundColor: ClayColors.pastelMutedViolet.withValues(alpha: 0.45),
                         valueColor:
-                            const AlwaysStoppedAnimation<Color>(Color(0xFF4379EE)),
+                            const AlwaysStoppedAnimation<Color>(ClayColors.creamsicleCoral),
                       ),
                     ),
                   ],
@@ -862,17 +669,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.volume_up_rounded,
-                        size: 14, color: Color(0xFF4379EE)),
+                        size: 14, color: ClayColors.dustyPlum),
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
                         '$hoursRemaining hrs left',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: ClayColors.textMuted,
+                          color: ClayColors.dustyPlum,
                         ),
                       ),
                     ),
@@ -882,9 +689,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(width: 8),
               ClayPillButton(
                 text: 'Listen Now  ♫',
-                height: 34,
+                height: 36,
                 fontSize: 12,
-                color: const Color(0xFF4379EE),
+                color: ClayColors.royalLilac,
                 textColor: Colors.white,
                 onTap: () {
                   _continueListening(context, book, audioProgress);

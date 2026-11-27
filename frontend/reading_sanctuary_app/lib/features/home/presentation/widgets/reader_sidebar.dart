@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../../core/widgets/clay_components.dart';
 import '../../../authentication/presentation/providers/auth_provider.dart';
 
 class ReaderSidebar extends ConsumerWidget {
@@ -23,7 +26,7 @@ class ReaderSidebar extends ConsumerWidget {
     return Container(
       width: width ?? 210,
       decoration: const BoxDecoration(
-        color: Color(0xFF9482E6),
+        color: ClayColors.deepLavender,
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(32),
           bottomRight: Radius.circular(32),
@@ -86,7 +89,7 @@ class ReaderSidebar extends ConsumerWidget {
                                 width: 14,
                                 height: 14,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF5CB89A),
+                                  color: ClayColors.sageMint,
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white, width: 2),
                                 ),
@@ -97,7 +100,7 @@ class ReaderSidebar extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Text(
                           'Hello, $userName!',
-                          style: const TextStyle(
+                          style: GoogleFonts.plusJakartaSans(
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -111,14 +114,14 @@ class ReaderSidebar extends ConsumerWidget {
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.person_outline_rounded, color: Colors.white, size: 12),
-                              SizedBox(width: 4),
+                              const Icon(Icons.person_outline_rounded, color: Colors.white, size: 12),
+                              const SizedBox(width: 4),
                               Text(
                                 'Profile',
-                                style: TextStyle(
+                                style: GoogleFonts.plusJakartaSans(
                                   color: Colors.white,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -162,6 +165,16 @@ class ReaderSidebar extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     _SidebarNavItem(
+                      icon: Icons.download_rounded,
+                      label: 'Downloads',
+                      isActive: activeRoute == '/downloads',
+                      onTap: () {
+                        onItemTapped?.call();
+                        context.go('/downloads');
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _SidebarNavItem(
                       icon: Icons.shelves,
                       label: 'Bookshelves',
                       isActive: activeRoute == '/bookshelves',
@@ -194,10 +207,10 @@ class ReaderSidebar extends ConsumerWidget {
                     _SidebarNavItem(
                       icon: Icons.headphones_rounded,
                       label: 'Audiobooks',
-                      isActive: activeRoute == '/reading',
+                      isActive: activeRoute == '/audiobooks',
                       onTap: () {
                         onItemTapped?.call();
-                        context.go('/reading');
+                        context.go('/audiobooks');
                       },
                     ),
                     const SizedBox(height: 8),
@@ -238,18 +251,18 @@ class ReaderSidebar extends ConsumerWidget {
                     context.go('/login');
                   }
                 },
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                   child: Row(
                     children: [
-                      Icon(Icons.logout_rounded, color: Colors.white70, size: 18),
-                      SizedBox(width: 10),
+                      const Icon(Icons.logout_rounded, color: Colors.white70, size: 18),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Sign Out',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                          style: GoogleFonts.plusJakartaSans(
                             color: Colors.white70,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -306,15 +319,15 @@ class _SidebarNavItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
                 children: [
-                  Icon(icon, color: const Color(0xFF9482E6), size: 20),
+                  Icon(icon, color: ClayColors.deepLavender, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF9482E6),
+                      style: GoogleFonts.plusJakartaSans(
+                        color: ClayColors.deepLavender,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
@@ -345,7 +358,7 @@ class _SidebarNavItem extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: GoogleFonts.plusJakartaSans(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

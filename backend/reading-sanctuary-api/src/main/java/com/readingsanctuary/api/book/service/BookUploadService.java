@@ -7,16 +7,21 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -26,7 +31,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.readingsanctuary.api.book.dto.BookResponse;
 import com.readingsanctuary.api.book.dto.BookUploadResponse;
+import com.readingsanctuary.api.book.dto.CheckDuplicatesRequest;
+import com.readingsanctuary.api.book.dto.CheckDuplicatesResponse;
 import com.readingsanctuary.api.book.dto.ConfirmBookRequest;
+import com.readingsanctuary.api.book.dto.ReconcileUploadResponse;
 import com.readingsanctuary.api.book.entity.Book;
 import com.readingsanctuary.api.book.entity.PendingBookUpload;
 import com.readingsanctuary.api.book.enums.ReadingStatus;
@@ -49,7 +57,7 @@ public class BookUploadService {
 
     private static final Logger log = LoggerFactory.getLogger(BookUploadService.class);
 
-    private static final Set<String> SUPPORTED_FORMATS = Set.of("pdf", "epub", "mp3", "m4b", "m4a");
+    private static final Set<String> SUPPORTED_FORMATS = Set.of("pdf", "epub", "docx", "mp3", "m4b", "m4a");
     private static final long MAX_FILE_SIZE = 2048L * 1024 * 1024; // 2 GB (2048 MB)
     private static final long MAX_COVER_SIZE = 5L * 1024 * 1024; // 5 MB
 
@@ -125,7 +133,7 @@ public class BookUploadService {
         if (!SUPPORTED_FORMATS.contains(extension)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Unsupported book format: ." + extension + ". Supported formats are PDF, EPUB, M4A, MP3, and M4B."
+                    "Unsupported book format: ." + extension + ". Supported formats are PDF, EPUB, DOCX, M4A, MP3, and M4B."
             );
         }
 
@@ -135,6 +143,23 @@ public class BookUploadService {
         String pendingKey = null;
         try {
             String checksum = calculateChecksum(file);
+
+            // 1. Authoritative check: Prevent duplicate upload if file already exists in library
+            Optional<BookFile> existingPermanent = fileRepository.findFirstByBook_CreatedBy_IdAndChecksum(userId, checksum);
+            if (existingPermanent.isPresent()) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "This book file has already been imported into your library as \"" + existingPermanent.get().getBook().getTitle() + "\"."
+                );
+            }
+
+            // 2. Prevent concurrent duplicate uploads for the same user
+            if (pendingRepository.existsByUser_IdAndChecksum(userId, checksum)) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "An upload session for this file is already pending review in your library."
+                );
+            }
 
             // Store file into pending storage
             pendingKey = storageService.storePending(file, extension);
@@ -184,9 +209,29 @@ public class BookUploadService {
                     saved.getCoverBase64()
             );
 
+        } catch (DataIntegrityViolationException e) {
+            if (pendingKey != null) {
+                try {
+                    storageService.delete(pendingKey);
+                } catch (Exception ignored) {}
+            }
+            log.warn("Concurrent duplicate upload rejected by database constraint for user {} and file {}: {}", userId, safeName, e.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "An upload session for this file is already pending review in your library."
+            );
+        } catch (ResponseStatusException e) {
+            if (pendingKey != null) {
+                try {
+                    storageService.delete(pendingKey);
+                } catch (Exception ignored) {}
+            }
+            throw e;
         } catch (IOException | NoSuchAlgorithmException e) {
             if (pendingKey != null) {
-                storageService.delete(pendingKey);
+                try {
+                    storageService.delete(pendingKey);
+                } catch (Exception ignored) {}
             }
             log.error("Failed to process uploaded book file: {}", e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process uploaded book file: " + e.getMessage());
@@ -233,15 +278,25 @@ public class BookUploadService {
         if (!SUPPORTED_FORMATS.contains(extension)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Unsupported book format: ." + extension + ". Supported formats are PDF, EPUB, M4A, MP3, and M4B."
+                    "Unsupported book format: ." + extension + ". Supported formats are PDF, EPUB, DOCX, M4A, MP3, and M4B."
             );
         }
 
         validateFileSignature(file, extension);
 
         String pendingKey = null;
+        String permanentKey = null;
         try {
             String checksum = calculateChecksum(file);
+
+            // Authoritative duplicate check against user's library
+            Optional<BookFile> existingPermanent = fileRepository.findFirstByBook_CreatedBy_IdAndChecksum(userId, checksum);
+            if (existingPermanent.isPresent()) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "This book file has already been imported into your library as \"" + existingPermanent.get().getBook().getTitle() + "\"."
+                );
+            }
 
             // Store file into pending storage
             pendingKey = storageService.storePending(file, extension);
@@ -255,7 +310,7 @@ public class BookUploadService {
             );
 
             // Promote file directly to permanent storage
-            String permanentKey = storageService.promoteToPermanent(pendingKey);
+            permanentKey = storageService.promoteToPermanent(pendingKey);
             pendingKey = null;
 
             Book book = new Book();
@@ -308,6 +363,7 @@ public class BookUploadService {
             // Create BookFile attachment record
             BookFile bookFile = new BookFile();
             bookFile.setBook(book);
+            bookFile.setUser(user);
             bookFile.setFileName(safeName);
             bookFile.setFileFormat(extension.toUpperCase(Locale.ROOT));
             bookFile.setStorageKey(permanentKey);
@@ -334,9 +390,44 @@ public class BookUploadService {
 
             return toBookResponse(book);
 
+        } catch (DataIntegrityViolationException e) {
+            if (pendingKey != null) {
+                try {
+                    storageService.delete(pendingKey);
+                } catch (Exception ignored) {}
+            }
+            if (permanentKey != null) {
+                try {
+                    storageService.delete(permanentKey);
+                } catch (Exception ignored) {}
+            }
+            log.warn("Concurrent duplicate book file rejected by database constraint for user {} and file {}: {}", userId, safeName, e.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "This book file has already been imported into your library."
+            );
+        } catch (ResponseStatusException e) {
+            if (pendingKey != null) {
+                try {
+                    storageService.delete(pendingKey);
+                } catch (Exception ignored) {}
+            }
+            if (permanentKey != null) {
+                try {
+                    storageService.delete(permanentKey);
+                } catch (Exception ignored) {}
+            }
+            throw e;
         } catch (IOException | NoSuchAlgorithmException e) {
             if (pendingKey != null) {
-                storageService.delete(pendingKey);
+                try {
+                    storageService.delete(pendingKey);
+                } catch (Exception ignored) {}
+            }
+            if (permanentKey != null) {
+                try {
+                    storageService.delete(permanentKey);
+                } catch (Exception ignored) {}
             }
             log.error("Failed to process uploaded book file: {}", e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process uploaded book file: " + e.getMessage());
@@ -441,6 +532,19 @@ public class BookUploadService {
             }
         }
 
+        // Authoritative duplicate check before permanent promotion
+        if (pending.getChecksum() != null && !pending.getChecksum().isBlank()) {
+            Optional<BookFile> existing = fileRepository.findFirstByBook_CreatedBy_IdAndChecksum(userId, pending.getChecksum());
+            if (existing.isPresent()) {
+                storageService.delete(pending.getStorageKey());
+                pendingRepository.delete(pending);
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "This book file has already been imported into your library as \"" + existing.get().getBook().getTitle() + "\"."
+                );
+            }
+        }
+
         // Promote pending file to permanent storage
         String permanentKey;
         try {
@@ -453,6 +557,7 @@ public class BookUploadService {
         // Create BookFile attachment record
         BookFile bookFile = new BookFile();
         bookFile.setBook(book);
+        bookFile.setUser(pending.getUser());
         bookFile.setFileName(pending.getFileName());
         bookFile.setFileFormat(pending.getFileFormat());
         bookFile.setStorageKey(permanentKey);
@@ -462,7 +567,23 @@ public class BookUploadService {
         bookFile.setStorageProvider("LOCAL");
         bookFile.setStorageStatus("LOCAL");
 
-        fileRepository.save(bookFile);
+        try {
+            fileRepository.save(bookFile);
+        } catch (DataIntegrityViolationException e) {
+            if (permanentKey != null) {
+                try {
+                    storageService.delete(permanentKey);
+                } catch (Exception ignored) {}
+            }
+            try {
+                pendingRepository.delete(pending);
+            } catch (Exception ignored) {}
+            log.warn("Concurrent duplicate confirmation rejected by database constraint for user {}: {}", userId, e.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "This book file has already been imported into your library."
+            );
+        }
 
         // Delete pending upload record
         pendingRepository.delete(pending);
@@ -596,10 +717,13 @@ public class BookUploadService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File signature does not match PDF format");
                     }
                 }
-                case "epub" -> {
+                case "epub", "docx" -> {
                     // PK\x03\x04
                     if (header[0] != 0x50 || header[1] != 0x4B || header[2] != 0x03 || header[3] != 0x04) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File signature does not match EPUB format");
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "File signature does not match " + extension.toUpperCase(Locale.ROOT) + " format"
+                        );
                     }
                 }
                 case "mp3" -> {
@@ -681,6 +805,112 @@ public class BookUploadService {
                 hasCover,
                 coverUrl,
                 coverUpdatedAt
+        );
+    }
+
+    /**
+     * Batch check file fingerprints against user's library for duplicate prevention.
+     */
+    @Transactional(readOnly = true)
+    public CheckDuplicatesResponse checkDuplicates(CheckDuplicatesRequest request, UUID userId) {
+        if (request == null || request.files() == null || request.files().isEmpty()) {
+            return new CheckDuplicatesResponse(List.of(), List.of());
+        }
+
+        Set<String> checksums = request.files().stream()
+                .map(CheckDuplicatesRequest.FileCheckItem::checksum)
+                .filter(c -> c != null && !c.isBlank())
+                .collect(Collectors.toSet());
+
+        if (checksums.isEmpty()) {
+            return new CheckDuplicatesResponse(List.of(), List.of());
+        }
+
+        List<BookFile> matchingFiles = fileRepository.findAllByUserIdAndChecksumsInWithBook(userId, checksums);
+
+        Map<String, BookFile> checksumToFileMap = matchingFiles.stream()
+                .collect(Collectors.toMap(
+                        BookFile::getChecksum,
+                        bf -> bf,
+                        (existing, replacement) -> existing
+                ));
+
+        List<CheckDuplicatesResponse.DuplicateMatch> matches = new ArrayList<>();
+        for (CheckDuplicatesRequest.FileCheckItem item : request.files()) {
+            if (item.checksum() != null && checksumToFileMap.containsKey(item.checksum())) {
+                BookFile bf = checksumToFileMap.get(item.checksum());
+                matches.add(new CheckDuplicatesResponse.DuplicateMatch(
+                        item.clientRefId(),
+                        item.checksum(),
+                        bf.getBook().getId(),
+                        bf.getBook().getTitle(),
+                        bf.getFileFormat(),
+                        bf.getFileName()
+                ));
+            }
+        }
+
+        List<String> existingChecksums = new ArrayList<>(checksumToFileMap.keySet());
+        List<String> verifiedChecksums = new ArrayList<>(checksums);
+        return new CheckDuplicatesResponse(matches, existingChecksums, verifiedChecksums);
+    }
+
+    /**
+     * Reconcile client state after lost responses or network drops:
+     * - Returns ALREADY_CONFIRMED if the file has already been saved to the user's library.
+     * - Returns PENDING_CONFIRMATION if the pending upload session is still alive.
+     * - Returns NOT_FOUND if neither exists.
+     */
+    @Transactional(readOnly = true)
+    public ReconcileUploadResponse reconcileUpload(UUID userId, String checksum, String uploadId) {
+        // 1. Check if book file already exists for this user with this checksum
+        if (checksum != null && !checksum.isBlank()) {
+            Optional<BookFile> existingFile = fileRepository.findByUserIdAndChecksumWithBook(userId, checksum);
+            if (existingFile.isPresent()) {
+                Book book = existingFile.get().getBook();
+                return new ReconcileUploadResponse(
+                        "ALREADY_CONFIRMED",
+                        checksum,
+                        null,
+                        toBookResponse(book)
+                );
+            }
+        }
+
+        // 2. Check if pending upload exists for this uploadId
+        if (uploadId != null && !uploadId.isBlank()) {
+            try {
+                UUID uid = UUID.fromString(uploadId);
+                Optional<PendingBookUpload> pending = pendingRepository.findByIdAndUser_Id(uid, userId);
+                if (pending.isPresent()) {
+                    return new ReconcileUploadResponse(
+                            "PENDING_CONFIRMATION",
+                            pending.get().getChecksum(),
+                            pending.get().getId().toString(),
+                            null
+                    );
+                }
+            } catch (IllegalArgumentException ignored) {}
+        }
+
+        // 3. Fallback check for pending upload by checksum
+        if (checksum != null && !checksum.isBlank()) {
+            Optional<PendingBookUpload> pendingByChecksum = pendingRepository.findFirstByUser_IdAndChecksum(userId, checksum);
+            if (pendingByChecksum.isPresent()) {
+                return new ReconcileUploadResponse(
+                        "PENDING_CONFIRMATION",
+                        checksum,
+                        pendingByChecksum.get().getId().toString(),
+                        null
+                );
+            }
+        }
+
+        return new ReconcileUploadResponse(
+                "NOT_FOUND",
+                checksum,
+                uploadId,
+                null
         );
     }
 

@@ -184,6 +184,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           child: Row(
                             children: [
                               ClayBookMini(
+                                book: book,
                                 title: book.title,
                                 color: palette.base,
                                 width: 54,

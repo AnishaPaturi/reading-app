@@ -82,6 +82,7 @@ void main() {
   group('AuthNotifier Session Persistence Tests', () {
     test('restoreSession restores user and token when session exists in storage', () async {
       await fakeStorage.saveSession(token: sampleUser.token!, user: sampleUser);
+      fakeApiService.userProfileResult = sampleUser;
 
       final success = await authNotifier.restoreSession();
 
@@ -328,6 +329,38 @@ void main() {
 
       await restartContainer.read(authNotifierProvider.notifier).restoreSession();
       expect(restartContainer.read(userDisplayNameProvider), 'Bob');
+    });
+
+    test('GoogleSignInManager reuses single instance and AuthNotifier avoids eager initialization', () async {
+      GoogleSignInManager.resetForTesting();
+      addTearDown(GoogleSignInManager.resetForTesting);
+
+      final first = GoogleSignInManager.resolve(
+        clientId: 'client-123',
+        serverClientId: 'server-123',
+      );
+      final second = GoogleSignInManager.resolve(
+        clientId: 'client-123',
+        serverClientId: 'server-123',
+      );
+      expect(identical(first, second), isTrue);
+
+      int factoryCalls = 0;
+      final notifier = AuthNotifier(
+        apiService: fakeApiService,
+        tokenNotifier: StateController<String?>(null),
+        googleSignInFactory: () {
+          factoryCalls++;
+          return GoogleSignIn();
+        },
+        sessionStorage: fakeStorage,
+      );
+
+      // Session restore, email login, and non-Google flows must not initialize GIS
+      await notifier.restoreSession();
+      fakeApiService.loginResult = sampleUser;
+      await notifier.login(email: 'test@sanctuary.app', password: 'password123');
+      expect(factoryCalls, 0);
     });
   });
 }

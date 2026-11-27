@@ -142,31 +142,27 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check initial state (neither selected)
-      final maleRadio = tester.widget<Radio<String>>(find.byWidgetPredicate(
-        (w) => w is Radio<String> && w.value == 'male',
-      ));
-      final femaleRadio = tester.widget<Radio<String>>(find.byWidgetPredicate(
-        (w) => w is Radio<String> && w.value == 'female',
-      ));
-      expect(maleRadio.groupValue, isNull);
-      expect(femaleRadio.groupValue, isNull);
+      final initialGroup = tester.widget<RadioGroup<String>>(
+        find.byType(RadioGroup<String>),
+      );
+      expect(initialGroup.groupValue, isNull);
 
       // Select Male
       await tester.tap(find.text('Male'));
       await tester.pumpAndSettle();
 
-      final maleSelected = tester.widget<Radio<String>>(find.byWidgetPredicate(
-        (w) => w is Radio<String> && w.value == 'male',
-      ));
+      final maleSelected = tester.widget<RadioGroup<String>>(
+        find.byType(RadioGroup<String>),
+      );
       expect(maleSelected.groupValue, 'male');
 
       // Select Female
       await tester.tap(find.text('Female'));
       await tester.pumpAndSettle();
 
-      final femaleSelected = tester.widget<Radio<String>>(find.byWidgetPredicate(
-        (w) => w is Radio<String> && w.value == 'female',
-      ));
+      final femaleSelected = tester.widget<RadioGroup<String>>(
+        find.byType(RadioGroup<String>),
+      );
       expect(femaleSelected.groupValue, 'female');
     });
 

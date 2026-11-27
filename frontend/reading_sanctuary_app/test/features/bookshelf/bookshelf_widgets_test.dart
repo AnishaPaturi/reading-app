@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reading_sanctuary_app/core/widgets/book_cover.dart';
 import 'package:reading_sanctuary_app/features/bookshelf/presentation/widgets/bookshelf_book_item.dart';
@@ -100,16 +101,18 @@ void main() {
       Book? clickedBook;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: BookshelfSection(
-                title: 'Currently Reading',
-                bookCount: 2,
-                books: [sampleBook1, sampleBook2],
-                icon: Icons.auto_stories_rounded,
-                decorationType: BookshelfDecorationType.pottedPlant,
-                onBookTap: (b) => clickedBook = b,
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: BookshelfSection(
+                  title: 'Currently Reading',
+                  bookCount: 2,
+                  books: [sampleBook1, sampleBook2],
+                  icon: Icons.auto_stories_rounded,
+                  decorationType: BookshelfDecorationType.pottedPlant,
+                  onBookTap: (b) => clickedBook = b,
+                ),
               ),
             ),
           ),
@@ -131,24 +134,26 @@ void main() {
       bool addTapped = false;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: BookshelfSection(
-                title: 'Empty Shelf',
-                books: const [],
-                onBookTap: (_) {},
-                onAddBooksTap: () => addTapped = true,
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: BookshelfSection(
+                  title: 'Empty Shelf',
+                  books: const [],
+                  onBookTap: (_) {},
+                  onAddBooksTap: () => addTapped = true,
+                ),
               ),
             ),
           ),
         ),
       );
 
-      expect(find.text('No books on this shelf yet'), findsOneWidget);
-      expect(find.text('Add Books'), findsOneWidget);
+      expect(find.text('This shelf is empty'), findsOneWidget);
+      expect(find.text('+ Add Books'), findsOneWidget);
 
-      await tester.tap(find.text('Add Books'));
+      await tester.tap(find.text('+ Add Books'));
       expect(addTapped, isTrue);
     });
   });

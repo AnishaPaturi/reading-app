@@ -18,7 +18,7 @@ void main() {
     });
 
     test('BookFile toJson and fromJson serialization works accurately', () {
-      final file = BookFile(
+      const file = BookFile(
         id: 'file-123',
         format: BookFileFormat.epub,
         fileName: 'cruel_prince.epub',
@@ -43,13 +43,13 @@ void main() {
     });
 
     test('Book handles multiple attached files and maintains backward compatibility', () {
-      final file1 = BookFile(
+      const file1 = BookFile(
         id: 'f1',
         format: BookFileFormat.epub,
         fileName: 'book.epub',
         fileSize: 1000,
       );
-      final file2 = BookFile(
+      const file2 = BookFile(
         id: 'f2',
         format: BookFileFormat.mp3,
         fileName: 'book.mp3',

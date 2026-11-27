@@ -3,6 +3,7 @@ class BookFileValidator {
     'pdf',
     'epub',
     'mp3',
+    'm4a',
     'm4b',
   ];
 
@@ -10,6 +11,7 @@ class BookFileValidator {
     'pdf': 'application/pdf',
     'epub': 'application/epub+zip',
     'mp3': 'audio/mpeg',
+    'm4a': 'audio/mp4',
     'm4b': 'audio/mp4',
   };
 

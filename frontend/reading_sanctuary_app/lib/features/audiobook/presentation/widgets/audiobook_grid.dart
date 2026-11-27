@@ -35,7 +35,7 @@ class AudiobookGridCard extends StatelessWidget {
           color: isDark ? AppColors.card : AppColors.parchment,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.06),
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.06),
           ),
         ),
         padding: const EdgeInsets.all(10),
@@ -72,7 +72,7 @@ class AudiobookGridCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.inter(
                 fontSize: 11,
-                color: isDark ? AppColors.gold.withOpacity(0.8) : AppColors.brown,
+                color: isDark ? AppColors.gold.withValues(alpha: 0.8) : AppColors.brown,
               ),
             ),
             const SizedBox(height: 6),
@@ -82,8 +82,8 @@ class AudiobookGridCard extends StatelessWidget {
                 value: ratio,
                 minHeight: 3,
                 backgroundColor: isDark
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.black.withOpacity(0.1),
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1),
                 valueColor: AlwaysStoppedAnimation<Color>(primary),
               ),
             ),

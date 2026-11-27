@@ -46,8 +46,15 @@ class AudiobookArtworkService {
   Directory? _artworkDir;
   final Uuid _uuid = const Uuid();
 
+  AudiobookArtworkService({Directory? artworkDir}) : _artworkDir = artworkDir;
+
   Future<Directory> _getArtworkDirectory() async {
-    if (_artworkDir != null) return _artworkDir!;
+    if (_artworkDir != null) {
+      if (!await _artworkDir!.exists()) {
+        await _artworkDir!.create(recursive: true);
+      }
+      return _artworkDir!;
+    }
     final appDocs = await getApplicationDocumentsDirectory();
     final dir = Directory('${appDocs.path}/audiobook_covers');
     if (!await dir.exists()) {

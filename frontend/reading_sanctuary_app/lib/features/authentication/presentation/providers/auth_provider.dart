@@ -26,29 +26,79 @@ class AuthState {
   );
 }
 
+class GoogleSignInManager {
+  static GoogleSignIn? _singleton;
+  static String? _singletonKey;
+
+  static GoogleSignIn resolve({
+    required String clientId,
+    String? serverClientId,
+    List<String> scopes = const ['email', 'profile'],
+  }) {
+    final key = '$clientId|${serverClientId ?? ''}|${scopes.join(',')}';
+    if (_singleton != null && _singletonKey == key) {
+      return _singleton!;
+    }
+    _singleton = GoogleSignIn(
+      clientId: clientId,
+      serverClientId: serverClientId,
+      scopes: scopes,
+    );
+    _singletonKey = key;
+    return _singleton!;
+  }
+
+  @visibleForTesting
+  static void resetForTesting() {
+    _singleton = null;
+    _singletonKey = null;
+  }
+}
+
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthApiService _apiService;
   final StateController<String?> _tokenNotifier;
-  final GoogleSignIn _googleSignIn;
+  final GoogleSignIn? _injectedGoogleSignIn;
+  final GoogleSignIn Function()? _googleSignInFactory;
   final AuthSessionStorage _sessionStorage;
+  final StateController<bool>? _sessionRestoredNotifier;
+  final StateController<bool>? _sessionExpiredNotifier;
+  GoogleSignIn? _resolvedGoogleSignIn;
+  Future<bool>? _restoreFuture;
 
   AuthNotifier({
     required AuthApiService apiService,
     required StateController<String?> tokenNotifier,
-    required GoogleSignIn googleSignIn,
+    GoogleSignIn? googleSignIn,
+    GoogleSignIn Function()? googleSignInFactory,
     required AuthSessionStorage sessionStorage,
-  })  : _apiService = apiService,
+    StateController<bool>? sessionRestoredNotifier,
+    StateController<bool>? sessionExpiredNotifier,
+  })  : assert(
+          googleSignIn != null || googleSignInFactory != null,
+          'Either googleSignIn or googleSignInFactory must be provided.',
+        ),
+        _apiService = apiService,
         _tokenNotifier = tokenNotifier,
-        _googleSignIn = googleSignIn,
+        _injectedGoogleSignIn = googleSignIn,
+        _googleSignInFactory = googleSignInFactory,
         _sessionStorage = sessionStorage,
+        _sessionRestoredNotifier = sessionRestoredNotifier,
+        _sessionExpiredNotifier = sessionExpiredNotifier,
         super(const AuthState());
+
+  GoogleSignIn get _googleSignIn =>
+      _resolvedGoogleSignIn ??= (_injectedGoogleSignIn ?? _googleSignInFactory!());
 
   void clearError() => state = state.copyWith(clearError: true);
 
   /// Restores session on app startup if a valid stored session is found.
-  /// - On mobile: Restores persistent session saved in SharedPreferences.
-  /// - On web: Restores session if the browser tab/window session exists.
-  Future<bool> restoreSession() async {
+  /// Deduplicates concurrent or repeated startup restore calls.
+  Future<bool> restoreSession() {
+    return _restoreFuture ??= _performRestoreSession();
+  }
+
+  Future<bool> _performRestoreSession() async {
     try {
       final session = await _sessionStorage.loadSession();
 
@@ -56,16 +106,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       if (session != null && session.token.isNotEmpty) {
         _tokenNotifier.state = session.token;
+        _sessionExpiredNotifier?.state = false;
 
         state = state.copyWith(
-          user: session.user,
+          user: session.user.copyWith(token: session.token),
           isLoading: false,
         );
 
-        // Refresh profile without blocking startup.
-        refreshUserProfile();
+        // Validate session token before protected routes mount and start API requests.
+        await refreshUserProfile();
+        if (!mounted) return false;
 
-        return true;
+        _sessionRestoredNotifier?.state = true;
+        return state.isAuthenticated;
       }
     } catch (_) {
       if (!mounted) return false;
@@ -73,7 +126,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     if (!mounted) return false;
 
+    _tokenNotifier.state = null;
     state = const AuthState();
+    _sessionRestoredNotifier?.state = true;
     return false;
   }
 
@@ -163,7 +218,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (!mounted) return;
 
         _tokenNotifier.state = null;
+        _restoreFuture = Future.value(false);
+        _sessionExpiredNotifier?.state = true;
         state = const AuthState();
+        _sessionRestoredNotifier?.state = true;
       }
     }
   }
@@ -195,6 +253,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (!mounted) return false;
       }
 
+      _restoreFuture = Future.value(true);
+      _sessionExpiredNotifier?.state = false;
+      _sessionRestoredNotifier?.state = true;
       state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
@@ -241,6 +302,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (!mounted) return false;
       }
 
+      _restoreFuture = Future.value(true);
+      _sessionExpiredNotifier?.state = false;
+      _sessionRestoredNotifier?.state = true;
       state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
@@ -313,6 +377,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _sessionStorage.saveSession(token: sessionToken, user: authoritativeUser);
       if (!mounted) return false;
 
+      _restoreFuture = Future.value(true);
+      _sessionExpiredNotifier?.state = false;
+      _sessionRestoredNotifier?.state = true;
       state = state.copyWith(isLoading: false, user: authoritativeUser);
       return true;
     } catch (e) {
@@ -323,10 +390,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    try {
-      await _googleSignIn.signOut();
-    } catch (_) {
-      // Local logout must still complete if Google sign-out is unavailable.
+    // On Web, avoid initializing Google Identity Services on logout if Google Sign-In
+    // was never initialized in this session; on native platforms, clear any cached account.
+    if (!kIsWeb || _resolvedGoogleSignIn != null || _injectedGoogleSignIn != null) {
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {
+        // Local logout must still complete if Google sign-out is unavailable.
+      }
     }
     await _sessionStorage.clearSession();
     try {
@@ -334,6 +405,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await prefs.remove('sanctuary_user_display_name');
     } catch (_) {}
     _tokenNotifier.state = null;
+    _restoreFuture = null;
+    _sessionExpiredNotifier?.state = false;
+    _sessionRestoredNotifier?.state = true;
     if (!mounted) return;
     state = const AuthState();
   }
@@ -347,26 +421,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final googleSignInProvider = Provider<GoogleSignIn>((ref) {
-  final webClientId =
-      dotenv.env['GOOGLE_WEB_CLIENT_ID']?.trim();
+  final webClientId = dotenv.isInitialized
+      ? dotenv.env['GOOGLE_WEB_CLIENT_ID']?.trim()
+      : null;
 
-  final serverClientId =
-      dotenv.env['GOOGLE_SERVER_CLIENT_ID']?.trim();
+  final serverClientId = dotenv.isInitialized
+      ? dotenv.env['GOOGLE_SERVER_CLIENT_ID']?.trim()
+      : null;
 
-  if (webClientId == null || webClientId.isEmpty) {
-    throw StateError(
-      'GOOGLE_WEB_CLIENT_ID is missing from .env',
-    );
-  }
+  final effectiveClientId = (webClientId != null && webClientId.isNotEmpty)
+      ? webClientId
+      : 'dummy_web_client_id';
 
-  return GoogleSignIn(
-    clientId: webClientId,
+  return GoogleSignInManager.resolve(
+    clientId: effectiveClientId,
 
     // Google Sign-In Web does not support serverClientId.
     serverClientId: kIsWeb
         ? null
         : ((serverClientId == null || serverClientId.isEmpty)
-            ? webClientId
+            ? effectiveClientId
             : serverClientId),
 
     scopes: const [
@@ -375,6 +449,10 @@ final googleSignInProvider = Provider<GoogleSignIn>((ref) {
     ],
   );
 });
+
+final authSessionRestoredProvider = StateProvider<bool>((ref) => false);
+
+final authSessionExpiredProvider = StateProvider<bool>((ref) => false);
 
 final authApiServiceProvider = Provider<AuthApiService>((ref) {
   return AuthApiService(apiClient: ref.watch(apiClientProvider));
@@ -388,8 +466,10 @@ final authNotifierProvider =
     // Do not subscribe to token state changes here.
     tokenNotifier: ref.read(authTokenProvider.notifier),
 
-    googleSignIn: ref.watch(googleSignInProvider),
+    googleSignInFactory: () => ref.read(googleSignInProvider),
     sessionStorage: ref.watch(authSessionStorageProvider),
+    sessionRestoredNotifier: ref.read(authSessionRestoredProvider.notifier),
+    sessionExpiredNotifier: ref.read(authSessionExpiredProvider.notifier),
   );
 });
 
